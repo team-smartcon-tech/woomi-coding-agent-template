@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux / Unix
+*~
+.Trash-*/
+.nfs*
+.directory
+
+# editor
+.vscode/
+.idea/
+*.suo
+*.user
+*.userossc
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# JetBrains
+.fleet/
+
+# VS Code test artifacts
+.vscode-test/
+
+# logs
+*.log
+
+# env/secrets
+.env
+.env.local
+.env.*.local
+
+# node
+node_modules/
+dist/
+build/
+
+# cache/temp
+.cache/
+.temp/
+tmp/
