@@ -36,10 +36,54 @@
 
 ## 사용 방법
 
-1. 새 프로젝트를 시작할 때 이 템플릿을 기준으로 규약 문서를 복사/수정합니다.
-2. 에이전트 작업 전에 `AGENT.md` → `ARCHITECTURE.md` → 작업 유형별 문서를 읽도록 합니다.
-3. 코드 리뷰 시 `CODE_STYLE.md`와 `PROJECT_STRUCTURE.md` 기준으로 검토합니다.
-4. 규약이 바뀌면 관련 문서를 함께 업데이트해 일관성을 유지합니다.
+### 1) GitHub에서 템플릿 내려받기
+
+- 이 저장소를 `clone`하거나 ZIP으로 다운로드합니다.
+- 각자 사용하는 프로젝트 루트로 아래 파일/폴더를 복사합니다.
+  - `AGENT.md`
+  - `.agent/` 전체
+  - 필요 시 `.gitignore`, `README.md`
+
+예시 명령 (macOS / Linux):
+
+```bash
+git clone https://github.com/<your-org>/woomi-coding-agent-template.git
+cd woomi-coding-agent-template
+
+# 대상 프로젝트 루트로 파일 복사
+cp AGENT.md /path/to/your-project/
+cp -R .agent /path/to/your-project/
+cp .gitignore /path/to/your-project/
+```
+
+예시 명령 (Windows PowerShell):
+
+```powershell
+git clone https://github.com/<your-org>/woomi-coding-agent-template.git
+Set-Location woomi-coding-agent-template
+
+# 대상 프로젝트 루트로 파일 복사
+Copy-Item .\AGENT.md C:\path\to\your-project\
+Copy-Item .\.agent -Destination C:\path\to\your-project\ -Recurse
+Copy-Item .\.gitignore C:\path\to\your-project\
+```
+
+### 2) 프로젝트 맞춤값으로 초기 세팅
+
+- `STACK.md`에 실제 기술스택을 반영합니다.
+- `ARCHITECTURE.md`에 서비스 경계/통신 규칙을 반영합니다.
+- `PROJECT_STRUCTURE.md`, `CODE_STYLE.md`를 현재 코드베이스 구조에 맞게 조정합니다.
+
+### 3) 팀 개발 프로세스에 연결
+
+- 에이전트 작업 전에 `AGENT.md` → `ARCHITECTURE.md` → 작업 유형별 문서를 읽도록 합니다.
+- 코드 리뷰 시 `CODE_STYLE.md`와 `PROJECT_STRUCTURE.md` 기준으로 검토합니다.
+- 규약이 바뀌면 관련 문서를 함께 업데이트해 일관성을 유지합니다.
+
+### 4) 권장 운영 방식
+
+- 프로젝트 시작 시점에 1회 세팅 후, 스프린트 단위로 문서 갱신 여부를 점검합니다.
+- 새 팀원이 합류하면 이 문서를 온보딩 체크리스트로 사용합니다.
 
 ## 목표
 
