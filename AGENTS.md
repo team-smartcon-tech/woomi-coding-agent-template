@@ -1,8 +1,8 @@
-# AGENT.md
+# AGENTS.md
 
 이 문서는 **웹 서비스 제작 프로젝트**를 대상으로 한 에이전트 행동/구현 규약이다.
 
-- 최종 수정일: 2026-04-13
+- 최종 수정일: 2026-04-14
 
 ## 0. Project Overview
 
@@ -69,7 +69,7 @@
 
 ```shell
 .
-├── .agent/
+├── .agents/
 │   ├── ARCHITECTURE.md
 │   ├── STACK.md
 │   ├── WORKFLOW.md
@@ -89,12 +89,12 @@
 │   └── examples/
 │       ├── GOOD_EXAMPLES.md
 │       └── BAD_EXAMPLES.md
-└── AGENT.md
+└── AGENTS.md
 ```
 
 ```shell
 .
-├── .agent/                              # AI 규칙/컨텍스트 루트
+├── .agents/                              # AI 규칙/컨텍스트 루트
 │   ├── ARCHITECTURE.md                  # 시스템 구조/레이어 규칙
 │   ├── STACK.md                         # 기술 스택/사용 제한
 │   ├── WORKFLOW.md                      # 개발/배포 프로세스
@@ -114,7 +114,7 @@
 │   └── examples/                        # 구현 예시 모음
 │       ├── GOOD_EXAMPLES.md             # 권장 패턴 예시
 │       └── BAD_EXAMPLES.md              # 금지 패턴 예시
-└── AGENT.md                             # 에이전트 진입/행동 규칙
+└── AGENTS.md                             # 에이전트 진입/행동 규칙
 ```
 
 ---
@@ -123,8 +123,8 @@
 
 에이전트는 작업을 수행하기 전에 반드시 아래 순서로 문서를 참고해야 한다.
 
-1. 이 문서 (AGENT.md)
-2. `.agent/ARCHITECTURE.md`
+1. 이 문서 (AGENTS.md)
+2. `.agents/ARCHITECTURE.md`
 3. 작업 유형에 따라 아래 문서를 추가로 참고
 
 ---
@@ -137,10 +137,10 @@
 
 참고 순서:
 
-1. `.agent/ARCHITECTURE.md`
-2. `.agent/Views/DESIGN.md`
-3. `.agent/Views/COMPONENT.md`
-4. `.agent/code/CODE_CONVENTION.md`
+1. `.agents/ARCHITECTURE.md`
+2. `.agents/Views/DESIGN.md`
+3. `.agents/Views/COMPONENT.md`
+4. `.agents/code/CODE_CONVENTION.md`
 
 ---
 
@@ -148,9 +148,9 @@
 
 참고 순서:
 
-1. `.agent/ARCHITECTURE.md`
-2. `.agent/DB.md`
-3. `.agent/code/CODE_CONVENTION.md`
+1. `.agents/ARCHITECTURE.md`
+2. `.agents/DB.md`
+3. `.agents/code/CODE_CONVENTION.md`
 
 ---
 
@@ -158,9 +158,9 @@
 
 참고 순서:
 
-1. `.agent/Views/COMPONENT.md`
-2. `.agent/Views/DESIGN.md`
-3. `.agent/code/CODE_CONVENTION.md`
+1. `.agents/Views/COMPONENT.md`
+2. `.agents/Views/DESIGN.md`
+3. `.agents/code/CODE_CONVENTION.md`
 
 ---
 
@@ -168,9 +168,9 @@
 
 참고 순서:
 
-1. `.agent/DB.md`
-2. `.agent/ARCHITECTURE.md`
-3. `.agent/code/CODE_CONVENTION.md`
+1. `.agents/DB.md`
+2. `.agents/ARCHITECTURE.md`
+3. `.agents/code/CODE_CONVENTION.md`
 
 ---
 
@@ -246,8 +246,8 @@
 문서 간 충돌이 발생할 경우 아래 우선순위를 따른다:
 
 1. 실제 코드 및 설정 파일
-2. AGENT.md
-3. `.agent/ARCHITECTURE.md`
+2. AGENTS.md
+3. `.agents/ARCHITECTURE.md`
 4. 각 영역별 문서
 5. 예시 문서
 
