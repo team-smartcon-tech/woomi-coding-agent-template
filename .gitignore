@@ -46,3 +46,9 @@ build/
 .cache/
 .temp/
 tmp/
+
+# userdocs
+.userdocs
+
+# claude code local settings
+.claude/settings.local.json

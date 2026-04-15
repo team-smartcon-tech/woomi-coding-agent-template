@@ -126,6 +126,7 @@
 1. 이 문서 (AGENTS.md)
 2. `.agents/ARCHITECTURE.md`
 3. 작업 유형에 따라 아래 문서를 추가로 참고
+4. 작업을 시작하기 전에 `.claude/commands/`·`.claude/skills/`·`.codex/prompts/`·`.codex/skills/`·`.github/prompts/`·`.github/instructions/` 중 해당 도구의 Command/Skill이 있는지 확인한다.
 
 ---
 
@@ -271,5 +272,27 @@
 3. 기존 코드 패턴을 분석한다
 4. 규칙을 준수하며 구현한다
 5. 결과를 명확하게 설명한다
+
+---
+
+## 12. Harness Layers
+
+이 저장소는 `.userdocs/harness-engineering/` 가이드를 따르는 4계층 하네스를 갖춘다. 다운스트림 프로젝트가 이 템플릿을 복사하면 슬래시 명령·스킬·훅까지 함께 따라간다.
+
+| 계층 | Claude Code | Codex CLI | GitHub Copilot |
+|---|---|---|---|
+| Commands | `.claude/commands/` | `.codex/prompts/` | `.github/prompts/` |
+| Skills | `.claude/skills/` | `.codex/skills/` | `.github/instructions/` |
+| Rules | `AGENTS.md`, `.agents/` | `AGENTS.md`, `.agents/` | `AGENTS.md`, `.agents/` |
+| Hooks | `.claude/settings.json` + `.githooks/` | `.githooks/` | `.githooks/` |
+
+**언제 쓰는가**
+
+- **Commands** — 반복 워크플로우(`/commit`, `/review-pr`, `/new-feature`, `/new-api`).
+- **Skills** — 체크리스트가 필요한 복잡 시나리오(`db-migration`, `component-generator`).
+- **Rules** — 모든 작업의 기준선 (`AGENTS.md` → `.agents/*`).
+- **Hooks** — 위험 행동 자동 차단 (민감 파일 저장·`main` 푸시 등).
+
+**에이전트는 작업 시작 전, 해당하는 Command/Skill이 있는지 먼저 확인한다.**
 
 ---
