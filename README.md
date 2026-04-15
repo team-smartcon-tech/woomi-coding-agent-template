@@ -22,19 +22,44 @@
 - [`.agents/code/PROJECT_STRUCTURE.md`](./.agents/code/PROJECT_STRUCTURE.md): 프론트/백엔드 파일 구조 규칙
 - [`.agents/code/CODE_STYLE.md`](./.agents/code/CODE_STYLE.md): 코드 스타일 및 작성 가이드
 
+## 하네스 계층 (Harness Layers)
+
+이 템플릿은 `.userdocs/harness-engineering/` 가이드의 4계층 하네스를 기본 장착합니다. Claude Code·Codex CLI·GitHub Copilot 세 에이전트에서 동일한 워크플로우가 작동하도록 미러링되어 있습니다.
+
+- **Commands** — `.claude/commands/`, `.codex/prompts/`, `.github/prompts/`
+- **Skills** — `.claude/skills/`, `.codex/skills/`, `.github/instructions/`
+- **Rules** — `AGENTS.md`, `.agents/`
+- **Hooks** — `.claude/settings.json`, `.githooks/`
+
+자세한 매핑은 `AGENTS.md` §12 참고.
+
 ## 디렉토리 개요
 
 ```shell
 .
 ├── AGENTS.md
-└── .agents/
-    ├── ARCHITECTURE.md
-    ├── STACK.md
-    ├── WORKFLOW.md
-    ├── data/
-    ├── ui/
-    ├── code/
-    └── examples/
+├── .agents/
+│   ├── ARCHITECTURE.md
+│   ├── STACK.md
+│   ├── WORKFLOW.md
+│   ├── data/
+│   ├── ui/
+│   ├── code/
+│   └── examples/
+├── .claude/
+│   ├── commands/
+│   ├── skills/
+│   └── settings.json
+├── .codex/
+│   ├── prompts/
+│   └── skills/
+├── .github/
+│   ├── copilot-instructions.md
+│   ├── prompts/
+│   └── instructions/
+└── .githooks/
+    ├── pre-commit
+    └── pre-push
 ```
 
 ## 사용 방법
@@ -76,6 +101,7 @@ Copy-Item .\.gitignore C:\path\to\your-project\
 - `STACK.md`에 실제 기술스택을 반영합니다.
 - `ARCHITECTURE.md`에 서비스 경계/통신 규칙을 반영합니다.
 - `PROJECT_STRUCTURE.md`, `CODE_STYLE.md`를 현재 코드베이스 구조에 맞게 조정합니다.
+- Git 훅을 활성화합니다: `git config core.hooksPath .githooks && chmod +x .githooks/*` (Windows Git Bash/WSL 기준)
 
 ### 3) 팀 개발 프로세스에 연결
 
