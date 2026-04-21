@@ -139,8 +139,8 @@
 참고 순서:
 
 1. `.agents/ARCHITECTURE.md`
-2. `.agents/Views/DESIGN.md`
-3. `.agents/Views/COMPONENT.md`
+2. `.agents/ui/DESIGN.md`
+3. `.agents/ui/COMPONENT.md`
 4. `.agents/code/CODE_CONVENTION.md`
 
 ---
@@ -159,8 +159,8 @@
 
 참고 순서:
 
-1. `.agents/Views/COMPONENT.md`
-2. `.agents/Views/DESIGN.md`
+1. `.agents/ui/COMPONENT.md`
+2. `.agents/ui/DESIGN.md`
 3. `.agents/code/CODE_CONVENTION.md`
 
 ---
@@ -296,3 +296,18 @@
 **에이전트는 작업 시작 전, 해당하는 Command/Skill이 있는지 먼저 확인한다.**
 
 ---
+
+---
+
+## 13. NestJS Stack Routing (ADD-ON)
+
+프로젝트 스택이 NestJS일 경우(예: `@nestjs/common`/`@nestjs/core` 사용),
+에이전트는 일반 규칙 외에 아래 문서를 **추가로 필수 참조**한다.
+
+1. `.agents/code/NEST_GUIDE.md`
+2. `.agents/code/PROJECT_STRUCTURE.md`
+3. `.agents/code/CODE_STYLE.md`
+4. `.agents/code/TESTING.md`
+
+Nest 작업에서는 controller/service/module/entity 책임 분리를 우선하며,
+스케줄링 관련 변경은 `task + schedule + scheduler`를 함께 검토한다.

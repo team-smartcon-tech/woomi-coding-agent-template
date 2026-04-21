@@ -90,3 +90,14 @@
 
 - 본 문서에 명시된 기술스택은 프로젝트 표준으로 간주한다.
 - 스택 변경이 필요한 경우, 사유와 영향 범위를 문서화한 뒤 합의 후 반영한다.
+
+---
+
+## NEST Backend Add-on
+
+백엔드 스택이 NestJS인 경우, 기본 Backend 스택 지침 대신/추가로
+`.agents/code/NEST_GUIDE.md`를 우선 적용한다.
+
+판단 기준:
+- `@nestjs/common`, `@nestjs/core` 의존성 존재
+- `NestFactory.create(...)` 부트스트랩 존재

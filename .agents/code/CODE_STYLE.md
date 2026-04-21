@@ -542,3 +542,15 @@ await sbc.rpc(SBFunctions.SelectRoomsVoid, {
 - 모든 엔드포인트 위에 사용 목적 주석이 있는가?
 - zod 검증과 타입 추론(`z.infer`)을 적용했는가?
 - `EnvBindings` 타입이 일관되게 사용되는가?
+
+---
+
+## NestJS Add-on Rules
+
+NestJS 프로젝트에서는 아래를 추가 준수한다.
+
+- Controller는 HTTP 입출력/인증만 담당
+- Service에 비즈니스 로직 집중
+- Module은 조립 경계만 담당
+- Entity는 데이터 구조만 담당
+- `src/...` alias import를 우선하고 순환참조를 피한다

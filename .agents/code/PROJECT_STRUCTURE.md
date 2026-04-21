@@ -265,3 +265,27 @@ DB 함수 쿼리, 스키마 백업 SQL, 수동 실행용 SQL을 분리 관리한
 2. DB 연결 생성/초기화 코드는 `lib/db`로 한정한다.
 3. 인증/검증/로깅 등 공통 횡단 로직은 `middlewares`에서 처리한다.
 4. SQL 파일은 목적별(`functions`/`schema`/`statements`)로 분리해 저장한다.
+
+---
+
+## NestJS Structure Add-on
+
+NestJS 스택에서는 아래 구조를 기본 권장 구조로 사용한다.
+
+```text
+src/
+  database/entities/*
+  domains/automation/*
+  domains/identity/*
+  domains/engagement/*
+  observability/*
+  shared/*
+  app.module.ts
+  main.ts
+```
+
+폴더 이동/리팩토링 시 필수 절차:
+1. `src/...` 절대 import 전수 갱신
+2. `app.module.ts` 조립 경로 갱신
+3. `npm run build` 검증
+4. 테스트 및 문서 동기화
