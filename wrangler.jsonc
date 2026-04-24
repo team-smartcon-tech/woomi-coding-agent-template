@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "data-sense-be",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-04-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "alias": {
+    "@nestjs/microservices": "./src/empty-module.ts",
+    "@nestjs/microservices/microservices-module": "./src/empty-module.ts",
+    "@nestjs/websockets/socket-module": "./src/empty-module.ts",
+    "@nestjs/platform-socket.io": "./src/empty-module.ts",
+    "@grpc/grpc-js": "./src/empty-module.ts",
+    "@grpc/proto-loader": "./src/empty-module.ts",
+    "kafkajs": "./src/empty-module.ts",
+    "mqtt": "./src/empty-module.ts",
+    "nats": "./src/empty-module.ts",
+    "ioredis": "./src/empty-module.ts",
+    "amqplib": "./src/empty-module.ts",
+    "amqp-connection-manager": "./src/empty-module.ts",
+  },
+  "dev": {
+    "port": 8787,
+  },
+  "observability": {
+    "enabled": true,
+  },
+}

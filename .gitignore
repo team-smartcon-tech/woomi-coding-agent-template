@@ -1,54 +1,75 @@
-# macOS
-.DS_Store
+# Dependencies
+/node_modules
 
-# Windows
+# Build output
+/dist
+/build
+/.turbo
+*.tsbuildinfo
+
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Tests
+/coverage
+/.nyc_output
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temp/cache
+.temp/
+.tmp/
+.eslintcache
+
+# IDEs and editors
+/.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS - macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# OS - Windows
 Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
-
-# Linux / Unix
-*~
-.Trash-*/
-.nfs*
-.directory
-
-# editor
-.vscode/
-.idea/
-*.suo
-*.user
-*.userossc
-*.sln.docstates
-*.swp
-*.swo
-*~
-
-# JetBrains
-.fleet/
-
-# VS Code test artifacts
-.vscode-test/
-
-# logs
-*.log
-
-# env/secrets
-.env
-.env.local
-.env.*.local
-
-# node
-node_modules/
-dist/
-build/
-
-# cache/temp
-.cache/
-.temp/
-tmp/
-
-# userdocs
-.userdocs
-
-# claude code local settings
-.claude/settings.local.json
