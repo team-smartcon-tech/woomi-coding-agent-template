@@ -311,3 +311,21 @@
 
 Nest 작업에서는 controller/service/module/entity 책임 분리를 우선하며,
 스케줄링 관련 변경은 `task + schedule + scheduler`를 함께 검토한다.
+
+
+## 14. NestJS + Cloudflare Worker Guide (ADD-ON)
+
+NestJS를 Cloudflare Worker 런타임에서 운용하거나, Supabase + Drizzle 구성을 포함한 작업이면 아래 문서를 추가로 반드시 확인한다.
+
+1. `.agents/code/NEST_CF_WORKER.md`
+2. `.agents/code/NEST_GUIDE.md`
+3. `.agents/code/PROJECT_STRUCTURE.md`
+4. `.agents/code/CODE_STYLE.md`
+5. `.agents/code/TESTING.md`
+
+특히 다음 항목은 구현 전에 우선 검토한다.
+
+- `wrangler.jsonc`의 `alias` 등록 원칙
+- `drizzle.config.ts`의 `DATABASE_URL`/SSL/경로 설정
+- `src/db/schema.ts` 작성 규칙
+- `package.json`의 Cloudflare/Drizzle 실행 명령 체계

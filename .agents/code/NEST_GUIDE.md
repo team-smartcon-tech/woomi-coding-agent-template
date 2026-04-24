@@ -60,3 +60,8 @@ src/
 - Controller에서 직접 복잡한 DB 로직 수행
 - Module 경계를 무시한 cross-domain 직접 참조 남발
 - 스케줄 로직 부분 수정 후 task/scheduler 동기화 누락
+
+## 8) Cloudflare Worker + Drizzle Add-on
+
+NestJS를 Cloudflare Worker에서 구동하거나 Supabase/Drizzle을 함께 다루는 경우,
+반드시 `.agents/code/NEST_CF_WORKER.md`를 추가로 먼저 확인한다.
