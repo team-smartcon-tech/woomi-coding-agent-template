@@ -27,3 +27,13 @@ chmod +x .githooks/*
 ```
 
 Claude Code 자동 훅은 [`.claude/settings.json`](./.claude/settings.json)에 정의되어 있다(민감 파일 차단, `main` 푸시 차단, `.agents/` 편집 리마인더).
+
+## Claude MD Management
+
+비개발자가 이 템플릿을 복사해 Claude Code와 함께 운영할 때는 Anthropic의 Claude MD Management 플러그인을 함께 사용하는 것을 권장한다.
+
+- 설치/운영 안내: [`.agents/VIBE_CODING_GUIDE.md`](./.agents/VIBE_CODING_GUIDE.md)
+- 품질 점검 요청: `audit my CLAUDE.md files`
+- 작업 후 기억 갱신: `/revise-claude-md`
+
+공통 규칙은 `CLAUDE.md`에만 남기지 말고 `AGENTS.md` 또는 `.agents/` 문서에도 반영한다. 그래야 Codex와 GitHub Copilot도 같은 기준을 따른다.

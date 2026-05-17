@@ -17,6 +17,7 @@
 ## 핵심 문서
 
 - [`AGENTS.md`](./AGENTS.md): 에이전트 진입 규칙, 문서 우선순위, 행동 원칙
+- [`.agents/VIBE_CODING_GUIDE.md`](./.agents/VIBE_CODING_GUIDE.md): 비개발자를 위한 바이브 코딩 템플릿 적용 가이드
 - [`.agents/ARCHITECTURE.md`](./.agents/ARCHITECTURE.md): 시스템 구조 및 서비스 경계
 - [`.agents/STACK.md`](./.agents/STACK.md): 표준 기술스택
 - [`.agents/code/PROJECT_STRUCTURE.md`](./.agents/code/PROJECT_STRUCTURE.md): 프론트/백엔드 파일 구조 규칙
@@ -33,6 +34,8 @@
 
 자세한 매핑은 `AGENTS.md` §12 참고.
 
+비개발자가 이 템플릿을 복사해 처음 적용할 때는 [`.agents/VIBE_CODING_GUIDE.md`](./.agents/VIBE_CODING_GUIDE.md)를 먼저 읽고, 프로젝트 이름·기술스택·디자인 규칙을 자기 프로젝트에 맞게 채우는 것을 권장합니다.
+
 ## 디렉토리 개요
 
 ```shell
@@ -40,6 +43,7 @@
 ├── AGENTS.md
 ├── .agents/
 │   ├── ARCHITECTURE.md
+│   ├── VIBE_CODING_GUIDE.md
 │   ├── STACK.md
 │   ├── WORKFLOW.md
 │   ├── data/
@@ -69,8 +73,13 @@
 - 이 저장소를 `clone`하거나 ZIP으로 다운로드합니다.
 - 각자 사용하는 프로젝트 루트로 아래 파일/폴더를 복사합니다.
   - `AGENTS.md`
+  - `CLAUDE.md`
   - `.agents/` 전체
-  - 필요 시 `.gitignore`, `README.md`
+  - `.claude/` 전체
+  - `.codex/` 전체
+  - `.github/` 전체
+  - `.githooks/` 전체
+  - 필요 시 `README.md`
 
 예시 명령 (macOS / Linux):
 
@@ -80,8 +89,12 @@ cd woomi-coding-agent-template
 
 # 대상 프로젝트 루트로 파일 복사
 cp AGENTS.md /path/to/your-project/
-cp -R .agent /path/to/your-project/
-cp .gitignore /path/to/your-project/
+cp CLAUDE.md /path/to/your-project/
+cp -R .agents /path/to/your-project/
+cp -R .claude /path/to/your-project/
+cp -R .codex /path/to/your-project/
+cp -R .github /path/to/your-project/
+cp -R .githooks /path/to/your-project/
 ```
 
 예시 명령 (Windows PowerShell):
@@ -92,8 +105,12 @@ Set-Location woomi-coding-agent-template
 
 # 대상 프로젝트 루트로 파일 복사
 Copy-Item .\AGENTS.md C:\path\to\your-project\
-Copy-Item .\.agent -Destination C:\path\to\your-project\ -Recurse
-Copy-Item .\.gitignore C:\path\to\your-project\
+Copy-Item .\CLAUDE.md C:\path\to\your-project\
+Copy-Item .\.agents -Destination C:\path\to\your-project\ -Recurse
+Copy-Item .\.claude -Destination C:\path\to\your-project\ -Recurse
+Copy-Item .\.codex -Destination C:\path\to\your-project\ -Recurse
+Copy-Item .\.github -Destination C:\path\to\your-project\ -Recurse
+Copy-Item .\.githooks -Destination C:\path\to\your-project\ -Recurse
 ```
 
 ### 2) 프로젝트 맞춤값으로 초기 세팅

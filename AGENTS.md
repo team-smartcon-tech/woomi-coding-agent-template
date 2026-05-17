@@ -295,6 +295,15 @@
 
 **에이전트는 작업 시작 전, 해당하는 Command/Skill이 있는지 먼저 확인한다.**
 
+### 12.1 비개발자용 바이브 코딩 가이드
+
+이 템플릿을 복사해 사용하는 사람을 위한 시작 문서는 `.agents/VIBE_CODING_GUIDE.md`이다.
+
+- Codex, Claude Code, GitHub Copilot을 함께 쓰는 운영 흐름을 설명한다.
+- 비개발자가 어떤 문서를 먼저 채우고, AI에게 어떤 순서로 요청할지 안내한다.
+- Claude Code의 Claude MD Management 플러그인을 통해 `CLAUDE.md`를 점검·갱신하는 루틴을 포함한다.
+- 단, 에이전트가 실제 구현 판단에 사용할 1차 규칙은 여전히 `AGENTS.md`와 `.agents/` 하위 규칙 문서이다.
+
 ---
 
 ---
