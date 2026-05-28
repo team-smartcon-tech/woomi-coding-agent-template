@@ -1,25 +1,22 @@
 ---
 name: db-migration
-description: DB 스키마 변경을 문서·마이그레이션·롤백 세 단계로 안전하게 수행한다. 스키마 변경, 컬럼 추가/삭제, 인덱스 수정 요청 시 사용.
+description: DB 스키마 변경, RLS, 인덱스, backfill, Supabase migration 작업 시 사용.
 ---
 
 # DB Migration Skill
 
-## 수행 순서 (필수)
+이 skill은 shim이다. 실제 기준은 아래 문서를 따른다.
 
-1. **문서 갱신** — `.agents/data/DB_SCHEMA.md`에 변경될 테이블/컬럼 반영.
-2. **마이그레이션 파일 생성** — 프로젝트 규칙에 맞는 위치/네이밍으로 생성.
-3. **롤백 플랜 작성** — 마이그레이션 파일 상단 주석에 롤백 SQL 또는 절차 기록.
+1. `.agents/data/MIGRATION.md`
+2. `.agents/data/DB_SCHEMA.md`
+3. `.agents/data/API_CONTRACT.md`
+4. 관련 repository/service/API 구현
 
-## 금지 사항
+핵심 금지:
 
-- 문서 없이 스키마 변경 금지 (`AGENTS.md` §7).
-- NOT NULL 컬럼을 기본값 없이 대용량 테이블에 추가 금지.
-- 운영 중인 컬럼 drop은 먼저 사용 여부를 grep으로 확인.
+- 문서 없이 schema/RLS/index 변경 금지
+- Supabase migration 파일명 임의 생성 금지
+- 사용자 승인 없는 production DB 변경 금지
+- 근거 없는 index 자동 생성 금지
 
-## 체크리스트
-
-- [ ] `.agents/data/DB_SCHEMA.md` 갱신했는가
-- [ ] 마이그레이션 파일에 롤백 절차가 있는가
-- [ ] 기존 쿼리/ORM 코드가 영향받지 않는가
-- [ ] 인덱스 변경이 필요한가
+작업 후 migration, DB schema, API 계약 갱신 여부를 보고한다.

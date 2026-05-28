@@ -4,10 +4,12 @@ description: 새 화면/기능 생성 워크플로우
 
 # /new-feature
 
-`AGENTS.md` §5.1을 따라 다음 순서로 진행한다:
+이 command는 shim이다. 실제 기준은 아래 문서를 따른다.
 
-1. `.agents/ARCHITECTURE.md` — 기능이 들어갈 레이어 확인.
-2. `.agents/ui/DESIGN.md` — 디자인 시스템 확인.
-3. `.agents/ui/COMPONENTS.md` — 재사용 가능한 컴포넌트 탐색.
-4. `.agents/code/CODE_STYLE.md` — 파일 구조/네이밍 확인.
-5. 기존 유사 기능을 먼저 찾아 패턴을 맞춘다. 없을 때만 신규 생성.
+1. `AGENTS.md`의 `Task Routing` 중 `새 화면/UI` 또는 `프론트엔드 기능`
+2. `.agents/ui/DESIGN.md`
+3. `.agents/ui/UX_RULES.md`
+4. `.agents/ui/COMPONENTS.md`
+5. `.agents/code/PROJECT_STRUCTURE.md`와 `.agents/code/CODE_STYLE.md`
+
+기존 유사 화면과 컴포넌트를 먼저 찾고, 없을 때만 새로 만든다.

@@ -1,340 +1,225 @@
-﻿# AGENTS.md
+# AGENTS.md
 
-이 문서는 **웹 서비스 제작 프로젝트**를 대상으로 한 에이전트 행동/구현 규약이다.
+Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 읽는 **공통 진입 규칙**이다.
 
-- 최종 수정일: 2026-05-17
+이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
+
+- 표준 버전: `2.0-draft`
+- 최종 수정일: 2026-05-28
+- 기준 레퍼런스: CTPA Hono Worker layered architecture
+- 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
+
+---
 
 ## 0. Project Overview
 
-이 프로젝트는 [한 줄 설명 작성]
+프로젝트 시작 시 비개발자도 답할 수 있는 항목만 먼저 채운다.
 
-예:
+```txt
+Project name:
+What it does:
+Main users:
+Core workflows:
+Important data:
+Admin roles:
+External services:
+Launch target:
+Do not touch:
+```
 
-* B2B SaaS를 위한 어드민 대시보드
-* 사용자 콘텐츠를 관리하는 웹 플랫폼
+기술 항목은 에이전트가 실제 코드와 설정을 확인한 뒤 관련 `.agents/*` 문서 또는 `Project Override`에 반영한다.
 
 ---
 
-## 1. Tech Stack
+## 1. How To Read
 
-이 프로젝트에서 사용하는 기술 스택:
+작은 작업에서 모든 문서를 읽지 않는다.
 
-### Frontend
+기본 순서:
 
-* [예: React, Vite, TypeScript]
+1. `AGENTS.md`
+2. 아래 `Task Routing` 표에서 작업 유형 확인
+3. 필요한 `.agents/*` 문서만 확인
+4. 실제 코드와 설정 파일 확인
+5. 해당 도구의 command/prompt/skill이 있으면 확인
 
-### Backend
+`WORKFLOW.md`는 모든 작업의 상시 필독 문서가 아니다. 큰 기능, PR/push, 리뷰, 배포, DB/API 계약 변경처럼 절차가 중요한 작업에서 읽는다.
 
-* [예: Node.js, Express, Prisma]
+Windows PowerShell에서 한국어 문서를 확인할 때는 인코딩 깨짐을 피하기 위해 아래처럼 읽는다.
 
-### Database
-
-* [예: PostgreSQL]
-
-### Infra / DevOps
-
-* [예: Docker, AWS, CI/CD 도구]
-
----
-
-## 2. How to Run / Build / Test
-
-### Install
-
-```bash
-[설치 명령]
-```
-
-### Run Dev Server
-
-```bash
-[개발 서버 실행]
-```
-
-### Build
-
-```bash
-[빌드 명령]
-```
-
-### Test
-
-```bash
-[테스트 실행]
+```powershell
+Get-Content -Raw -Encoding UTF8 AGENTS.md
+Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 ```
 
 ---
 
-## 3. Directory Structure (Summary)
+## 2. Task Routing
 
-```shell
+| 작업 유형 | 먼저 읽을 문서 | 필요할 때 추가 확인 |
+|---|---|---|
+| 작은 수정/문구/스타일/명백한 버그 | `AGENTS.md`만 확인한 뒤 실제 파일 확인 | 작업 범위가 넓어지면 해당 영역 문서 |
+| 새 화면/UI | `.agents/ui/DESIGN.md`, `.agents/ui/UX_RULES.md`, `.agents/ui/COMPONENTS.md` | `.agents/code/CODE_STYLE.md`, `.agents/ARCHITECTURE.md` |
+| 프론트엔드 기능 | `.agents/ARCHITECTURE.md`, `.agents/code/PROJECT_STRUCTURE.md`, `.agents/code/CODE_STYLE.md` | `.agents/code/API.md`, `.agents/WORKFLOW.md` |
+| API/백엔드 | `.agents/code/API.md`, `.agents/code/ERROR_HANDLING.md`, `.agents/ARCHITECTURE.md` | `.agents/data/API_CONTRACT.md`, 기존 route/service/repository |
+| DB schema/RLS/index | `.agents/data/DB_SCHEMA.md`, `.agents/data/MIGRATION.md` | `.agents/data/DOMAIN_MODEL.md`, `.agents/code/API.md` |
+| migration/backfill | `.agents/data/MIGRATION.md`, `.agents/data/DB_SCHEMA.md` | `.agents/DEPLOYMENT.md`, `.agents/WORKFLOW.md` |
+| 배포/secret/binding | `.agents/DEPLOYMENT.md` | `wrangler.jsonc`, `.github/workflows/*`, `.agents/WORKFLOW.md` |
+| MCP/외부 도구 연동 | `.agents/TOOLING.md` | `CLAUDE.md`, `CODEX.md`, `.github/*`, 도구별 설정 파일 |
+| PR/push/commit | `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, tool command/prompt |
+| 리뷰 | `.agents/WORKFLOW.md`, 작업 영역별 문서 | diff, tests, 관련 code/data/ui 문서 |
+| 스택 변경 | `.agents/STACK.md` | `.agents/ARCHITECTURE.md`, README |
+| 에이전트 규칙 변경 | `AGENTS.md`, `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, `.github/*` |
+
+---
+
+## 3. Standard Document Map
+
+| 파일 | 역할 |
+|---|---|
+| `.agents/ARCHITECTURE.md` | 아키텍처, 레이어, 런타임 경계 |
+| `.agents/STACK.md` | 표준 기술스택 |
+| `.agents/WORKFLOW.md` | 작업 순서, PR/push, 리뷰, 검증 흐름 |
+| `.agents/DEPLOYMENT.md` | Cloudflare/Wrangler/GitHub Actions 배포 기준 |
+| `.agents/TOOLING.md` | MCP, 브라우저 자동화, 외부 도구 사용 기준 |
+| `.agents/code/API.md` | route/service/repository/API client 기준 |
+| `.agents/code/PROJECT_STRUCTURE.md` | 폴더 구조와 import boundary |
+| `.agents/code/CODE_STYLE.md` | TypeScript, 네이밍, 주석, 코드 스타일 |
+| `.agents/code/ERROR_HANDLING.md` | ErrorCode, response, logging 기준 |
+| `.agents/code/TESTING.md` | 테스트 범위와 검증 명령 |
+| `.agents/data/DOMAIN_MODEL.md` | 진행 중 작성하는 도메인 모델 |
+| `.agents/data/DB_SCHEMA.md` | DB schema, RLS, index 가드레일 |
+| `.agents/data/API_CONTRACT.md` | 진행 중 작성하는 API 계약 |
+| `.agents/data/MIGRATION.md` | Supabase PostgreSQL migration 전략 |
+| `.agents/ui/DESIGN.md` | 디자인 원칙 |
+| `.agents/ui/UX_RULES.md` | loading/empty/error/permission, form, navigation, shortcut, feedback UX |
+| `.agents/ui/COMPONENTS.md` | 진행 중 작성하는 공통 컴포넌트 목록 |
+| `.agents/examples/GOOD_EXAMPLES.md` | 진행 중 축적하는 좋은 패턴 |
+| `.agents/examples/BAD_EXAMPLES.md` | 진행 중 축적하는 금지 패턴 |
+
+표준 제공 문서는 고정된 절대 규칙이 아니다. 새 프로젝트 또는 기존 프로젝트에 적용할 때는 실제 코드, 프레임워크, 배포 방식, API 계약, 디자인 시스템을 확인한 뒤 프로젝트 현실에 맞게 수정한다.
+
+---
+
+## 4. Directory Baseline
+
+권장 루트 구조:
+
+```txt
 .
-├── .agents/
-│   ├── ARCHITECTURE.md
-│   ├── STACK.md
-│   ├── WORKFLOW.md
-│   ├── data/
-│   │   ├── DB_SCHEMA.md
-│   │   ├── DOMAIN_MODEL.md
-│   │   └── API_CONTRACT.md
-│   ├── ui/
-│   │   ├── DESIGN.md
-│   │   ├── COMPONENTS.md
-│   │   └── UX_RULES.md
-│   ├── code/
-│   │   ├── CODE_STYLE.md
-│   │   ├── PROJECT_STRUCTURE.md
-│   │   ├── TESTING.md
-│   │   └── ERROR_HANDLING.md
-│   └── examples/
-│       ├── GOOD_EXAMPLES.md
-│       └── BAD_EXAMPLES.md
-└── AGENTS.md
+├── apps/                 # 실행/배포 단위
+├── packages/             # 공유 코드
+├── .agents/              # 에이전트 공통 규칙과 컨텍스트
+├── .claude/              # Claude Code commands/skills/settings
+├── .codex/               # Codex prompts/skills/hooks
+├── .github/              # Copilot prompts/instructions, CI
+├── .githooks/            # 로컬 git hook
+├── docs/                 # 사람용 문서
+├── scripts/              # 반복 자동화
+├── supabase/             # migration, seed, local Supabase 설정
+├── AGENTS.md
+├── CLAUDE.md
+├── CODEX.md
+└── README.md
 ```
 
-```shell
-.
-├── .agents/                              # AI 규칙/컨텍스트 루트
-│   ├── ARCHITECTURE.md                  # 시스템 구조/레이어 규칙
-│   ├── STACK.md                         # 기술 스택/사용 제한
-│   ├── WORKFLOW.md                      # 개발/배포 프로세스
-│   ├── data/                            # 데이터 계층 정의
-│   │   ├── DB_SCHEMA.md                 # DB 테이블/컬럼 구조
-│   │   ├── DOMAIN_MODEL.md              # 도메인/엔티티 관계
-│   │   └── API_CONTRACT.md              # API 요청/응답 스펙
-│   ├── ui/                              # UI/프론트 규칙
-│   │   ├── DESIGN.md                    # 디자인 시스템
-│   │   ├── COMPONENTS.md                # 컴포넌트 구조/재사용
-│   │   └── UX_RULES.md                  # UX 패턴/상태 규칙
-│   ├── code/                            # 코드 작성 규칙
-│   │   ├── CODE_STYLE.md                # 네이밍/포맷 규칙
-│   │   ├── PROJECT_STRUCTURE.md         # 디렉토리 구조 규칙
-│   │   ├── TESTING.md                   # 테스트 기준/전략
-│   │   └── ERROR_HANDLING.md            # 에러 처리/로깅
-│   └── examples/                        # 구현 예시 모음
-│       ├── GOOD_EXAMPLES.md             # 권장 패턴 예시
-│       └── BAD_EXAMPLES.md              # 금지 패턴 예시
-└── AGENTS.md                             # 에이전트 진입/행동 규칙
+세부 구조와 import boundary는 `.agents/ARCHITECTURE.md`와 `.agents/code/PROJECT_STRUCTURE.md`를 따른다.
+
+---
+
+## 5. Tool-Specific Files
+
+| 도구 | 보충 문서 | 반복 작업 | 복잡 작업 |
+|---|---|---|---|
+| Claude Code | `CLAUDE.md` | `.claude/commands/` | `.claude/skills/` |
+| Codex | `CODEX.md` | `.codex/prompts/` | `.codex/skills/` |
+| GitHub Copilot | `.github/copilot-instructions.md` | `.github/prompts/` | `.github/instructions/` |
+
+도구별 문서에는 공통 규칙을 숨기지 않는다. 공통 규칙은 `AGENTS.md` 또는 `.agents/*`에 반영한다.
+
+---
+
+## 6. Non-Negotiable Rules
+
+절대 금지:
+
+- API key, service role key, JWT secret 하드코딩
+- 실제 값이 들어간 `.env` 커밋
+- 프론트엔드에 서버 secret 노출
+- 인증 없이 private storage URL 발급
+- 사용자 승인 없는 `git commit`, `git push`, `git pull`
+- 사용자 승인 없는 production 배포
+- 사용자 승인 없는 운영 DB 변경
+- 사용자 승인 없는 destructive migration
+- `git reset --hard` 또는 사용자 변경사항 되돌리기
+- 템플릿 규칙을 실제 프로젝트 코드보다 우선해 기계적으로 강제
+
+필수:
+
+- secret은 환경변수 또는 platform secret으로 관리한다.
+- MCP와 외부 도구는 read-only 조회와 write/delete/deploy 작업을 구분해서 사용한다.
+- 파일 업로드는 확장자, MIME, 크기, 권한을 검증한다.
+- DB/API/배포 변경은 관련 `.agents/*` 문서를 함께 갱신한다.
+- 반복되는 UX 패턴이나 공통 화면 정책이 생기면 `.agents/ui/UX_RULES.md` 또는 프로젝트별 UX 문서에 기록한다.
+- 검증하지 못한 항목은 최종 보고에 명시한다.
+
+---
+
+## 7. Quality Gates
+
+가능한 범위에서 아래를 실행한다.
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
----
+Cloudflare Worker 배포 전에는 프로젝트별 dry-run 명령을 우선한다.
 
-## 4. Agent Reading Order (IMPORTANT)
+```bash
+pnpm --filter <worker-package> run deploy:dry
+```
 
-에이전트는 작업을 수행하기 전에 반드시 아래 순서로 문서를 참고해야 한다.
-
-1. 이 문서 (AGENTS.md)
-2. `.agents/ARCHITECTURE.md`
-3. 작업 유형에 따라 아래 문서를 추가로 참고
-4. 작업을 시작하기 전에 `.claude/commands/`·`.claude/skills/`·`.codex/prompts/`·`.codex/skills/`·`.github/prompts/`·`.github/instructions/` 중 해당 도구의 Command/Skill이 있는지 확인한다.
+프로젝트에 없는 명령은 억지로 만들지 않는다. 실행하지 못한 검증은 이유를 보고한다.
 
 ---
 
-## 5. Task Routing Rules (CRITICAL)
+## 8. Conflict Resolution Priority
 
-작업 유형에 따라 반드시 다음 문서를 먼저 읽어야 한다.
-
-### 5.1 새로운 화면 / UI 생성
-
-참고 순서:
-
-1. `.agents/ARCHITECTURE.md`
-2. `.agents/ui/DESIGN.md`
-3. `.agents/ui/COMPONENT.md`
-4. `.agents/code/CODE_CONVENTION.md`
-
----
-
-### 5.2 API / Backend 로직 구현
-
-참고 순서:
-
-1. `.agents/ARCHITECTURE.md`
-2. `.agents/DB.md`
-3. `.agents/code/CODE_CONVENTION.md`
-
----
-
-### 5.3 공통 컴포넌트 생성
-
-참고 순서:
-
-1. `.agents/ui/COMPONENT.md`
-2. `.agents/ui/DESIGN.md`
-3. `.agents/code/CODE_CONVENTION.md`
-
----
-
-### 5.4 데이터 구조 / DB 변경
-
-참고 순서:
-
-1. `.agents/DB.md`
-2. `.agents/ARCHITECTURE.md`
-3. `.agents/code/CODE_CONVENTION.md`
-
----
-
-## 6. Core Development Rules (MUST FOLLOW)
-
-에이전트는 아래 규칙을 반드시 지켜야 한다.
-
-### 6.1 구조 준수
-
-* 기존 프로젝트 구조를 반드시 따른다
-* 새로운 패턴을 임의로 만들지 않는다
-* 기존 코드와 일관성을 유지한다
-
-### 6.2 재사용 우선
-
-* 기존 컴포넌트/유틸/서비스를 먼저 탐색한다
-* 중복 구현을 금지한다
-
-### 6.3 아키텍처 준수
-
-* 레이어 책임을 반드시 지킨다
-* 허용되지 않은 의존성 참조 금지
-
-### 6.4 코드 품질
-
-* 가독성을 최우선으로 한다
-* 불필요한 복잡성 추가 금지
-* 명확한 네이밍 사용
-
-### 6.5 테스트
-
-* 기능 구현 시 테스트 가능성을 고려한다
-* 기존 테스트 스타일을 따른다
-
----
-
-## 7. Forbidden Actions (DO NOT)
-
-에이전트는 다음을 절대 수행하면 안 된다.
-
-* 임의로 라이브러리 추가
-* 기존 구조를 무시한 파일 생성
-* 디자인 규칙을 따르지 않는 UI 생성
-* DB 스키마를 문서 없이 변경
-* 기존 코드 스타일을 무시한 구현
-
----
-
-## 8. Output Requirements
-
-에이전트는 결과를 생성할 때 다음을 반드시 포함해야 한다.
-
-### 8.1 코드 생성 시
-
-* 파일 경로 명시
-* 전체 코드 제공 (부분 코드 금지)
-* 필요한 import 포함
-
-### 8.2 수정 작업 시
-
-* 변경 전/후 설명
-* 영향 범위 설명
-
-### 8.3 UI 작업 시
-
-* 사용된 컴포넌트 명시
-* 디자인 규칙 준수 여부 설명
-
----
-
-## 9. Conflict Resolution Priority
-
-문서 간 충돌이 발생할 경우 아래 우선순위를 따른다:
+문서 간 충돌이 발생하면 아래 순서를 따른다.
 
 1. 실제 코드 및 설정 파일
-2. AGENTS.md
-3. `.agents/ARCHITECTURE.md`
-4. 각 영역별 문서
-5. 예시 문서
+2. 가장 가까운 하위 `AGENTS.md`
+3. 프로젝트별 `Project Override`
+4. 루트 `AGENTS.md`
+5. 작업 유형별 `.agents/*` 문서
+6. 도구별 `CLAUDE.md`, `CODEX.md`, `.github/*`
+7. 예시 문서
+
+보안, 배포, 데이터 손실 관련 공통 금지 규칙은 프로젝트 문서로 완화할 수 없다.
 
 ---
 
-## 10. General Guidelines
+## 9. Output Requirements
 
-* 항상 기존 패턴을 먼저 분석한다
-* 추측하지 말고 근거 기반으로 구현한다
-* 불확실한 경우 명시적으로 가정한다
-* 최소한의 변경으로 목적을 달성한다
+작업 완료 보고에는 아래를 포함한다.
 
----
+```txt
+Changed:
+Files:
+Validation:
+Skipped validation:
+Risk:
+```
 
-## 11. Agent Behavior Summary
-
-에이전트는 다음과 같이 행동해야 한다:
-
-1. 작업 유형을 먼저 분류한다
-2. 해당 작업에 필요한 문서를 읽는다
-3. 기존 코드 패턴을 분석한다
-4. 규칙을 준수하며 구현한다
-5. 결과를 명확하게 설명한다
+리뷰 요청을 받으면 구현 설명보다 findings를 먼저 쓴다. 문제가 없으면 "발견한 문제 없음"이라고 명확히 말한다.
 
 ---
 
-## 12. Harness Layers
+## 10. Project Override
 
-이 저장소는 `.userdocs/harness-engineering/` 가이드를 따르는 4계층 하네스를 갖춘다. 다운스트림 프로젝트가 이 템플릿을 복사하면 슬래시 명령·스킬·훅까지 함께 따라간다.
+각 프로젝트는 이 아래에 프로젝트 전용 규칙을 추가한다.
 
-| 계층 | Claude Code | Codex CLI | GitHub Copilot |
-|---|---|---|---|
-| Commands | `.claude/commands/` | `.codex/prompts/` | `.github/prompts/` |
-| Skills | `.claude/skills/` | `.codex/skills/` | `.github/instructions/` |
-| Rules | `AGENTS.md`, `.agents/` | `AGENTS.md`, `.agents/` | `AGENTS.md`, `.agents/` |
-| Hooks | `.claude/settings.json` + `.githooks/` | `.githooks/` | `.githooks/` |
-
-**언제 쓰는가**
-
-- **Commands** — 반복 워크플로우(`/commit`, `/review-pr`, `/new-feature`, `/new-api`).
-- **Skills** — 체크리스트가 필요한 복잡 시나리오(`db-migration`, `component-generator`).
-- **Rules** — 모든 작업의 기준선 (`AGENTS.md` → `.agents/*`).
-- **Hooks** — 위험 행동 자동 차단 (민감 파일 저장·`main` 푸시 등).
-
-**에이전트는 작업 시작 전, 해당하는 Command/Skill이 있는지 먼저 확인한다.**
-
-### 12.1 비개발자용 바이브 코딩 가이드
-
-이 템플릿을 복사해 사용하는 사람을 위한 시작 문서는 `.agents/VIBE_CODING_GUIDE.md`이다.
-
-- Codex, Claude Code, GitHub Copilot을 함께 쓰는 운영 흐름을 설명한다.
-- 비개발자가 어떤 문서를 먼저 채우고, AI에게 어떤 순서로 요청할지 안내한다.
-- Claude Code의 Claude MD Management 플러그인을 통해 `CLAUDE.md`를 점검·갱신하는 루틴을 포함한다.
-- 단, 에이전트가 실제 구현 판단에 사용할 1차 규칙은 여전히 `AGENTS.md`와 `.agents/` 하위 규칙 문서이다.
-
----
-
----
-
-## 13. NestJS Stack Routing (ADD-ON)
-
-프로젝트 스택이 NestJS일 경우(예: `@nestjs/common`/`@nestjs/core` 사용),
-에이전트는 일반 규칙 외에 아래 문서를 **추가로 필수 참조**한다.
-
-1. `.agents/code/NEST_GUIDE.md`
-2. `.agents/code/PROJECT_STRUCTURE.md`
-3. `.agents/code/CODE_STYLE.md`
-4. `.agents/code/TESTING.md`
-
-Nest 작업에서는 controller/service/module/entity 책임 분리를 우선하며,
-스케줄링 관련 변경은 `task + schedule + scheduler`를 함께 검토한다.
-
-
-## 14. NestJS + Cloudflare Worker Guide (ADD-ON)
-
-NestJS를 Cloudflare Worker 런타임에서 운용하거나, Supabase + Drizzle 구성을 포함한 작업이면 아래 문서를 추가로 반드시 확인한다.
-
-1. `.agents/code/NEST_CF_WORKER.md`
-2. `.agents/code/NEST_GUIDE.md`
-3. `.agents/code/PROJECT_STRUCTURE.md`
-4. `.agents/code/CODE_STYLE.md`
-5. `.agents/code/TESTING.md`
-
-특히 다음 항목은 구현 전에 우선 검토한다.
-
-- `wrangler.jsonc`의 `alias` 등록 원칙
-- `drizzle.config.ts`의 `DATABASE_URL`/SSL/경로 설정
-- `src/db/schema.ts` 작성 규칙
-- `package.json`의 Cloudflare/Drizzle 실행 명령 체계
+프로젝트별 규칙은 공통 표준보다 구체적일 때 우선한다. 단, 보안, 배포, 데이터 손실 관련 금지 규칙은 프로젝트 규칙으로 완화할 수 없다.

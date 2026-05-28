@@ -5,10 +5,12 @@ description: 새 API 엔드포인트 구현 워크플로우
 
 # /new-api
 
-`AGENTS.md` §5.2를 따라 다음 순서로 진행한다:
+이 prompt는 shim이다. 실제 기준은 아래 문서를 따른다.
 
-1. `.agents/ARCHITECTURE.md` — 어느 서비스/레이어에 속하는지 확인.
-2. `.agents/data/API_CONTRACT.md` — 요청/응답 스펙 정의 또는 참조.
-3. `.agents/data/DOMAIN_MODEL.md` — 엔티티 관계 확인.
-4. `.agents/data/DB_SCHEMA.md` — DB 변경 필요 여부 판단. 필요 시 `db-migration` 스킬 호출.
-5. `.agents/code/CODE_STYLE.md` + `ERROR_HANDLING.md`로 구현.
+1. `AGENTS.md`의 `Task Routing` 중 `API/백엔드`
+2. `.agents/code/API.md`
+3. `.agents/code/ERROR_HANDLING.md`
+4. `.agents/data/API_CONTRACT.md`
+5. DB 변경이 있으면 `.agents/data/DB_SCHEMA.md`와 `.agents/data/MIGRATION.md`
+
+기존 route/service/repository 패턴을 먼저 찾고, 새 구조를 임의로 만들지 않는다.
