@@ -1,191 +1,192 @@
 # ARCHITECTURE.md
 
-## 목적
-
-이 문서는 본 프로젝트의 표준 아키텍처 원칙을 정의한다.
-에이전트와 개발자는 기능 구현 전에 본 문서를 우선 해석하고, 구조를 임의로 변경하지 않는다.
+이 문서는 Woomi 신규 프로젝트의 표준 아키텍처를 정의한다. `AGENTS.md`는 진입 규칙이고, 상세 구조 판단은 이 문서를 따른다.
 
 ---
 
-## 1. 서비스 구조
+## 1. Core Architecture
 
-### 1.1 기본 구조
+회사의 기본 아키텍처는 **도메인 우선 모듈러 모놀리스 + 도메인 내부 레이어드 아키텍처**다.
 
-- 본 서비스는 Client - Server 아키텍처를 따른다.
-- 모든 애플리케이션은 Cloudflare Workers 기반으로 동작한다.
-- 프론트엔드와 백엔드는 각각 독립된 Worker 인스턴스로 배포한다.
+작은 서비스는 전역 레이어 구조를 사용할 수 있다.
 
-### 1.2 프론트엔드 구조
+```txt
+routes -> services -> repositories -> database/external systems
+```
 
-- 프론트엔드는 단일 Worker 인스턴스로 구성한다.
-- 모든 사용자 요청의 진입점은 프론트엔드다.
-- 프론트엔드는 UI/상태/표현 로직에 집중하며, 비즈니스 로직은 백엔드에 위임한다.
+도메인이 많은 서비스는 도메인별로 나누고, 각 도메인 안에서 레이어를 분리한다.
 
-### 1.3 백엔드 구조
-
-- 백엔드는 도메인 또는 기능 단위로 분리된 복수 Worker로 구성할 수 있다.
-- 각 서비스는 하나의 명확한 책임만 가진다 (Single Responsibility).
-
-서비스 분리 기준:
-- 도메인 책임이 명확히 분리되는 경우
-- 독립 배포가 필요한 경우
-- 트래픽/성능 특성이 다른 경우
-
-제약 조건:
-- 초기 단계에서는 최소 서비스 개수로 시작한다.
-- 과도한 마이크로서비스 분리는 금지한다.
-- 백엔드 간 순환 의존성을 금지한다.
-
-### 1.4 서비스 통신 구조
-
-- 서비스 간 내부 통신은 Cloudflare Service Binding을 기본으로 사용한다.
-- 내부 서비스 호출에 외부 URL 기반 `fetch`를 사용하지 않는다(예외 승인 케이스 제외).
-- 내부 호출은 네트워크 홉 최소화와 경계 명확화를 목표로 설계한다.
-
-### 1.5 인증 아키텍처 (IdP)
-
-- 백엔드 중 하나는 인증 전용 서비스(Auth Worker, IdP 역할)로 둔다.
-- 인증은 `accessToken` 기반으로 처리한다.
-- 각 도메인 서비스는 토큰 검증 결과를 기반으로 인가/비즈니스 처리를 수행한다.
-
-인증 구조 특징:
-- 중앙 인증 서비스 유지
-- 인증 로직의 중복 구현 금지
-- 각 서비스는 인증 검증 라이브러리/정책을 공유
-
-확장 전략:
-- 규모 확장 시 외부 IdP(Auth0, Cognito 등) 연동 가능
-- 또는 인증 Worker를 별도 독립 서비스로 분리 가능
-
-### 1.6 토큰 및 시간 동기화 정책
-
-- 토큰 검증에는 clock skew를 고려해야 한다.
-- 운영 환경은 시간 동기화(NTP/NTS)를 적용한다.
-
-PoC 단계 정책:
-- 토큰 검증 `leeway`를 허용한다.
-- 기본 허용값: `±60초` (필요 시 팀 합의로 조정)
-
-운영 환경 정책:
-- 시간 동기화 적용을 전제로 최소 leeway 사용
-- 과도한 leeway 사용 금지
+```txt
+src/
+  domains/
+  platform/
+```
 
 ---
 
-## 2. Cloudflare Workers 배포 및 바인딩
+## 2. Backend Architecture
 
-### 2.1 바인딩 구조
+```txt
+src/
+  domains/                 # 비즈니스 도메인 단위 기능 묶음
+    identity-access/        # 로그인, 세션, 사용자, 권한 같은 인증/인가 도메인
+      identity.route.ts     # HTTP 요청/응답, 요청 검증, service 호출
+      identity.service.ts   # 비즈니스 규칙, 권한 판단, 상태 전이
+      identity.repository.ts # DB/RPC/storage 접근
+      identity.schema.ts    # zod 요청/응답 검증 스키마
+      identity.middleware.ts # 해당 도메인에만 필요한 요청 전처리/권한 가드
 
-- 프론트엔드는 각 백엔드 Worker와 1:N 바인딩 관계를 가진다.
-- 백엔드는 필요한 경우에만 선택적으로 서로 바인딩한다.
-- 인증 서비스(Auth Worker)는 인증이 필요한 모든 서비스에서 참조 가능해야 한다.
+    site-registry/          # 현장, 조직, 프로젝트 같은 핵심 자원 관리 도메인
+      site.route.ts
+      site.service.ts
+      site.repository.ts
+      site.schema.ts
 
-### 2.2 바인딩 목적
+  platform/                 # 모든 도메인이 공유하는 기술 기반 계층
+    auth/                   # 인증 컨텍스트, 세션/JWT 검증, role helper
+    db/                     # Supabase client, table/rpc 상수, DB 공통 유틸
+    env/                    # 환경변수 파싱, 필수 secret 검증
+    errors/                 # AppError, ErrorCode, error middleware
+    middleware/             # 전역 CORS, auth, logging, rate limit, request id middleware
+    response/               # ok/created/validationError 같은 표준 응답 helper
+    storage/                # R2/Supabase Storage 업로드, signed URL, path helper
+    observability/          # logging, tracing, metrics, health check
+```
 
-- 내부 도메인 서비스 호출
-- 인증 서비스 접근
-- 서비스 간 오케스트레이션
+`domains/`에는 제품의 업무 개념을 넣고, `platform/`에는 특정 업무를 모르는 기술 공통 기능만 넣는다.
 
-### 2.3 설정 관리
+예:
 
-- 모든 바인딩은 `wrangler.jsonc`에 명시한다.
-- 바인딩 이름은 도메인 책임이 드러나게 작성한다.
+- "일일보고서 생성"은 `domains/daily-report`
+- "Supabase client 생성"은 `platform/db`
 
-예시:
-- `AUTH_SERVICE`
-- `USER_SERVICE`
-- `CONTENT_SERVICE`
+middleware는 적용 범위에 따라 위치를 나눈다.
 
-### 2.4 호출 규칙 (CRITICAL)
-
-- 내부 서비스 호출은 반드시 Service Binding을 사용한다.
-- 내부 호출을 위한 외부 URL(`fetch`) 사용은 금지한다.
-- 인증 관련 호출은 반드시 중앙 Auth Worker를 경유한다.
-
----
-
-## 3. 런타임 및 데이터 접근 제약
-
-### 3.1 Workers 런타임 제약
-
-- Cloudflare Workers는 기본적으로 Stateless 실행 모델을 따른다.
-- 실행 시간/CPU/메모리 제약을 고려해 로직을 설계한다.
-- 장기 상태 저장은 외부 저장소를 사용한다.
-
-### 3.2 데이터 계층 원칙
-
-- DBMS는 PostgreSQL(Supabase 인스턴스)을 사용한다.
-- DB 접근은 SupabaseJS 클라이언트를 표준 드라이버로 사용한다.
-- 서비스별 데이터 접근 경계를 분리해 결합도를 낮춘다.
+- 모든 API에 적용되는 CORS, request id, logging, auth context, rate limit은 `platform/middleware`
+- 특정 도메인에만 필요한 권한 가드나 요청 전처리는 해당 도메인의 `*.middleware.ts`
 
 ---
 
-## 4. 아키텍처 원칙 (IMPORTANT)
+## 3. Frontend Architecture
 
-### 4.1 단일 진입점
+신규 프로젝트의 프론트엔드는 **React Router v7 Framework Mode + Feature-Sliced Design 계열 구조**를 기본으로 한다.
 
-- 사용자 요청은 프론트엔드를 통해 시작한다.
+React Router Framework Mode에서는 `apps/web/app`이 프론트엔드 앱 루트다. URL에 직접 연결되는 파일은 `routes/`에 두고, 실제 기능과 도메인 모델은 `features/`와 `entities/` 아래에서 slice로 나눈다.
 
-### 4.2 책임 분리
+기존 FSD 개념은 유지한다. React Router v7 Framework Mode를 적용하면서 필수로 바뀌는 것은 URL 진입점 계층이 `pages/`가 아니라 `routes/`가 된다는 점이다.
 
-- 프론트엔드: UI, 사용자 인터랙션, 화면 상태
-- 백엔드: 비즈니스 로직, 데이터 처리, 인증/인가
+```txt
+apps/web/
+  app/                       # React Router Framework app root
+    root.tsx                 # root layout, provider, global error boundary
+    routes.ts                # route config. 파일 라우팅을 쓰면 생략 가능
+    routes/                  # URL에 직접 연결되는 route module
+      _index.tsx
+      admin.dashboard.tsx
+      sites.$siteId.tsx
 
-### 4.3 서비스 독립성
+    features/                # 사용자가 수행하는 기능 단위 slice
+      daily-report/
+        components/
+        hooks/
+        api.ts
+        types.ts
 
-- 각 백엔드는 독립 배포 가능해야 한다.
-- 배포 단위와 책임 경계를 일치시킨다.
+    entities/                # 여러 feature가 공유하는 핵심 데이터 모델 slice
+      site/
+        components/
+        hooks/
+        types.ts
 
-### 4.4 내부 통신 최적화
+    shared/                  # 특정 도메인을 모르는 공통 UI/유틸
+      ui/
+      api/
+      lib/
+      config/
+      styles/
+```
 
-- 내부 통신은 Service Binding 기반으로 일관되게 구성한다.
+프론트엔드 의존성 방향:
 
-### 4.5 일관된 기술스택 준수
+```txt
+root/routes -> features -> entities -> shared
+```
 
-- 프론트엔드/백엔드/DB 접근 방식은 `STACK.md` 표준을 따른다.
+금지 흐름:
 
----
+```txt
+shared -> features
+entities -> features
+features -> routes
+components -> raw fetch 반복 작성
+routes -> Supabase 직접 접근
+```
 
-## 5. 금지사항 (DO NOT)
-
-에이전트 및 개발자는 아래 항목을 수행하면 안 된다.
-
-- 프론트엔드에 비즈니스 로직을 직접 구현
-- 인증 로직을 각 서비스에 중복 구현
-- 서비스 간 순환 의존성 생성
-- 내부 서비스 호출을 외부 URL `fetch`로 구현
-- 문서화/합의 없이 임의 서비스 신설
-- `wrangler.jsonc` 바인딩 정의 없이 내부 호출 코드 작성
-
----
-
-## 6. Agent Implementation Rules (FOR CODEX)
-
-코드 생성/수정 시 반드시 아래 순서를 따른다.
-
-1. 작업 전 `AGENT.md`와 본 문서를 먼저 해석한다.
-2. 기능의 서비스 책임(Frontend/Auth/Domain)을 먼저 분류한다.
-3. 책임에 맞는 Worker에 기능을 배치한다.
-4. 서비스 간 호출은 Service Binding 기준으로 구현한다.
-5. 기존 경계/의존성/배포 단위를 임의 변경하지 않는다.
-
----
-
-## 7. 확장 전략 (Future)
-
-- 서비스 증가 시 Gateway Worker 도입 가능
-- 공통 인증/관측/정책 계층 분리 가능
-- 도메인 단위 마이크로서비스 또는 Vertical Slice로 확장 가능
-
-확장 시에도 아래 원칙은 유지한다:
-- 단일 책임
-- 독립 배포 가능성
-- 순환 의존성 금지
-- 내부 통신은 Service Binding 우선
+작은 프로젝트는 `entities/`를 생략할 수 있다. 하지만 `shared/`에는 업무 지식이 들어가면 안 된다.
 
 ---
 
-## 참고 문서
+## 4. Runtime Boundary
 
-- Cloudflare Workers: https://developers.cloudflare.com/workers/
-- Service Bindings: https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/
+프론트엔드와 백엔드는 하나의 모노레포 안에 둘 수 있지만, 물리적으로는 분리한다.
+
+```txt
+apps/
+  web/
+  worker/
+
+packages/
+  shared/
+```
+
+허용:
+
+```txt
+apps/web -> packages/shared
+apps/worker -> packages/shared
+apps/web -> HTTP API -> apps/worker
+```
+
+금지:
+
+```txt
+apps/web -> apps/worker/src/domains/*
+apps/worker -> apps/web/app/features/*
+packages/shared -> apps/web 또는 apps/worker
+```
+
+즉, 배포 단위와 런타임은 분리하고, 제품/도메인/문서/이슈 관리는 하나의 저장소에서 통합한다.
+
+---
+
+## 5. Multi-Worker Example
+
+아래 구조는 `smart-schedule-X` 계열 프로젝트를 기준으로 든 **예시**다. 모든 프로젝트가 반드시 이 앱 이름과 개수를 따라야 하는 것은 아니다.
+
+```txt
+apps/
+  web/
+  gateway-worker/
+  dcr-worker/
+  rag-worker/
+  ezgolgu-worker/
+
+packages/
+  shared/
+  platform/
+```
+
+예시 구조에서 `gateway-worker`는 다른 Worker의 내부 코드를 import하지 않는다. 필요한 경우 Cloudflare service binding 또는 HTTP API로 호출한다. 공통 타입과 계약은 `packages/shared`에 둔다.
+
+---
+
+## 6. Core Rules
+
+- route는 HTTP 입출력만 담당한다.
+- service는 비즈니스 규칙을 담당한다.
+- repository는 데이터 접근만 담당한다.
+- middleware는 요청을 통과시킬지 막을지에 집중한다.
+- 복잡한 권한 판단이나 상태 전이는 service로 넘긴다.
+- 도메인 간 직접 repository 호출은 금지한다.
+- shared에는 업무를 모르는 순수 공통만 둔다.
+- platform에는 서버/Worker 중심 공통 기반만 둔다.

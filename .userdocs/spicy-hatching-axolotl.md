@@ -61,8 +61,8 @@
 |---|---|---|
 | `/commit` | 변경사항 요약 → 컨벤션 메시지 → git commit | `.agents/code/CODE_STYLE.md` |
 | `/review-pr` | PR diff 기반 코드 리뷰 | `CODE_STYLE.md`, `ARCHITECTURE.md` |
-| `/new-feature` | 새 화면/기능 생성 | `AGENTS.md` §5.1 + `.agents/ui/` |
-| `/new-api` | 새 API 엔드포인트 구현 | `AGENTS.md` §5.2 + `.agents/data/` |
+| `/new-feature` | 새 화면/기능 생성 | `AGENTS.md`의 `Task Routing` 중 `새 화면/UI` 또는 `프론트엔드 기능` + `.agents/ui/` |
+| `/new-api` | 새 API 엔드포인트 구현 | `AGENTS.md`의 `Task Routing` 중 `API/백엔드` + `.agents/data/` |
 
 ### Skills (2개)
 복잡한 체크리스트가 필요한 2개만 우선 제공. 나머지는 "반복 관찰 후 승격" 원칙.
@@ -132,7 +132,7 @@ description: 새 화면/기능 생성 워크플로우
 
 # /new-feature
 
-`AGENTS.md` §5.1을 따라 다음 순서로 진행한다:
+`AGENTS.md`의 `Task Routing` 중 `새 화면/UI` 또는 `프론트엔드 기능`을 따라 진행한다:
 
 1. `.agents/ARCHITECTURE.md` — 기능이 들어갈 레이어 확인.
 2. `.agents/ui/DESIGN.md` — 디자인 시스템 확인.
@@ -150,7 +150,7 @@ description: 새 API 엔드포인트 구현 워크플로우
 
 # /new-api
 
-`AGENTS.md` §5.2를 따라 다음 순서로 진행한다:
+`AGENTS.md`의 `Task Routing` 중 `API/백엔드`를 따라 진행한다:
 
 1. `.agents/ARCHITECTURE.md` — 어느 서비스/레이어에 속하는지 확인.
 2. `.agents/data/API_CONTRACT.md` — 요청/응답 스펙 정의 또는 참조.
@@ -177,7 +177,7 @@ description: DB 스키마 변경을 문서·마이그레이션·롤백 세 단�
 
 ## 금지 사항
 
-- 문서 없이 스키마 변경 금지 (`AGENTS.md` §7).
+- 문서 없이 스키마 변경 금지 (`AGENTS.md`의 DB 라우팅 규칙과 `.agents/data/DB_SCHEMA.md`, `.agents/data/MIGRATION.md` 참고).
 - NOT NULL 컬럼을 기본값 없이 대용량 테이블에 추가 금지.
 - 운영 중인 컬럼 drop은 먼저 사용 여부를 grep으로 확인.
 
@@ -267,7 +267,7 @@ Copilot은 작업 시작 전 반드시 다음 순서로 문서를 참고한다:
 
 1. `AGENTS.md` (진입점)
 2. `.agents/ARCHITECTURE.md`
-3. 작업 유형별 문서 (`AGENTS.md` §5 Task Routing 참고)
+3. 작업 유형별 문서 (`AGENTS.md`의 `Task Routing` 참고)
 
 재사용 가능한 워크플로우는 `.github/prompts/*.prompt.md`,
 시나리오별 스킬은 `.github/instructions/*.instructions.md`에 있다.
@@ -480,7 +480,7 @@ chmod +x .githooks/pre-commit .githooks/pre-push
 ## 7. 참고 및 재사용 자원
 
 - `.userdocs/harness-engineering/SKILL.claude.md` — 4계층 정의·도구 매핑·구축 순서 원칙.
-- `AGENTS.md` §5 Task Routing Rules — Command 본문이 이 라우팅 표를 참조만 하고 중복 기술하지 않도록.
+- `AGENTS.md`의 `Task Routing` — Command 본문이 이 라우팅 표를 참조만 하고 중복 기술하지 않도록.
 - `.agents/code/`, `.agents/ui/`, `.agents/data/` — Skill 체크리스트가 포인터로만 참조.
 - 가이드 핵심 원칙(재강조):
   - **맞춤형 우선** — 기성 프레임워크를 그대로 쓰지 않는다.

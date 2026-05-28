@@ -71,7 +71,7 @@ Codex, Claude Code, Copilot Chat에 공통으로 이렇게 시작한다.
 
 ```text
 이 프로젝트는 이 저장소의 AI 코딩 템플릿을 사용합니다.
-먼저 AGENTS.md, .agents/ARCHITECTURE.md, .agents/STACK.md를 읽고
+먼저 AGENTS.md의 Task Routing을 확인하고, 필요한 문서만 읽은 뒤
 현재 프로젝트 규칙을 요약해 주세요.
 아직 코드는 수정하지 말고, 내가 채워야 할 빈칸과 위험한 가정을 알려 주세요.
 ```
@@ -93,7 +93,8 @@ Codex, Claude Code, Copilot Chat에 공통으로 이렇게 시작한다.
 
 ```text
 관리자가 고객 목록을 볼 수 있는 화면을 만들고 싶어.
-먼저 이 저장소의 AGENTS.md와 .agents/ui/DESIGN.md를 읽고,
+먼저 이 저장소의 AGENTS.md Task Routing을 확인하고,
+새 화면/UI에 필요한 문서만 읽은 뒤
 기존 구조에 맞는 구현 계획을 제안해줘.
 비개발자가 확인할 수 있게 화면 상태, 버튼, 에러 상황까지 설명해줘.
 ```
@@ -124,7 +125,8 @@ Codex는 저장소 전체를 읽고 계획, 구현, 검증을 이어가기 좋�
 첫 요청 예시:
 
 ```text
-AGENTS.md와 .agents/ 문서를 먼저 읽고,
+AGENTS.md의 Task Routing을 먼저 확인하고,
+이 작업에 필요한 .agents 문서만 읽은 뒤
 이 작업이 어떤 문서 규칙을 따라야 하는지 요약한 뒤 진행해줘.
 불확실한 점은 먼저 계획으로 정리해줘.
 ```
