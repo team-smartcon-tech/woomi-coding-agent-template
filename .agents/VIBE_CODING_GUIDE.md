@@ -31,6 +31,7 @@
 ```text
 AGENTS.md
 CLAUDE.md
+CODEX.md
 .agents/
 .claude/
 .codex/
@@ -75,6 +76,8 @@ Codex, Claude Code, Copilot Chat에 공통으로 이렇게 시작한다.
 현재 프로젝트 규칙을 요약해 주세요.
 아직 코드는 수정하지 말고, 내가 채워야 할 빈칸과 위험한 가정을 알려 주세요.
 ```
+
+한 번의 복사-붙여넣기로 AI가 온보딩 전체를 단계별로 주도하게 하려면, 루트 [`QUICKSTART.md`](../QUICKSTART.md)의 **프롬프트 A(기존 프로젝트 적용)** 또는 **프롬프트 B(새 프로젝트 시작)**를 그대로 붙여넣는다.
 
 ---
 

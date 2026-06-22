@@ -86,6 +86,8 @@ Claude Code, Codex, GitHub Copilot 전용 문서와 명령은 모두 `AGENTS.md`
 
 ## 새 프로젝트에 적용하는 방법
 
+> **비개발자라면 먼저 [`QUICKSTART.md`](./QUICKSTART.md)를 보세요.** 복사-붙여넣기 한 번으로 AI가 온보딩을 주도하는 프롬프트 2종(기존 프로젝트 적용 / 새 프로젝트 시작)이 들어 있습니다. 아래는 직접 단계를 밟고 싶은 경우의 설명입니다.
+
 1. 이 저장소를 복사하거나 템플릿으로 새 프로젝트를 시작합니다.
 2. `AGENTS.md`의 `Project Overview`를 채웁니다.
 3. `.agents/STACK.md`에서 실제 기술스택과 다른 부분을 수정합니다.
