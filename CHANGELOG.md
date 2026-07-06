@@ -8,6 +8,18 @@
 
 ---
 
+## [2.2-draft] - 2026-07-06
+
+### 추가
+- **쿠키 세션 기반 데모 로그인 흐름** — React Router v7 loader/action으로 동작. `/login` action이 Zod 검증 + 데모 자격증명 대조 후 서명 쿠키 세션 발급, `/logout` 세션 파기, 인증 필요한 화면은 loader의 `requireUser`로 가드.
+- 더미 계정 시드(`entities/member`)와 서버 전용 자격증명(`features/auth/model/credentials.server.ts`). 관리자 계정 `admin@woomi.dev / admin1234` 포함, 로그인 화면에 데모 계정 안내 표시.
+- 상단바에 로그인 사용자 표시 + 로그아웃 버튼, 대시보드 인사말.
+
+### 변경
+- `/members`가 시드 계정과 연동되어 현재 로그인 사용자를 표시하고, "로그인 계정은 구성원 화면에서 관리"하도록 안내.
+- 로그인 폼을 React Hook Form 클라이언트 제출에서 React Router `Form` + 서버 action 검증으로 전환.
+- `apps/web/README.md`에 로그인/인증 섹션과 `/logout` 화면 추가.
+
 ## [2.1-draft] - 2026-07-06
 
 ### 추가
