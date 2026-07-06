@@ -30,6 +30,16 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"try{const cp=require('child_process');const out=cp.execSync('git status --porcelain',{encoding:'utf8'});const files=out.split('\\n').filter(Boolean).map(function(l){return l.slice(3)});const rel=files.filter(function(f){return f&&f.indexOf('node_modules/')!==0&&f.indexOf('/build/')===-1&&f.indexOf('.react-router/')===-1});const others=rel.filter(function(f){return f!=='CHANGELOG.md'});if(others.length&&rel.indexOf('CHANGELOG.md')===-1){process.stdout.write(JSON.stringify({systemMessage:'REMINDER: 변경사항이 있습니다. CHANGELOG.md에 항목을 추가하고 AGENTS.md/README.md의 표준 버전·최종 수정일을 갱신하세요. (AGENTS.md 10장)'}))}}catch(e){}\""
+          }
+        ]
+      }
     ]
   }
 }

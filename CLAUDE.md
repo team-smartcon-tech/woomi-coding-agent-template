@@ -97,3 +97,5 @@ Claude 전용 규칙만 바꾸지 않는다.
 - 작업 유형별 `.agents/*` 문서
 
 그래야 Claude Code, Codex, GitHub Copilot이 같은 기준으로 작업한다.
+
+저장소의 규칙·문서·스캐폴드·훅을 바꾸면 같은 작업에서 `CHANGELOG.md`에 항목을 추가하고 `AGENTS.md`·`README.md`의 표준 버전과 최종 수정일을 갱신한다. 기준은 `AGENTS.md` 10장(Versioning & Changelog)을 따른다.

@@ -4,8 +4,8 @@ Woomi의 바이브 코딩 프로젝트를 같은 기준으로 시작하기 위�
 
 이 저장소는 특정 제품 코드가 아니라, 새 웹 서비스 프로젝트를 만들 때 복사해 가는 규칙, 문서, 프롬프트, 스킬, 훅 묶음입니다.
 
-- 표준 버전: `2.0-draft`
-- 최종 수정일: 2026-05-28
+- 표준 버전: `2.1-draft`
+- 최종 수정일: 2026-07-06
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
@@ -30,6 +30,19 @@ Claude Code, Codex, GitHub Copilot 전용 문서와 명령은 모두 `AGENTS.md`
 
 ---
 
+## 미리 보는 웹 스캐폴드
+
+`apps/web`에 표준 스택(React Router v7 + TanStack Query + Zustand + React Hook Form + Zod + Tailwind v4)으로 만든 **실행 가능한 관리자 SaaS 뼈대**가 들어 있습니다. 바이브 코딩을 시작하는 사용자가 화면을 먼저 눈으로 보면서 "어디에 무엇을 넣을지" 정할 수 있도록, 로그인·대시보드·목록·상세·구성원·설정과 loading/empty/error/403/404 상태를 미리 구성했습니다.
+
+```bash
+pnpm install
+pnpm dev        # http://localhost:5173
+```
+
+`/items` 상단의 세그먼트 컨트롤로 정상/로딩/빈 상태/오류를 즉시 전환하며 확인할 수 있습니다. 점선 `Placeholder` 블록과 `entities/item`의 샘플 데이터를 실제 콘텐츠·API로 교체하며 시작하세요. 자세한 화면 지도와 커스터마이즈 방법은 [`apps/web/README.md`](./apps/web/README.md)를, 제공 컴포넌트 목록은 [`.agents/ui/COMPONENTS.md`](./.agents/ui/COMPONENTS.md)를 참고하세요.
+
+---
+
 ## 문서 지도
 
 | 파일 | 역할 |
@@ -47,6 +60,7 @@ Claude Code, Codex, GitHub Copilot 전용 문서와 명령은 모두 `AGENTS.md`
 | `.agents/ui/*` | 디자인, UX, 컴포넌트 기준 |
 | `.agents/examples/*` | 좋은 예시와 금지 예시 |
 | `.userdocs/*` | 템플릿 설계 과정에서 만든 참고 문서. 모든 프로젝트에 반드시 복사할 필요는 없음 |
+| `CHANGELOG.md` | 표준 버전별 변경 기록 |
 
 ---
 

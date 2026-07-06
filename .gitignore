@@ -8,6 +8,7 @@ build/
 .wrangler/
 .turbo/
 coverage/
+.react-router/
 
 # Local environment files. Keep examples tracked.
 .env
