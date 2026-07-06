@@ -1,0 +1,14 @@
+import { type RouteConfig, index, layout, route } from "@react-router/dev/routes"
+
+export default [
+  route("login", "routes/login.tsx"),
+  layout("routes/_app.tsx", [
+    index("routes/dashboard.tsx"),
+    route("items", "routes/items.tsx"),
+    route("items/:itemId", "routes/item-detail.tsx"),
+    route("members", "routes/members.tsx"),
+    route("settings", "routes/settings.tsx"),
+  ]),
+  route("forbidden", "routes/forbidden.tsx"),
+  route("*", "routes/$.tsx"),
+] satisfies RouteConfig
