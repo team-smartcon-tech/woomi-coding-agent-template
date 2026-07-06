@@ -1,7 +1,8 @@
 // 실제로는 fetchDashboard를 실제 API 호출로 교체하고, 응답 스키마를 zod로 검증한다.
 import { useQuery } from "@tanstack/react-query"
-import { Link } from "react-router"
+import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router"
 import { Clock, Package, Users, Wallet } from "lucide-react"
+import { requireUser } from "~/features/auth/model/session.server"
 import { mockItems } from "~/entities/item/model/item.mock"
 import { ItemStatusBadge } from "~/entities/item/ui/item-status-badge"
 import { formatCurrency, formatDate } from "~/shared/lib/format"
@@ -26,7 +27,13 @@ async function fetchDashboard() {
   }
 }
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await requireUser(request)
+  return { user }
+}
+
 export default function DashboardRoute() {
+  const { user } = useLoaderData<typeof loader>()
   const { isPending, isError, refetch } = useQuery({
     queryKey: ["dashboard"],
     queryFn: fetchDashboard,
@@ -36,7 +43,7 @@ export default function DashboardRoute() {
     <div className="space-y-6">
       <PageHeader
         title="대시보드"
-        description="주요 지표와 최근 활동을 한 화면에서 확인합니다."
+        description={`${user.name}님, 오늘의 주요 지표와 최근 활동입니다.`}
         actions={<Button variant="outline">기간: 최근 7일</Button>}
       />
 

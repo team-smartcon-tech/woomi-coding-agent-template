@@ -1,77 +1,79 @@
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useNavigate } from "react-router"
-import { loginSchema, type LoginInput } from "~/features/auth/model/login.schema"
+import { Form, useActionData, useNavigation, useSearchParams } from "react-router"
 import { Button } from "~/shared/ui/button"
 import { Field } from "~/shared/ui/field"
 import { Input } from "~/shared/ui/input"
 
-export function LoginForm() {
-  const [pending, setPending] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const navigate = useNavigate()
+interface DemoAccount {
+  email: string
+  password: string
+  role: string
+}
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
-  })
+interface LoginActionData {
+  errors?: { email?: string; password?: string }
+  formError?: string | null
+  values?: { email?: string }
+}
 
-  async function onSubmit(values: LoginInput) {
-    setPending(true)
-    setFormError(null)
-
-    // 데모 처리: 실제 인증은 백엔드 API 호출로 교체한다.
-    if (values.email === "error@demo.dev") {
-      setFormError("이메일 또는 비밀번호가 올바르지 않습니다.")
-      setPending(false)
-      return
-    }
-
-    await new Promise((r) => setTimeout(r, 700))
-    navigate("/")
-  }
+export function LoginForm({ demoAccounts }: { demoAccounts: DemoAccount[] }) {
+  const actionData = useActionData() as LoginActionData | undefined
+  const navigation = useNavigation()
+  const [searchParams] = useSearchParams()
+  const redirectTo = searchParams.get("redirectTo") ?? "/"
+  const pending = navigation.state === "submitting"
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {formError ? (
-        <div className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">{formError}</div>
-      ) : null}
+    <div className="space-y-4">
+      <Form method="post" className="space-y-4">
+        <input type="hidden" name="redirectTo" value={redirectTo} />
 
-      <Field label="이메일" htmlFor="email" required error={errors.email?.message}>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="you@example.com"
-          aria-invalid={!!errors.email}
-          {...register("email")}
-        />
-      </Field>
+        {actionData?.formError ? (
+          <div className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
+            {actionData.formError}
+          </div>
+        ) : null}
 
-      <Field label="비밀번호" htmlFor="password" required error={errors.password?.message}>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="••••••••"
-          aria-invalid={!!errors.password}
-          {...register("password")}
-        />
-      </Field>
+        <Field label="이메일" htmlFor="email" required error={actionData?.errors?.email}>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="admin@woomi.dev"
+            defaultValue={actionData?.values?.email}
+            aria-invalid={!!actionData?.errors?.email}
+          />
+        </Field>
 
-      <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? "로그인 중…" : "로그인"}
-      </Button>
+        <Field label="비밀번호" htmlFor="password" required error={actionData?.errors?.password}>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            aria-invalid={!!actionData?.errors?.password}
+          />
+        </Field>
 
-      <p className="text-xs text-muted-foreground">
-        스캐폴드용 임시 로그인입니다. 실제 인증은 features/auth와 백엔드 API로 교체하세요. (오류 화면을 보려면
-        이메일에 error@demo.dev 입력)
-      </p>
-    </form>
+        <Button type="submit" className="w-full" disabled={pending}>
+          {pending ? "로그인 중…" : "로그인"}
+        </Button>
+      </Form>
+
+      <div className="space-y-1 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        <p className="font-medium text-foreground">데모 계정</p>
+        {demoAccounts.map((account) => (
+          <p key={account.email}>
+            <span className="font-mono">{account.email}</span> /{" "}
+            <span className="font-mono">{account.password}</span> · {account.role}
+          </p>
+        ))}
+        <p className="pt-1">
+          로그인 후 <span className="font-medium text-foreground">구성원</span> 메뉴에서 계정을 추가·수정할
+          수 있습니다. 실제 인증은 백엔드 API로 교체하세요.
+        </p>
+      </div>
+    </div>
   )
 }

@@ -47,10 +47,35 @@ pnpm typecheck   # 타입 검사
 | `/items/:itemId` | `app/routes/item-detail.tsx` | 항목 상세 — 정보와 삭제 확인 |
 | `/members` | `app/routes/members.tsx` | 구성원 — 역할·권한 관리 |
 | `/settings` | `app/routes/settings.tsx` | 설정 — 프로필, 알림, 위험 구역 |
+| `/logout` | `app/routes/logout.tsx` | 로그아웃 (세션 파기 후 로그인으로) |
 | `/forbidden` | `app/routes/forbidden.tsx` | 접근 거부 화면 |
 | `*` | `app/routes/$.tsx` | 404 (없는 주소) |
 
-인증된 화면은 공통 셸 `app/routes/_app.tsx`(사이드바 + 상단바) 안에서 렌더된다.
+인증된 화면은 공통 셸 `app/routes/_app.tsx`(사이드바 + 상단바) 안에서 렌더된다. 셸 loader가 `requireUser`로 로그인 여부를 확인하고, 미인증이면 `/login?redirectTo=...`로 리다이렉트한다.
+
+---
+
+## 로그인 / 인증
+
+쿠키 세션 기반의 데모 인증이 미리 구성되어 있다. React Router v7의 loader/action으로 동작한다.
+
+- 로그인: `/login`의 `action`이 입력을 Zod로 검증하고 데모 자격증명(`features/auth/model/credentials.server.ts`)과 대조한 뒤, 성공하면 서명된 쿠키 세션(`features/auth/model/session.server.ts`)을 만들고 원래 가려던 경로로 이동한다.
+- 가드: 인증이 필요한 route loader에서 `requireUser(request)`를 호출한다. 미인증이면 로그인으로 리다이렉트된다.
+- 로그아웃: 상단바 우측 로그아웃 버튼이 `/logout`으로 POST하여 세션을 파기한다.
+
+데모 계정 (로그인 화면에도 표시됨):
+
+| 이메일 | 비밀번호 | 역할 |
+| --- | --- | --- |
+| `admin@woomi.dev` | `admin1234` | 관리자 |
+| `manager@woomi.dev` | `manager1234` | 매니저 |
+| `member@woomi.dev` | `member1234` | 구성원 |
+
+계정은 `entities/member`의 시드 데이터이며, 로그인 후 **구성원**(`/members`) 화면에서 관리하도록 안내된다. 실제 서비스에서는 아래를 교체한다.
+
+- `credentials.server.ts`의 평문 데모 비밀번호 → 백엔드 인증(해시 저장/검증).
+- `entities/member`의 시드 → 실제 DB/API.
+- 세션 시크릿 → `SESSION_SECRET` 환경변수. 미설정 시 개발용 기본값이 쓰이며, 운영 배포 전 반드시 설정한다.
 
 ---
 

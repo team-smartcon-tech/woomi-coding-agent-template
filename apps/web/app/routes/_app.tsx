@@ -1,12 +1,19 @@
 import { useState } from "react"
-import { NavLink, Outlet } from "react-router"
-import { Bell, Boxes, Menu, PanelLeft, PanelLeftClose, X } from "lucide-react"
+import { Form, NavLink, Outlet, useLoaderData, type LoaderFunctionArgs } from "react-router"
+import { Bell, Boxes, LogOut, Menu, PanelLeft, PanelLeftClose, X } from "lucide-react"
+import { MEMBER_ROLE_LABEL } from "~/entities/member/model/member"
+import { requireUser } from "~/features/auth/model/session.server"
 import { cn } from "~/shared/lib/cn"
 import { navItems } from "~/shared/config/nav"
 import { useUiLayoutStore } from "~/shared/store/ui-layout.store"
 import { Badge } from "~/shared/ui/badge"
 import { Button } from "~/shared/ui/button"
 import { Input } from "~/shared/ui/input"
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await requireUser(request)
+  return { user }
+}
 
 function Brand({ collapsed }: { collapsed?: boolean }) {
   return (
@@ -51,6 +58,7 @@ function NavList({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate?: 
 }
 
 export default function AppLayout() {
+  const { user } = useLoaderData<typeof loader>()
   const sidebarCollapsed = useUiLayoutStore((state) => state.sidebarCollapsed)
   const toggleSidebar = useUiLayoutStore((state) => state.toggleSidebar)
   const mobileNavOpen = useUiLayoutStore((state) => state.mobileNavOpen)
@@ -116,11 +124,22 @@ export default function AppLayout() {
             <Button variant="ghost" size="icon" aria-label="알림">
               <Bell aria-hidden />
             </Button>
-            <div
-              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium"
-              aria-hidden
-            >
-              우
+            <div className="flex items-center gap-2 pl-1">
+              <div
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary"
+                aria-hidden
+              >
+                {user.name.slice(0, 1)}
+              </div>
+              <div className="hidden text-left leading-tight sm:block">
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{MEMBER_ROLE_LABEL[user.role]}</p>
+              </div>
+              <Form method="post" action="/logout">
+                <Button type="submit" variant="ghost" size="icon" aria-label="로그아웃">
+                  <LogOut aria-hidden />
+                </Button>
+              </Form>
             </div>
           </div>
         </header>
