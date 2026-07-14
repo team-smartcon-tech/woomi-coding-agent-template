@@ -157,6 +157,8 @@ empty state에는 다음 중 필요한 것을 포함한다.
 
 ## 13. Mobile
 
+- iPhone과 Galaxy의 대표 화면 비율을 참고해 세로·가로 방향을 검수한다. 최소 기준은 iPhone 19.5:9, Galaxy 19.5:9~20:9이며, 프로젝트의 실제 지원 기기가 정해지면 그 기기를 우선한다.
+- safe area, 주소창·도구막대에 따라 변하는 viewport, 화면 회전 후 레이아웃을 확인한다.
 - 주요 action은 터치하기 쉬운 크기여야 한다.
 - bottom action이나 sticky action을 사용할 때 콘텐츠를 가리지 않는다.
 - 입력 폼은 모바일 키보드에 가려지지 않게 한다.
@@ -191,6 +193,8 @@ Empty state:
 Error state:
 Permission state:
 Mobile layout:
+Desktop 16:9 layout:
+iPhone/Galaxy viewport and safe area:
 Keyboard/form behavior:
 Destructive action confirmation:
 API failure behavior:
