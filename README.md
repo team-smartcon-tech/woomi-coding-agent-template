@@ -4,8 +4,8 @@ Woomi의 바이브 코딩 프로젝트를 같은 기준으로 시작하기 위�
 
 이 저장소는 특정 제품 코드가 아니라, 새 웹 서비스 프로젝트를 만들 때 복사해 가는 규칙, 문서, 프롬프트, 스킬, 훅 묶음입니다.
 
-- 표준 버전: `2.2-draft`
-- 최종 수정일: 2026-07-06
+- 표준 버전: `2.3-draft`
+- 최종 수정일: 2026-07-14
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
