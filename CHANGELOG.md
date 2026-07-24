@@ -8,6 +8,18 @@
 
 ---
 
+## [2.4-draft] - 2026-07-24
+
+### 추가
+- **`SheetGrid` 공용 표 컴포넌트**(`apps/web/app/shared/ui/sheet-grid.tsx`) — 엑셀식 셀 키보드 주행·드래그 범위 선택·`Ctrl/⌘+C` TSV 복사·스티키 헤더·좌우 열 고정을 제공하는 도메인 무관 표 셸. `SheetColumn<T>` 배열로 열을 선언한다.
+- 표 작성 규칙을 `.agents/ui/COMPONENTS.md`에 명시 — 표는 `SheetGrid`를 기본으로 사용하고, `Table` 프리미티브는 저수준 정적 표에만 쓴다.
+- **목록 선택·일괄 작업 지침** — `.agents/ui/UX_RULES.md` §14(Selection And Bulk Actions) 신설: 행/전체 선택 체크박스(indeterminate 포함), 일괄 작업 툴바, 여러 항목 일괄 등록·일괄 수정, 실행 전 preview. AI 체크리스트에 선택·일괄 항목 추가. `COMPONENTS.md` 표 규칙에 선택 열·일괄 작업 구성 반영.
+
+### 변경
+- 스캐폴드 `/items` 목록 표를 `Table` 프리미티브에서 `SheetGrid`로 전환(예시 겸 기본 패턴 시연).
+- 스캐폴드 `/items`에 선택 체크박스(행/전체 선택·indeterminate)와 일괄 작업 툴바(상태 일괄 변경·일괄 삭제, 실행 전 confirm) 추가 — §14 지침 시연.
+- 공용 `Checkbox`가 `ref`를 받아 `indeterminate`(부분 선택)를 설정할 수 있도록 확장.
+
 ## [2.3-draft] - 2026-07-14
 
 ### 추가

@@ -43,10 +43,11 @@ Deprecated alternatives:
 | Input | `app/shared/ui/input.tsx` | 단일 행 입력 | native `<input>` 속성 | 오류는 `aria-invalid`로 표시(`aria-[invalid=true]` 시 danger 테두리) |
 | Textarea | `app/shared/ui/textarea.tsx` | 여러 행 입력 | native `<textarea>` 속성 | 오류는 `aria-invalid`로 표시 |
 | Select | `app/shared/ui/select.tsx` | 드롭다운 선택 | native `<select>` 속성 | `focus-visible` 링, `disabled` 지원 |
-| Checkbox | `app/shared/ui/checkbox.tsx` | 체크박스 | native `<input>` 속성(type 고정) | 라벨과 함께 사용. `focus-visible` 링 |
+| Checkbox | `app/shared/ui/checkbox.tsx` | 체크박스 | native `<input>` 속성(type 고정) + `ref` | 라벨과 함께 사용. `focus-visible` 링. `ref`로 `indeterminate`(부분 선택) 설정 — 전체 선택 헤더 등 |
 | Card 계열 | `app/shared/ui/card.tsx` | 콘텐츠 묶음 컨테이너 | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter` | `rounded-lg` 고정. 카드 안 카드 중첩 금지 |
 | Badge | `app/shared/ui/badge.tsx` | 상태·라벨 표기 | `tone?: neutral\|primary\|success\|warning\|danger\|info` | 시맨틱 토큰 톤만 사용. 텍스트 대비 유지 |
-| Table 계열 | `app/shared/ui/table.tsx` | 표 데이터 | `Table`, `THead`, `TBody`, `TR`, `TH`, `TD` | `Table`이 가로 스크롤 래퍼 제공. 행 hover 강조 |
+| SheetGrid | `app/shared/ui/sheet-grid.tsx` | **표 데이터(기본값)** | `columns: SheetColumn<T>[]`, `rows: T[]`, `rowKey(row,i)=>string`, `empty?`, `rowClassName?`, `className?` | 엑셀식 셀 키보드 주행(↑↓←→/Enter)·드래그 범위 선택·`Ctrl/⌘+C` TSV 복사·스티키 헤더·좌우 열 고정. 열은 `cell()`로 렌더, 색인·작업 열은 `focusable:false`, 편집 셀은 `cell()` 안에 input/select. 가로 스크롤(min-w) 기반 |
+| Table 계열 | `app/shared/ui/table.tsx` | 표 마크업 프리미티브(저수준) | `Table`, `THead`, `TBody`, `TR`, `TH`, `TD` | 새 표는 SheetGrid 로 만든다. 이 프리미티브는 SheetGrid 가 과한 단순 정적 표에만 쓴다 |
 | Skeleton | `app/shared/ui/skeleton.tsx` | 로딩 자리표시 | className으로 크기 지정 | 로딩 상태 전용. `animate-pulse` |
 | Field | `app/shared/ui/field.tsx` | 폼 필드 래퍼 | `{ label, htmlFor?, required?, hint?, error?, children }` | `error` 우선 표시, 없으면 `hint`. `htmlFor`로 라벨 연결 |
 | PageHeader | `app/shared/ui/page-header.tsx` | 화면 제목·액션 영역 | `{ title, description?, actions? }` | 반응형(모바일 세로 / 데스크톱 가로 정렬) |
@@ -56,3 +57,15 @@ Deprecated alternatives:
 | Placeholder | `app/shared/ui/placeholder.tsx` | 스캐폴드 가이드 블록 | `{ title, description?, icon? }` | 점선 안내. 실제 위젯으로 교체 대상 |
 | ConfirmPanel | `app/shared/ui/confirm-panel.tsx` | 파괴적 작업 확인 | `{ title, description, confirmLabel?, cancelLabel?, onConfirm, onCancel, pending? }` | 삭제/초기화 전 인라인 확인. `pending` 시 처리 중 표시 |
 | ItemStatusBadge | `app/entities/item/ui/item-status-badge.tsx` | 항목 상태 배지(도메인) | `{ status: ItemStatus }` | 상태→톤 매핑 내장(active/pending/archived). Badge 기반 |
+
+---
+
+## 표(Table) 규칙
+
+- 표를 만들 때는 **`SheetGrid` 를 기본으로 사용한다.** 새로 `<table>` 을 직접 짜거나 `Table` 프리미티브로 표를 조립하지 않는다.
+- 열은 `SheetColumn<T>` 배열로 선언한다. `cell(row, pos)` 로 셀을 렌더하고, 범위 복사(TSV)를 지원하려면 `copyText(row)` 를 채운다.
+- 색인(No)·선택·작업 버튼 열은 `focusable: false`, 좌/우 고정은 `sticky: "left" | "right"` 로 둔다.
+- 편집 가능한 셀은 `cell()` 안에 `input`/`select`/`button` 을 넣으면 키보드 주행이 그 컨트롤로 포커스한다.
+- **다중 선택·일괄 작업**(여러 항목 작성/수정 화면 필수): 첫 열에 `focusable:false` 선택 열을 두고 행마다 공용 `Checkbox`, 헤더에 전체 선택/indeterminate 체크박스를 둔다. 선택이 있으면 선택 개수 + 일괄 작업 툴바(일괄 수정/삭제/상태 변경)를 노출한다. 선택 상태(선택 id 집합)는 호출부가 관리하고, SheetGrid 는 셸만 제공한다. 세부 UX 정책은 UX_RULES.md §14(Selection And Bulk Actions)를 따른다.
+- 로딩/빈 상태/오류 상태는 SheetGrid 밖에서 `Skeleton` / `EmptyState` / `ErrorState` 로 분기한다(예: `app/routes/items.tsx`).
+- 예시: `app/routes/items.tsx` — 검색·필터·상태 분기 + `SheetGrid` 목록 + 선택 체크박스(전체 선택/indeterminate) + 일괄 상태 변경·일괄 삭제 툴바.

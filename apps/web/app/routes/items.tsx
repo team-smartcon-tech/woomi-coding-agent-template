@@ -1,5 +1,5 @@
 // 실제로는 loader에서 실제 API를 호출하고 응답을 zod로 검증한다. demo 파라미터는 상태 시연용이다.
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useLoaderData, useSearchParams } from "react-router"
 import type { LoaderFunctionArgs } from "react-router"
 import { Package, Plus, Search } from "lucide-react"
@@ -7,15 +7,17 @@ import { cn } from "~/shared/lib/cn"
 import { formatCurrency, formatDate } from "~/shared/lib/format"
 import { Button } from "~/shared/ui/button"
 import { Card } from "~/shared/ui/card"
+import { Checkbox, type CheckboxProps } from "~/shared/ui/checkbox"
+import { ConfirmPanel } from "~/shared/ui/confirm-panel"
 import { EmptyState } from "~/shared/ui/empty-state"
 import { ErrorState } from "~/shared/ui/error-state"
 import { Input } from "~/shared/ui/input"
 import { PageHeader } from "~/shared/ui/page-header"
 import { Select } from "~/shared/ui/select"
 import { Skeleton } from "~/shared/ui/skeleton"
-import { TBody, TD, TH, THead, TR, Table } from "~/shared/ui/table"
+import { SheetGrid, type SheetColumn } from "~/shared/ui/sheet-grid"
 import { mockItems } from "~/entities/item/model/item.mock"
-import type { ItemStatus } from "~/entities/item/model/item.types"
+import { ITEM_STATUS_LABEL, type Item, type ItemStatus } from "~/entities/item/model/item.types"
 import { ItemStatusBadge } from "~/entities/item/ui/item-status-badge"
 
 export async function loader(_args: LoaderFunctionArgs) {
@@ -38,6 +40,86 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "archived", label: "보관" },
 ]
 
+const BULK_STATUSES: ItemStatus[] = ["active", "pending", "archived"]
+
+// 전체 선택 헤더 체크박스: 일부만 선택되면 indeterminate 로 표시한다(지침: UX_RULES.md §14).
+function SelectAllCheckbox({ indeterminate, ...props }: CheckboxProps & { indeterminate: boolean }) {
+  const ref = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = indeterminate
+  }, [indeterminate])
+  return <Checkbox ref={ref} {...props} />
+}
+
+// 표는 SheetGrid 로 만든다(엑셀식 셀 주행·범위 선택·TSV 복사). 지침: .agents/ui/COMPONENTS.md
+// 선택 열은 컴포넌트에서 앞에 붙인다(선택 상태에 의존). 색인·작업 열은 focusable:false 로 둔다.
+const baseColumns: SheetColumn<Item>[] = [
+  {
+    key: "id",
+    header: "항목 ID",
+    minW: "min-w-28",
+    copyText: (item) => item.id,
+    cell: (item) => item.id,
+    cellClassName: "text-xs text-muted-foreground tabular-nums",
+  },
+  {
+    key: "name",
+    header: "이름",
+    minW: "min-w-40",
+    copyText: (item) => item.name,
+    cell: (item) => (
+      <Link to={`/items/${item.id}`} className="font-medium hover:underline">
+        {item.name}
+      </Link>
+    ),
+  },
+  {
+    key: "status",
+    header: "상태",
+    focusable: false,
+    minW: "min-w-20",
+    copyText: (item) => ITEM_STATUS_LABEL[item.status],
+    cell: (item) => <ItemStatusBadge status={item.status} />,
+  },
+  {
+    key: "owner",
+    header: "담당자",
+    minW: "min-w-28",
+    copyText: (item) => item.owner,
+    cell: (item) => item.owner,
+  },
+  {
+    key: "amount",
+    header: "금액",
+    align: "right",
+    minW: "min-w-28",
+    copyText: (item) => String(item.amount),
+    cell: (item) => <span className="tabular-nums">{formatCurrency(item.amount)}</span>,
+  },
+  {
+    key: "updatedAt",
+    header: "수정일",
+    minW: "min-w-32",
+    copyText: (item) => item.updatedAt,
+    cell: (item) => formatDate(item.updatedAt),
+  },
+  {
+    key: "actions",
+    header: <span className="sr-only">작업</span>,
+    focusable: false,
+    sticky: "right",
+    align: "right",
+    minW: "min-w-20",
+    cell: (item) => (
+      <Link to={`/items/${item.id}`}>
+        <Button variant="ghost" size="sm">
+          보기
+        </Button>
+      </Link>
+    ),
+  },
+]
+
 export default function ItemsRoute() {
   const { items } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -45,11 +127,57 @@ export default function ItemsRoute() {
   const [q, setQ] = useState("")
   const [status, setStatus] = useState<StatusFilter>("all")
 
-  const filtered = items.filter((item) => {
+  // 실제로는 mutation(일괄 수정/삭제) 후 loader 재검증으로 목록을 갱신한다. demo 라 로컬 상태로 시연한다.
+  const [rows, setRows] = useState<Item[]>(items)
+  const [selected, setSelected] = useState<Set<string>>(() => new Set())
+  const [bulkStatus, setBulkStatus] = useState<ItemStatus>("active")
+  const [confirm, setConfirm] = useState<{ kind: "status" | "delete" } | null>(null)
+
+  const filtered = rows.filter((item) => {
     const matchesQuery = item.name.toLowerCase().includes(q.trim().toLowerCase())
     const matchesStatus = status === "all" || item.status === status
     return matchesQuery && matchesStatus
   })
+
+  // 선택 상태는 현재 보이는(필터된) 행 기준으로 판단한다.
+  const selectedVisible = filtered.filter((item) => selected.has(item.id))
+  const allSelected = filtered.length > 0 && selectedVisible.length === filtered.length
+  const someSelected = selectedVisible.length > 0 && !allSelected
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (allSelected) filtered.forEach((item) => next.delete(item.id))
+      else filtered.forEach((item) => next.add(item.id))
+      return next
+    })
+  }
+
+  function clearSelection() {
+    setSelected(new Set())
+    setConfirm(null)
+  }
+
+  // 일괄 작업은 실행 전 대상 건수를 confirm 으로 확인한 뒤 적용한다(지침: UX_RULES.md §7, §14).
+  function applyBulk() {
+    const ids = new Set(selectedVisible.map((item) => item.id))
+    if (ids.size === 0) return setConfirm(null)
+    if (confirm?.kind === "status") {
+      setRows((prev) => prev.map((r) => (ids.has(r.id) ? { ...r, status: bulkStatus } : r)))
+    } else if (confirm?.kind === "delete") {
+      setRows((prev) => prev.filter((r) => !ids.has(r.id)))
+    }
+    clearSelection()
+  }
 
   function setDemo(value: string) {
     setSearchParams((prev) => {
@@ -58,7 +186,33 @@ export default function ItemsRoute() {
     })
   }
 
-  const count = demo === "empty" ? 0 : demo === "normal" ? filtered.length : items.length
+  const count = demo === "empty" ? 0 : demo === "normal" ? filtered.length : rows.length
+
+  const columns: SheetColumn<Item>[] = [
+    {
+      key: "select",
+      header: (
+        <SelectAllCheckbox
+          checked={allSelected}
+          indeterminate={someSelected}
+          onChange={toggleAll}
+          aria-label="전체 선택"
+        />
+      ),
+      focusable: false,
+      sticky: "left",
+      align: "center",
+      minW: "min-w-10",
+      cell: (item) => (
+        <Checkbox
+          checked={selected.has(item.id)}
+          onChange={() => toggleOne(item.id)}
+          aria-label={`${item.name} 선택`}
+        />
+      ),
+    },
+    ...baseColumns,
+  ]
 
   function renderBody() {
     if (demo === "loading") {
@@ -107,46 +261,13 @@ export default function ItemsRoute() {
     }
 
     return (
-      <Table>
-        <THead>
-          <TR>
-            <TH>항목 ID</TH>
-            <TH>이름</TH>
-            <TH>상태</TH>
-            <TH>담당자</TH>
-            <TH className="text-right">금액</TH>
-            <TH>수정일</TH>
-            <TH className="text-right">
-              <span className="sr-only">작업</span>
-            </TH>
-          </TR>
-        </THead>
-        <TBody>
-          {filtered.map((item) => (
-            <TR key={item.id}>
-              <TD className="text-xs text-muted-foreground">{item.id}</TD>
-              <TD>
-                <Link to={`/items/${item.id}`} className="font-medium hover:underline">
-                  {item.name}
-                </Link>
-              </TD>
-              <TD>
-                <ItemStatusBadge status={item.status} />
-              </TD>
-              <TD>{item.owner}</TD>
-              <TD className="text-right tabular-nums">{formatCurrency(item.amount)}</TD>
-              <TD>{formatDate(item.updatedAt)}</TD>
-              <TD className="text-right">
-                <Link to={`/items/${item.id}`}>
-                  <Button variant="ghost" size="sm">
-                    보기
-                  </Button>
-                </Link>
-              </TD>
-            </TR>
-          ))}
-        </TBody>
-      </Table>
+      <SheetGrid
+        columns={columns}
+        rows={filtered}
+        rowKey={(item) => item.id}
+        empty="검색 결과가 없습니다."
+        className="max-h-[28rem] rounded-md border border-border"
+      />
     )
   }
 
@@ -154,8 +275,9 @@ export default function ItemsRoute() {
     <div className="space-y-6">
       <PageHeader
         title="항목 관리"
-        description="등록된 항목을 검색·필터하고 상세로 이동합니다."
+        description="등록된 항목을 검색·필터하고, 여러 항목을 선택해 일괄 수정합니다."
         actions={
+          // 여러 항목 일괄 등록(CSV/여러 행 추가)도 같은 화면에서 제공한다 — 지침: UX_RULES.md §14
           <Button>
             <Plus />
             새 항목
@@ -213,6 +335,64 @@ export default function ItemsRoute() {
             ))}
           </Select>
         </div>
+
+        {/* 일괄 작업 툴바: 선택이 있을 때만 노출 (지침: UX_RULES.md §14) */}
+        {demo === "normal" && selectedVisible.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2">
+            <span className="text-sm font-medium text-foreground">{selectedVisible.length}개 선택됨</span>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Select
+                value={bulkStatus}
+                onChange={(event) => setBulkStatus(event.target.value as ItemStatus)}
+                className="h-8"
+                aria-label="일괄 변경할 상태"
+              >
+                {BULK_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {ITEM_STATUS_LABEL[s]}
+                  </option>
+                ))}
+              </Select>
+              <Button size="sm" variant="outline" onClick={() => setConfirm({ kind: "status" })}>
+                상태 일괄 변경
+              </Button>
+              <Button size="sm" variant="danger" onClick={() => setConfirm({ kind: "delete" })}>
+                일괄 삭제
+              </Button>
+              <Button size="sm" variant="ghost" onClick={clearSelection}>
+                선택 해제
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* 실행 전 대상 건수 확인 */}
+        {demo === "normal" && confirm && selectedVisible.length > 0 &&
+          (confirm.kind === "delete" ? (
+            <ConfirmPanel
+              className="mt-3"
+              title={`${selectedVisible.length}개 항목을 삭제할까요?`}
+              description="되돌릴 수 없습니다. 선택한 항목이 목록에서 제거됩니다."
+              confirmLabel="삭제"
+              onConfirm={applyBulk}
+              onCancel={() => setConfirm(null)}
+            />
+          ) : (
+            <div className="mt-3 rounded-lg border border-border bg-muted/40 p-4">
+              <p className="text-sm font-medium text-foreground">
+                {selectedVisible.length}개 항목의 상태를 &lsquo;{ITEM_STATUS_LABEL[bulkStatus]}&rsquo;(으)로 변경할까요?
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">적용 전 대상 건수를 확인하세요.</p>
+              <div className="mt-3 flex items-center gap-2">
+                <Button size="sm" onClick={applyBulk}>
+                  적용
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setConfirm(null)}>
+                  취소
+                </Button>
+              </div>
+            </div>
+          ))}
 
         <div className="mt-4">{renderBody()}</div>
 
