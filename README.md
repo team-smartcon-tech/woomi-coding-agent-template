@@ -3,7 +3,7 @@
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
 - 표준 버전: `2.4-draft`
-- 최종 수정일: 2026-07-24
+- 최종 수정일: 2026-07-28
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
@@ -38,11 +38,16 @@ AI는 아는 게 많지만 **이 프로젝트의 사정**은 모릅니다. 그�
 
 ## 시작하기
 
-### 1단계 — 파일 준비
+### 1단계 — ZIP으로 받아서 폴더 이름 바꾸기 (정석)
 
-사내 앱마켓에서 ZIP으로 받았다면 압축을 풀고, GitHub에서 받았다면 이 저장소를 복사(clone)합니다.
+1. GitHub 저장소 페이지에서 **Code → Download ZIP** (또는 사내 앱마켓 ZIP)을 받습니다.
+2. 압축을 풉니다.
+3. 풀린 폴더 이름을 **내 프로젝트 이름으로 바꿉니다.** (예: `woomi-coding-agent-template-main` → `my-shop-admin`)
+4. 그 폴더를 편집기나 AI 도구로 엽니다.
 
-새 프로젝트에 얹을 때는 아래를 프로젝트 폴더 맨 위에 복사합니다.
+> **`git clone`은 권장하지 않습니다.** clone하면 폴더가 이 템플릿 저장소에 그대로 연결된 상태가 되어, 내 작업을 커밋·푸시하려 할 때 남의 저장소로 향합니다. ZIP은 그 연결이 없는 깨끗한 폴더라서 혼란이 없습니다. (Git에 익숙해서 연결을 직접 끊을 수 있다면 clone 후 `.git` 폴더를 지우고 쓰셔도 됩니다.)
+
+새 프로젝트에 얹을 때는 압축을 푼 폴더에서 아래를 기존 프로젝트 폴더 맨 위로 복사합니다.
 
 ```text
 AGENTS.md  CLAUDE.md  CODEX.md  .agents/  .claude/  .codex/  .github/  .githooks/
@@ -52,9 +57,10 @@ AGENTS.md  CLAUDE.md  CODEX.md  .agents/  .claude/  .codex/  .github/  .githooks
 
 ### 2단계 — 안전장치 켜기 (권장)
 
-프로젝트 폴더에서 한 번만 실행합니다.
+프로젝트 폴더에서 한 번만 실행합니다. ZIP으로 시작했다면 Git 저장소가 아직 없으므로 `git init`을 먼저 실행합니다.
 
 ```text
+git init
 git config core.hooksPath .githooks
 ```
 
@@ -249,7 +255,7 @@ Claude Code 기준 `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/
 
 `QUICKSTART.md`의 프롬프트를 쓰지 않고 손으로 밟을 경우:
 
-1. 이 저장소를 복사하거나 템플릿으로 새 프로젝트를 시작한다.
+1. 저장소를 ZIP으로 내려받아 압축을 풀고 폴더명을 프로젝트명으로 바꾼다. (`git clone`은 origin이 템플릿 저장소로 남으므로 쓰지 않는다. 굳이 clone했다면 `.git`을 삭제하고 `git init`으로 새로 시작한다.)
 2. `AGENTS.md`의 `Project Overview`를 채운다.
 3. `.agents/STACK.md`에서 실제 기술스택과 다른 부분을 수정한다.
 4. `.agents/ARCHITECTURE.md`에서 실제 앱/Worker/도메인 구조를 수정한다.
