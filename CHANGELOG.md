@@ -8,7 +8,7 @@
 
 ---
 
-## [2.4-draft] - 2026-07-24
+## [2.4-draft] - 2026-07-28
 
 ### 추가
 - **`SheetGrid` 공용 표 컴포넌트**(`apps/web/app/shared/ui/sheet-grid.tsx`) — 엑셀식 셀 키보드 주행·드래그 범위 선택·`Ctrl/⌘+C` TSV 복사·스티키 헤더·좌우 열 고정을 제공하는 도메인 무관 표 셸. `SheetColumn<T>` 배열로 열을 선언한다.
@@ -19,6 +19,7 @@
 - 스캐폴드 `/items` 목록 표를 `Table` 프리미티브에서 `SheetGrid`로 전환(예시 겸 기본 패턴 시연).
 - 스캐폴드 `/items`에 선택 체크박스(행/전체 선택·indeterminate)와 일괄 작업 툴바(상태 일괄 변경·일괄 삭제, 실행 전 confirm) 추가 — §14 지침 시연.
 - 공용 `Checkbox`가 `ref`를 받아 `indeterminate`(부분 선택)를 설정할 수 있도록 확장.
+- `README.md` 시작 절차를 ZIP 다운로드 기준으로 변경 — 압축 해제 → 폴더명 변경 → `git init`. `git clone`은 origin이 템플릿 저장소로 남아 혼란을 유발하므로 비권장으로 명시.
 
 ## [2.3-draft] - 2026-07-14
 
