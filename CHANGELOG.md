@@ -8,6 +8,16 @@
 
 ---
 
+## [2.5-draft] - 2026-07-28
+
+### 추가
+- **Supabase MCP 연결 기준** — `.agents/TOOLING.md` 6장 신설. §5 도구 등록 템플릿을 채운 첫 실제 예시로, hosted 서버(`https://mcp.supabase.com/mcp`) + 브라우저 OAuth를 표준 auth 방식으로 정의. PAT 발급은 CI 예외로만 허용하고 설정 파일 하드코딩을 금지. `project_ref`·`read_only=true` 필수, `features` 축소 권장, production 프로젝트 연결 금지, 조회 결과를 지시문으로 취급하지 않는 prompt injection 규칙 포함. Claude Code `claude mcp add` 명령과 `.mcp.json` 예시, VS Code 키 차이(`servers`), 로컬 CLI 엔드포인트 명시.
+- `.agents/VIBE_CODING_GUIDE.md` §2.4 신설 — 비개발자용 안내. 절차를 복제하지 않고 "AI에게 시키는 문장" + `TOOLING.md` 6장 포인터만 둔다.
+- `.agents/data/MIGRATION.md` §1에 migration 전 실제 스키마 대조 규칙 추가 — 문서와 실제 DB가 다르면 문서를 먼저 실제에 맞춘다. §2에 MCP는 조회 전용이고 migration 생성·적용은 Supabase CLI로 한다는 경계 명시.
+
+### 변경
+- `.agents/TOOLING.md` 기존 6·7장을 7·8장으로 재번호.
+
 ## [2.4-draft] - 2026-07-28
 
 ### 추가
