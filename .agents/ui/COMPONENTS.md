@@ -69,3 +69,16 @@ Deprecated alternatives:
 - **다중 선택·일괄 작업**(여러 항목 작성/수정 화면 필수): 첫 열에 `focusable:false` 선택 열을 두고 행마다 공용 `Checkbox`, 헤더에 전체 선택/indeterminate 체크박스를 둔다. 선택이 있으면 선택 개수 + 일괄 작업 툴바(일괄 수정/삭제/상태 변경)를 노출한다. 선택 상태(선택 id 집합)는 호출부가 관리하고, SheetGrid 는 셸만 제공한다. 세부 UX 정책은 UX_RULES.md §14(Selection And Bulk Actions)를 따른다.
 - 로딩/빈 상태/오류 상태는 SheetGrid 밖에서 `Skeleton` / `EmptyState` / `ErrorState` 로 분기한다(예: `app/routes/items.tsx`).
 - 예시: `app/routes/items.tsx` — 검색·필터·상태 분기 + `SheetGrid` 목록 + 선택 체크박스(전체 선택/indeterminate) + 일괄 상태 변경·일괄 삭제 툴바.
+
+---
+
+## 버전·변경 이력 노출 규칙
+
+운영자가 "지금 배포된 게 어느 버전인지"를 화면에서 확인할 수 있어야 한다. 문의 대응·회귀 추적의 출발점이기 때문이다.
+
+- **위치**: 앱 셸 **좌측 하단**(사이드바 최하단). 스캐폴드 구현은 `app/shared/ui/version-info.tsx`, 배선은 `app/routes/_app.tsx`.
+- **버전 문자열은 `CHANGELOG.md` 최상단 `## [x.y-단계]` 헤딩에서 파생한다.** 별도 상수를 두지 않는다 — 두면 반드시 어긋난다. 파싱·캐시는 `app/shared/lib/version.server.ts`.
+- **변경 이력 본문은 서버 경유로만 내려보낸다.** 변경 이력에는 수정된 취약점의 파일·경로가 남기 마련이라, 클라이언트 번들(`?raw` import)이나 정적 자산(`public/`)에 넣으면 **로그인 없이 읽힌다.** 로그인 가드가 걸린 loader(스캐폴드: `routes/changelog.tsx`)에서만 읽고, 열 때 fetch 한다.
+  - 서버 렌더 프레임워크가 아닌 스택(예: SPA + Worker)에서는 인증을 통과한 API 엔드포인트로 대체한다. 원칙은 같다 — **비로그인 접근 경로에 변경 이력을 두지 않는다.**
+- **렌더는 `Markdown`**(`app/shared/ui/markdown.tsx`)을 쓴다. 경량 파서(`shared/lib/markdown.ts`, 의존성 없음)가 입력을 먼저 HTML 이스케이프한 뒤 허용 구문만 되살리므로 raw HTML/스크립트가 통과하지 못한다. 마크다운 렌더링용 라이브러리를 새로 추가하지 않는다.
+- 사이드바 접힘(collapsed) 상태에서는 아이콘만 남기고 버전 문자열을 숨긴다.
