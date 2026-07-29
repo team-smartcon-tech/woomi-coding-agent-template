@@ -224,10 +224,23 @@ Risk:
 
 - 루트 `CHANGELOG.md`에 변경 항목을 추가한다.
 - `AGENTS.md`와 `README.md`의 "표준 버전"과 "최종 수정일"을 갱신한다.
+- 머지 후 `main`에 **`v<표준 버전>` git 태그**를 남긴다(아래 참고).
 
 버전은 `MAJOR.MINOR-단계` 형식이다. 새 기능/스캐폴드/규칙 추가는 MINOR를, 호환이 깨지는 표준 변경은 MAJOR를 올린다. 정식 확정 전에는 `-draft`를 유지한다.
 
 문구 오타 수정처럼 사소한 변경은 버전을 올리지 않고 `CHANGELOG.md` 항목만 남기거나 생략할 수 있다. 이 갱신은 `git commit`/`push` 없이도 수행하며, 커밋과 별개다.
+
+**git 태그**: 표준 버전을 올린 PR이 `main`에 머지되면 `main`에서 `v<표준 버전>` 태그를 만들어 푸시한다.
+
+```bash
+git switch main && git pull
+git tag -a v2.6-draft -m v2.6-draft && git push origin v2.6-draft
+```
+
+- 태그는 **`main`에만** 남긴다. 피처 브랜치 커밋은 머지 방식(squash·rebase)에 따라 사라지거나 다른 커밋이 되어, 태그가 어디에도 없는 커밋을 가리키게 된다.
+- 버전당 하나다. 같은 버전을 여러 PR로 나눠 머지했다면 마지막 머지 후에 한 번만 붙인다.
+
+누락 방지: `.claude/settings.json`의 `Stop` 훅이 작업 종료 시 두 가지를 본다. (1) `git status`를 보고 변경사항이 있는데 `CHANGELOG.md`가 그대로면 리마인더를 띄운다. (2) 현재 브랜치가 `main`이면 최상단 CHANGELOG 버전에 해당하는 태그가 있는지 확인하고, 없으면 실행할 명령까지 붙여 알린다(피처 브랜치에서는 침묵 — 그때 태그를 붙이면 안 되기 때문).
 
 ---
 
