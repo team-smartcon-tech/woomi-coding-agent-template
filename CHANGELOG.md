@@ -8,6 +8,22 @@
 
 ---
 
+## [2.6-draft] - 2026-07-29
+
+### 추가
+- **시스템 버전·변경 이력 노출**(앱 셸 좌측 하단) — 운영자가 배포된 버전을 화면에서 확인하고 변경 이력을 바로 열어볼 수 있게 한다. 문의 대응·회귀 추적의 출발점이라 스캐폴드 기본 기능으로 넣었다.
+  - `apps/web/app/shared/ui/version-info.tsx` — 사이드바 최하단 버전 배지 + 변경 이력 패널(ESC 닫기, 패널 내부 스크롤, collapsed 시 아이콘만).
+  - `apps/web/app/shared/lib/version.server.ts` — `CHANGELOG.md` 를 실행 위치 무관하게 찾아 읽고 캐시. **버전 문자열은 최상단 `## [x.y-단계]` 헤딩에서 파생**해 별도 상수와 어긋나지 않게 한다.
+  - `apps/web/app/routes/changelog.tsx` — 데이터 전용 리소스 라우트. `requireUser` 가드를 거치므로 비로그인 접근이 막힌다. **변경 이력은 수정된 취약점 경로가 남기 마련이라 클라이언트 번들(`?raw`)·정적 자산에 두지 않는다** — 그 경로는 로그인 없이 읽힌다.
+  - `apps/web/app/routes/_app.tsx` loader 가 버전만 내려주고(캐시된 문자열 1개), 본문은 열 때 fetch 한다.
+- **`Markdown` 공용 컴포넌트**(`apps/web/app/shared/ui/markdown.tsx`) + 경량 파서(`apps/web/app/shared/lib/markdown.ts`, **의존성 없음**) — 입력을 먼저 HTML 이스케이프한 뒤 허용 구문만 controlled 태그로 되살려 raw HTML/스크립트가 통과하지 못한다(XSS 안전). 링크 URL 화이트리스트 검사 포함. 마크다운 라이브러리를 새로 추가하지 않기 위한 것.
+- `apps/web/app/app.css` 에 `.md` 본문 타이포그래피 추가.
+
+### 변경
+- `.agents/ui/COMPONENTS.md` — "버전·변경 이력 노출 규칙" 신설: 위치(좌측 하단), 버전 단일 출처(CHANGELOG 헤딩), **변경 이력은 인증된 서버 경로로만 노출**, `Markdown` 사용·라이브러리 추가 금지, collapsed 처리. SPA+Worker 등 서버 렌더가 아닌 스택에서의 대체 방식(인증 API 엔드포인트)도 명시.
+
+---
+
 ## [2.5-draft] - 2026-07-28
 
 ### 추가

@@ -3,16 +3,19 @@ import { Form, NavLink, Outlet, useLoaderData, type LoaderFunctionArgs } from "r
 import { Bell, Boxes, LogOut, Menu, PanelLeft, PanelLeftClose, X } from "lucide-react"
 import { MEMBER_ROLE_LABEL } from "~/entities/member/model/member"
 import { requireUser } from "~/features/auth/model/session.server"
+import { getVersionInfo } from "~/shared/lib/version.server"
 import { cn } from "~/shared/lib/cn"
 import { navItems } from "~/shared/config/nav"
 import { useUiLayoutStore } from "~/shared/store/ui-layout.store"
 import { Badge } from "~/shared/ui/badge"
 import { Button } from "~/shared/ui/button"
 import { Input } from "~/shared/ui/input"
+import { VersionInfo } from "~/shared/ui/version-info"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
-  return { user }
+  // 버전만 내려준다(캐시된 문자열 하나). 변경 이력 본문은 열 때 /changelog 에서 받는다.
+  return { user, version: getVersionInfo().version }
 }
 
 function Brand({ collapsed }: { collapsed?: boolean }) {
@@ -58,7 +61,7 @@ function NavList({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate?: 
 }
 
 export default function AppLayout() {
-  const { user } = useLoaderData<typeof loader>()
+  const { user, version } = useLoaderData<typeof loader>()
   const sidebarCollapsed = useUiLayoutStore((state) => state.sidebarCollapsed)
   const toggleSidebar = useUiLayoutStore((state) => state.toggleSidebar)
   const mobileNavOpen = useUiLayoutStore((state) => state.mobileNavOpen)
@@ -86,6 +89,7 @@ export default function AppLayout() {
             {sidebarCollapsed ? <PanelLeft aria-hidden /> : <PanelLeftClose aria-hidden />}
             {!sidebarCollapsed ? <span>접기</span> : null}
           </Button>
+          <VersionInfo version={version} collapsed={sidebarCollapsed} />
         </div>
       </aside>
 
