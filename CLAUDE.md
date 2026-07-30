@@ -82,6 +82,8 @@ Claude Code는 다음을 사용자 승인 없이 수행하지 않는다.
 
 PR, push, 배포 작업은 `.agents/WORKFLOW.md`와 `.agents/DEPLOYMENT.md`를 따른다.
 
+`.claude/settings.local.json`에 `git`, `wrangler`, `supabase`, `deploy` 계열 명령을 allowlist로 추가하지 않는다. 이 파일은 `.gitignore` 대상이라 위 승인 규칙이 조용히 사전 승인되고 PR 리뷰에도 보이지 않는다.
+
 ---
 
 ## 6. Updating Rules

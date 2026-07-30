@@ -3,6 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.33.4",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || exit 0",
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "start": "pnpm --filter web start",

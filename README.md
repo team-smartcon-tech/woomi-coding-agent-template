@@ -2,8 +2,8 @@
 
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.6-draft`
-- 최종 수정일: 2026-07-29
+- 표준 버전: `2.7-draft`
+- 최종 수정일: 2026-07-30
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
@@ -70,7 +70,15 @@ Git Bash나 WSL을 쓴다면 실행 권한도 함께 줍니다. Windows PowerShe
 chmod +x .githooks/*
 ```
 
-**이걸 켜지 않으면 아래 안전장치가 전혀 작동하지 않습니다.**
+**이걸 켜지 않으면 아래 안전장치가 전혀 작동하지 않습니다.** (`pnpm install`을 실행하면 루트 `package.json`의 `prepare`가 자동으로 켜줍니다.)
+
+그리고 **GitHub 저장소 쪽도 한 번 잠가 두세요.** 위 설정은 내 컴퓨터에만 걸립니다. GitHub 저장소 → Settings → Branches → Add branch ruleset → 대상 `main`:
+
+- ☑ Require a pull request before merging
+- ☑ Block force pushes
+- Bypass list는 비워 둡니다
+
+세 도구(Claude Code·Codex·Copilot)에 똑같이 적용되는 **유일한 우회 불가 장치**입니다.
 
 ### 3단계 — AI에게 맡기기
 
@@ -110,10 +118,11 @@ pnpm dev        # http://localhost:5173
 | | 내용 |
 |---|---|
 | ✅ 막아줍니다 | `.env` 파일 커밋 |
-| ✅ 막아줍니다 | 흔한 형태의 비밀키(AWS `AKIA…`, GitHub `ghp_…`, PEM 개인키)가 코드에 섞여 들어가는 것 |
-| ✅ 막아줍니다 | `main` 브랜치에 바로 푸시하는 것 (PR을 거치도록) |
-| ⚠️ **못 막습니다** | Supabase service role key, JWT secret 같은 값 — 형태가 일정하지 않아 자동으로 안 걸립니다 |
-| ⚠️ **못 막습니다** | 2단계를 건너뛴 경우 — 위 셋 다 작동하지 않습니다 |
+| ✅ 막아줍니다 | 흔한 형태의 비밀키가 코드에 섞여 들어가는 것 — AWS `AKIA…`, GitHub `ghp_…`, Supabase `sb_secret_…`, JWT(`eyJ….eyJ….…`), PEM 개인키 |
+| ✅ 막아줍니다 | `main` 브랜치에 바로 푸시하는 것 (PR을 거치도록). 태그 푸시는 통과합니다 |
+| ⚠️ **못 막습니다** | 커밋에 담기지 않은 경로 — 채팅창에 붙여넣은 값, `wrangler.jsonc`의 `vars`, 이미 커밋 이력에 들어간 값 |
+| ⚠️ **못 막습니다** | 위 형태에 해당하지 않는 비밀번호·접속 문자열 — 사람이 직접 봐야 합니다 |
+| ⚠️ **못 막습니다** | 2단계를 건너뛴 경우 — 내 컴퓨터에서는 위 셋 다 작동하지 않습니다 (GitHub ruleset을 켜 두면 `main` 푸시만은 서버에서 막힙니다) |
 
 그래서 **비밀값(API 키, 비밀번호)은 채팅창이나 코드에 붙여넣지 마세요.** `.env` 파일에만 넣고, 그 파일이 커밋에 안 섞였는지는 사람이 직접 확인해야 합니다.
 
