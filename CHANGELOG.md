@@ -8,6 +8,28 @@
 
 ---
 
+## [2.10-draft] - 2026-07-30
+
+**표준 버전 태그 자동화.** 10장의 수동 태그 절차를 GitHub Actions 로 대체한다. 그 수동 절차는 이미 실패한 이력이 있다 — 태그가 `v2.4`·`v2.6`·`v2.7` 뿐이고 `v2.5-draft`·`v2.8-draft`·`v2.9-draft` 가 빠져 있었다.
+
+### 추가
+
+- **`.github/workflows/tag-version.yml`** — `main` 푸시마다 `CHANGELOG.md` 최상단 버전을 읽어 `v<표준 버전>` 태그를 붙인다. 10장의 수동 절차를 대체한다. 그 수동 절차는 이미 실패한 이력이 있다 — 태그가 `v2.4`·`v2.6`·`v2.7` 뿐이고 **`v2.5-draft` 가 빠져 있었다.**
+  - 태그가 이미 있으면 아무것도 하지 않고 성공으로 끝난다. 버전이 그대로인 일반 머지에 실패 표시가 생기지 않아, 비개발자에게 CI 실패를 해석하게 만들지 않는다.
+  - 이 저장소의 기본 `GITHUB_TOKEN` 권한이 `read` 라서 `permissions: contents: write` 를 명시한다. 없으면 태그 푸시가 403 이다.
+  - 연속 머지에서 같은 태그를 두 번 밀지 않도록 `concurrency` 로 직렬화한다.
+  - `main` branch ruleset(Require a pull request / Block force pushes / Restrict deletions, bypass 없음)은 `target: branch` 이므로 태그 생성을 막지 않는다. 단 **태그 ruleset 에 `Restrict creations` 를 켜면 이 워크플로우가 막힌다** — 10장에 명시했다.
+
+### 삭제
+
+- **Stop 훅의 태그 리마인더** — 워크플로우가 대신한다. 남겨두면 오히려 틀린 알림을 낸다. CI 가 붙인 태그는 로컬에서 `git fetch --tags` 전까지 `git tag` 에 안 보여, 훅이 "태그가 없다"고 잘못 알린다. Actions 를 못 쓰는 프로젝트를 위한 수동 명령은 10장에 남겼다.
+
+### 변경
+
+- `AGENTS.md` 10장의 태그 절차를 자동화 기준으로 재작성. 4장 디렉터리 표에 `workflows/tag-version.yml` 반영.
+
+---
+
 ## [2.9-draft] - 2026-07-30
 
 컨텍스트 엔지니어링 감사의 P2 — **중복 삭제와 색인 정리**. 동작 변경은 Stop 훅 발화 조건 하나뿐이다.
