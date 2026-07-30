@@ -37,10 +37,6 @@
           {
             "type": "command",
             "command": "node scripts/agent-guard.cjs stop-changelog"
-          },
-          {
-            "type": "command",
-            "command": "node -e \"try{const cp=require('child_process');const br=cp.execSync('git rev-parse --abbrev-ref HEAD',{encoding:'utf8'}).trim();if(br!=='main')process.exit(0);const md=require('fs').readFileSync('CHANGELOG.md','utf8');const m=md.match(/^##\\s*\\[([^\\]]+)\\]/m);if(!m)process.exit(0);const tag='v'+m[1];const tags=cp.execSync('git tag',{encoding:'utf8'}).split('\\n');if(tags.indexOf(tag)===-1){process.stdout.write(JSON.stringify({systemMessage:'REMINDER: main 의 표준 버전 '+m[1]+' 에 해당하는 git 태그가 없습니다. git tag -a '+tag+' -m '+tag+' 후 git push origin '+tag+' 를 실행하세요. (AGENTS.md 10장)'}))}}catch(e){}\""
           }
         ]
       }

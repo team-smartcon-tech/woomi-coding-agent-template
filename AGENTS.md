@@ -115,7 +115,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 ├── .agents/              # 에이전트 공통 규칙과 컨텍스트
 ├── .claude/              # Claude Code commands/skills/settings
 ├── .codex/               # Codex prompts/skills/hooks
-├── .github/              # Copilot prompts/instructions (CI 워크플로우는 아직 없음)
+├── .github/              # Copilot prompts/instructions, workflows/tag-version.yml
 ├── .githooks/            # 로컬 git hook
 ├── docs/                 # 사람용 문서          — 필요할 때 생성, 아직 없음
 ├── scripts/              # 반복 자동화
@@ -234,23 +234,28 @@ Risk:
 
 - 루트 `CHANGELOG.md`에 변경 항목을 추가한다.
 - `AGENTS.md`와 `README.md`의 "표준 버전"과 "최종 수정일"을 갱신한다.
-- 머지 후 `main`에 **`v<표준 버전>` git 태그**를 남긴다(아래 참고).
+- `main`의 **`v<표준 버전>` git 태그**는 머지되면 자동으로 붙는다(아래 참고).
 
 버전은 `MAJOR.MINOR-단계` 형식이다. 새 기능/스캐폴드/규칙 추가는 MINOR를, 호환이 깨지는 표준 변경은 MAJOR를 올린다. 정식 확정 전에는 `-draft`를 유지한다.
 
 문구 오타 수정처럼 사소한 변경은 버전을 올리지 않고 `CHANGELOG.md` 항목만 남기거나 생략할 수 있다. 이 갱신은 `git commit`/`push` 없이도 수행하며, 커밋과 별개다.
 
-**git 태그**: 표준 버전을 올린 PR이 `main`에 머지되면 `main`에서 `v<표준 버전>` 태그를 만들어 **사용자 승인 후** 푸시한다(6장의 승인 없는 `git push` 금지가 태그에도 적용된다).
+**git 태그**: [`.github/workflows/tag-version.yml`](./.github/workflows/tag-version.yml)이 `main` 푸시마다 `CHANGELOG.md` 최상단 버전을 읽어 `v<표준 버전>` 태그를 붙인다. 태그가 이미 있으면 아무것도 하지 않는다. **에이전트가 태그를 직접 만들지 않는다.**
+
+- 태그는 **`main`에만** 남는다. 워크플로우가 `main` 푸시에서만 돌기 때문이다. 피처 브랜치 커밋은 머지 방식(squash·rebase)에 따라 사라지거나 다른 커밋이 되어, 태그가 어디에도 없는 커밋을 가리키게 된다.
+- 버전당 하나다. 같은 버전을 여러 PR로 나눠 머지하면 첫 머지에서 한 번만 붙는다.
+- **버전을 올리지 않고 머지하면 태그도 붙지 않는다.** 여러 버전을 한 브랜치에 쌓아 머지하면 중간 버전은 건너뛴다. 각 버전을 남기려면 버전별로 나눠 머지한다.
+
+태그 ruleset을 만들 때 `Restrict creations`를 켜면 이 워크플로우가 막힌다. branch ruleset은 태그에 영향이 없다.
+
+Actions를 쓸 수 없는 프로젝트(비활성, 사설 러너 없음)에서는 아래를 **사용자 승인 후** 실행한다. 6장의 승인 없는 `git push` 금지가 태그에도 적용된다.
 
 ```bash
 git switch main && git pull
 git tag -a v2.9-draft -m v2.9-draft && git push origin v2.9-draft
 ```
 
-- 태그는 **`main`에만** 남긴다. 피처 브랜치 커밋은 머지 방식(squash·rebase)에 따라 사라지거나 다른 커밋이 되어, 태그가 어디에도 없는 커밋을 가리키게 된다.
-- 버전당 하나다. 같은 버전을 여러 PR로 나눠 머지했다면 마지막 머지 후에 한 번만 붙인다.
-
-누락 방지: `.claude/settings.json`의 `Stop` 훅이 작업 종료 시 두 가지를 본다. (1) 위 갱신 대상에 해당하는 파일이 바뀌었는데 `CHANGELOG.md`가 그대로면 리마인더를 띄운다(`.userdocs/`와 빌드 산출물은 제외해 소음을 막는다). (2) 현재 브랜치가 `main`이면 최상단 CHANGELOG 버전에 해당하는 태그가 있는지 확인하고, 없으면 실행할 명령까지 붙여 알린다(피처 브랜치에서는 침묵 — 그때 태그를 붙이면 안 되기 때문).
+누락 방지: `.claude/settings.json`의 `Stop` 훅이 위 갱신 대상 파일이 바뀌었는데 `CHANGELOG.md`가 그대로면 리마인더를 띄운다(`.userdocs/`와 빌드 산출물은 제외해 소음을 막는다). 태그 리마인더는 워크플로우가 대신하므로 두지 않는다 — CI가 붙인 태그는 로컬에서 `git fetch --tags` 전까지 안 보여, 훅이 붙은 태그를 없다고 잘못 알린다.
 
 ---
 
