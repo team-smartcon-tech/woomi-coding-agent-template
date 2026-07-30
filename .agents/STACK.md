@@ -97,8 +97,11 @@ strict mode는 타입을 복잡하게 만들라는 뜻이 아니다. 제품 코�
 
 - pnpm workspace
 - TypeScript project references
-- ESLint
-- Prettier
+- Vitest
+
+아래는 **프로젝트에서 도입한 경우에만** 기준으로 삼는다. 이 스캐폴드에는 설정 파일이 없다.
+
+- ESLint / Prettier — 타입 검사(`tsconfig.base.json` strict)로 커버하는 범위라면 굳이 추가하지 않는다.
 - GitHub Actions
 - Wrangler
 

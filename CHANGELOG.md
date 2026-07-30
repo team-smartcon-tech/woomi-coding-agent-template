@@ -8,6 +8,28 @@
 
 ---
 
+## [2.8-draft] - 2026-07-30
+
+컨텍스트 엔지니어링 감사의 P1 — **문서가 지시하지만 저장소에 존재하지 않던 것**을 정정한다. 에이전트가 없는 명령·없는 디렉터리·없는 설정 파일을 찾느라 매 턴 실패 호출을 반복하던 비용을 없애는 것이 목적이다.
+
+### 추가
+
+- **`vitest` + `apps/web/app/shared/lib/markdown.test.ts`(9건)** — 66줄 자체 제작 마크다운 새니타이저가 헤더에서 "raw HTML/스크립트는 절대 통과하지 못한다"를 약속하며 `dangerouslySetInnerHTML` 로 들어가는데 테스트가 없었다. 검증 항목: raw HTML·`<img onerror>` 이스케이프, `javascript:`·`data:` href 무력화, href 속성을 깨는 quote 이스케이프, `noopener` 유지, 제목 레벨 오프셋(h3 시작), blockquote, 목록, `&` 중복 이스케이프 방지. 설정 파일 없이 기존 `vite.config.ts` 로 동작하므로 `vitest.config.ts` 는 추가하지 않았다.
+- 루트·`apps/web` 에 `test` 스크립트. `AGENTS.md` 7장이 지시하는 `pnpm test` 가 이제 실제로 존재한다.
+
+### 수정
+
+- **`AGENTS.md` 7장 Quality Gates** — 이 스캐폴드가 제공하는 스크립트는 `typecheck`·`test`·`build` 뿐임을 명시. `pnpm lint` 와 `deploy:dry` 는 없어서 검증 턴마다 실패 호출이 발생했다.
+- **`AGENTS.md` 4장 Directory Baseline** — `packages/`·`docs/`·`supabase/` 에 "아직 없음", `apps/` 에 "apps/web 만 있음", `.github/` 에 "CI 워크플로우는 아직 없음" 표기. 이 사실이 지금까지 `QUICKSTART.md` 프롬프트 본문 한 곳에만 있었다.
+- **`AGENTS.md` 2장 라우팅** — 배포 행의 `wrangler.jsonc`·`.github/workflows/*` 에 "(있는 경우)" 추가. 둘 다 저장소에 없다.
+- **`AGENTS.md` 10장** — 태그 푸시도 **사용자 승인 후** 하도록 명시. 10장의 "반드시 태그를 푸시한다"가 6장의 "승인 없는 `git push` 금지"와 문구상 충돌했다.
+- **`.agents/code/CODE_STYLE.md`** — "2-space indent를 사용한다" 등 3줄을 "포맷터 설정이 있으면 그것을, 없으면 주변 파일 스타일에 맞춘다" 1줄로. 저장소에 `.prettierrc`·`eslint.config`·`biome.json` 이 하나도 없어 없는 설정 파일을 가리키는 지시였고, 실제 파일도 서로 다르다(`vite.config.ts` 는 2-space·double quote·no semicolon, `markdown.ts` 는 4-space·single quote·semicolon).
+- **`.agents/STACK.md` 7장 Tooling** — ESLint·Prettier·GitHub Actions·Wrangler 를 "프로젝트에서 도입한 경우"로 강등하고 `Vitest` 를 표준으로 올림. ESLint 는 설치하지 않는다 — `tsconfig.base.json` 의 strict 타입 검사가 이 규모(앱 코드 약 1,100줄)를 커버하고, 비개발자에게 lint 실패 해석 부담을 새로 지우지 않기 위해서다.
+- **`CODEX.md` 4장** — "민감 파일 수정 차단"을 단정하던 목록을 실제 상태로 교체. `Bash` 매처의 `main` push 차단은 확인되었지만 `Write`/`Edit` 매처는 Codex 버전에 따라 발화가 보장되지 않는다. 없는 보호를 광고하는 것이 실제 위험이다.
+- **`README.md`** — 도구별 자동 장치 차이를 명시(Copilot 훅 없음, Codex 부분 동작, `.githooks/` 는 세 도구 공통).
+
+---
+
 ## [2.7-draft] - 2026-07-30
 
 컨텍스트 엔지니어링 감사(`.userdocs/우미건설 코딩 에이전트 템플릿 컨텍스트 엔지니어링 평가 보고서.md`)에서 확정된 **안전 결함**을 먼저 처리한 릴리스다. 감사 결론: 문서 구조(프로그레시브 디스클로저, 지연 로드 90.5%, SKILL.md 500줄 초과 0건)는 이미 기준을 충족했고, 실제 결함은 훅 쪽에 몰려 있었다.

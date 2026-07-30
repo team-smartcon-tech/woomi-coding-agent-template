@@ -54,13 +54,9 @@ DB, Supabase, migration, 배포, 보안 작업은 관련 `.agents/data/*`, `.age
 
 Codex hooks는 [`.codex/hooks.json`](./.codex/hooks.json)에 정의한다.
 
-기본 목적:
+`Bash` 매처의 `main` 직접 push 차단은 동작이 확인되었다. 반면 **`Write`/`Edit` 매처의 민감 파일 차단은 Codex 버전에 따라 발화가 보장되지 않는다.** 없는 보호를 있다고 가정하지 말고, Codex 를 쓸 때는 아래 git hook 활성화를 필수로 본다.
 
-- 민감 파일 수정 차단
-- `main` 직접 push 차단
-- `.agents/` 수정 시 관련 문서/프롬프트/스킬 갱신 리마인드
-
-Git hook을 함께 사용하려면 프로젝트 루트에서 실행한다.
+Git hook은 도구와 무관하게 Git 레벨에서 동작한다. 프로젝트 루트에서 실행한다.
 
 ```bash
 git config core.hooksPath .githooks
