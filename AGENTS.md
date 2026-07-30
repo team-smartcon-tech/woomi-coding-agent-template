@@ -4,7 +4,7 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.9-draft`
+- 표준 버전: `2.10-draft`
 - 최종 수정일: 2026-07-30
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
@@ -252,7 +252,7 @@ Actions를 쓸 수 없는 프로젝트(비활성, 사설 러너 없음)에서는
 
 ```bash
 git switch main && git pull
-git tag -a v2.9-draft -m v2.9-draft && git push origin v2.9-draft
+git tag -a v2.10-draft -m v2.10-draft && git push origin v2.10-draft
 ```
 
 누락 방지: `.claude/settings.json`의 `Stop` 훅이 위 갱신 대상 파일이 바뀌었는데 `CHANGELOG.md`가 그대로면 리마인더를 띄운다(`.userdocs/`와 빌드 산출물은 제외해 소음을 막는다). 태그 리마인더는 워크플로우가 대신하므로 두지 않는다 — CI가 붙인 태그는 로컬에서 `git fetch --tags` 전까지 안 보여, 훅이 붙은 태그를 없다고 잘못 알린다.
