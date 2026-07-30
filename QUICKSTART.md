@@ -77,7 +77,7 @@ GitHub 저장소 → **Settings → Branches → Add branch ruleset** → 대상
 
 다음 순서대로 진행해 주세요. 각 단계가 끝나면 멈추고 저에게 확인받은 뒤 다음으로 넘어가세요. (참고: 1~3단계에서 package.json·tsconfig·wrangler.jsonc 같은 파일 이름이 나와도 그건 당신이 알아서 확인하는 것이니 제가 답하지 않아도 됩니다.)
 
-1단계 - 규칙 먼저 읽기: AGENTS.md(특히 0장 Project Overview, 2장 Task Routing, 6장 절대 금지, 8장 충돌 우선순위, 10장 Project Override)와 .agents/STACK.md, .agents/ARCHITECTURE.md 를 먼저 읽고, "이 템플릿이 가정하는 기본 규칙"을 비개발자가 알아들을 수 있게 한 문단으로 요약해 주세요. (이 단계는 당신이 읽는 단계이고, 제가 직접 읽을 필요는 없습니다.)
+1단계 - 규칙 먼저 읽기: AGENTS.md(특히 0장 Project Overview, 2장 Task Routing, 6장 절대 금지, 8장 충돌 우선순위, 11장 Project Override)와 .agents/STACK.md, .agents/ARCHITECTURE.md 를 먼저 읽고, "이 템플릿이 가정하는 기본 규칙"을 비개발자가 알아들을 수 있게 한 문단으로 요약해 주세요. (이 단계는 당신이 읽는 단계이고, 제가 직접 읽을 필요는 없습니다.)
 
 2단계 - 기존 코드 스캔(수정 금지): 제 프로젝트의 실제 모습을 스스로 파악해 주세요. package.json, pnpm-workspace.yaml, tsconfig, 프론트엔드 프레임워크(React Router v7인지 / Next.js인지 / 그냥 Vite인지 등), 백엔드(Hono/Cloudflare Worker인지 / NestJS인지 / Express인지 등), 데이터베이스(Supabase인지 다른 것인지), 폴더 구조(apps·packages로 나뉜 모노레포인지 단일 폴더인지), 배포 설정(wrangler.jsonc, .github/workflows), 기존 디자인 도구(MUI / Tailwind+shadcn/ui / Radix 등)를 확인해서 "실제 스택 목록"을 표로 정리해 주세요. 추측이 들어간 부분은 "확인 필요"라고 표시하세요.
 

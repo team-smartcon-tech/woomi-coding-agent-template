@@ -54,13 +54,9 @@ DB, Supabase, migration, 배포, 보안 작업은 관련 `.agents/data/*`, `.age
 
 Claude Code hooks는 [`.claude/settings.json`](./.claude/settings.json)에 정의한다.
 
-기본 목적:
+판정 로직은 [`scripts/agent-guard.cjs`](./scripts/agent-guard.cjs)에 있다. `node scripts/agent-guard.cjs --selftest`로 규칙을 확인한다.
 
-- 민감 파일 수정 차단
-- `main` 직접 push 차단
-- `.agents/` 수정 시 관련 문서/명령 갱신 리마인드
-
-Git hook을 함께 사용하려면 프로젝트 루트에서 실행한다.
+Git hook은 도구와 무관하게 Git 레벨에서 동작한다. 프로젝트 루트에서 실행한다.
 
 ```bash
 git config core.hooksPath .githooks

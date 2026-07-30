@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 'use strict'
 
-// Claude Code / Codex 공용 PreToolUse 가드.
+// Claude Code / Codex 공용 훅 판정 로직.
 //
 // 판정 로직을 여기 한 곳에 둔다. 훅 정의 파일(.claude/settings.json, .codex/hooks.json)에
 // 인라인 정규식을 두 벌 넣으면 JSON + 셸 이스케이프가 겹쳐 조용히 어긋난다. 실제로 그래서
 // `git push`(refspec 없이 main 에서) 가 통과하고 있었다.
 //
-//   node scripts/agent-guard.cjs file|bash   훅 payload 를 stdin JSON 으로 받아 판정
-//   node scripts/agent-guard.cjs --selftest  판정 로직 자체 점검
+//   node scripts/agent-guard.cjs file|bash        PreToolUse. 훅 payload 를 stdin JSON 으로 받는다
+//   node scripts/agent-guard.cjs stop-changelog   Stop. CHANGELOG 갱신 리마인더
+//   node scripts/agent-guard.cjs --selftest       판정 로직 자체 점검
 //
 // 차단은 exit code 2 + stderr 다(Claude Code 훅 규약). 그 외 실패는 통과시킨다 —
 // 가드가 깨졌을 때 에이전트를 멈추게 하는 것보다 훅이 실제로 도는지 --selftest 로
@@ -84,6 +85,25 @@ function blockedBash(input, branch) {
     return null
 }
 
+// ── CHANGELOG 리마인더 (Stop 훅) ────────────────────────────────────────────
+// AGENTS.md 10장이 CHANGELOG 갱신을 요구하는 대상만 본다. 무관한 임시 파일 하나에도
+// 매 턴 발화하면 리마인더가 소음이 되어 정작 필요할 때 무시된다.
+const CHANGELOG_SCOPE = /^(?:AGENTS|CLAUDE|CODEX|README|QUICKSTART)\.md$|^\.(?:agents|claude|codex|github|githooks)\//
+const CHANGELOG_SCOPE2 = /^(?:apps|packages|scripts)\/|^(?:package\.json|pnpm-workspace\.yaml|tsconfig[^/]*\.json|\.gitignore|\.gitattributes)$/
+const GENERATED = /(?:^|\/)node_modules\/|\/build\/|\.react-router\//
+
+function needsChangelog(files) {
+    const inScope = files.filter(f => !GENERATED.test(f) && (CHANGELOG_SCOPE.test(f) || CHANGELOG_SCOPE2.test(f)))
+    return inScope.length > 0 && !files.includes('CHANGELOG.md')
+}
+
+// `git status --porcelain` 한 줄에서 경로만 뽑는다. 비ASCII 경로는 인용되고, rename 은 `a -> b` 다.
+function porcelainPath(line) {
+    const p = line.slice(3)
+    const renamed = p.includes(' -> ') ? p.split(' -> ').pop() : p
+    return renamed.replace(/^"|"$/g, '')
+}
+
 // ── 자체 점검 ───────────────────────────────────────────────────────────────
 function selftest() {
     const assert = require('assert')
@@ -131,13 +151,42 @@ function selftest() {
     bf('apps/web/app/lib/secrets.ts', false) // secret 을 다루는 소스 코드는 편집 대상
     bf('apps/web/app/routes/settings.tsx', false)
 
+    // CHANGELOG 리마인더 대상
+    const nc = (files, want) => assert.strictEqual(needsChangelog(files), want, files.join(','))
+    nc(['AGENTS.md'], true)
+    nc(['.agents/code/TESTING.md'], true)
+    nc(['apps/web/app/root.tsx'], true)
+    nc(['scripts/agent-guard.cjs'], true)
+    nc(['package.json'], true)
+    nc(['AGENTS.md', 'CHANGELOG.md'], false) // 이미 갱신했으면 침묵
+    nc(['.userdocs/메모.md'], false) // 설계 기록은 대상 아님
+    nc(['apps/web/build/index.js'], false) // 빌드 산출물
+    nc(['node_modules/x/index.js'], false)
+    nc([], false)
+
+    assert.strictEqual(porcelainPath('?? "\\355\\225\\234.md"'), '\\355\\225\\234.md')
+    assert.strictEqual(porcelainPath('R  old.md -> new.md'), 'new.md')
+
     console.log('agent-guard selftest OK')
 }
 
-if (process.argv[2] === '--selftest') {
+const mode = process.argv[2]
+
+if (mode === '--selftest') {
     selftest()
+} else if (mode === 'stop-changelog') {
+    try {
+        const out = require('child_process').execSync('git status --porcelain', { encoding: 'utf8' })
+        const files = out.split('\n').filter(Boolean).map(porcelainPath)
+        if (needsChangelog(files)) {
+            process.stdout.write(JSON.stringify({
+                systemMessage: 'REMINDER: 변경사항이 있습니다. CHANGELOG.md에 항목을 추가하고 AGENTS.md/README.md의 표준 버전·최종 수정일을 갱신하세요. (AGENTS.md 10장)',
+            }))
+        }
+    } catch {
+        // 저장소가 아니거나 git 이 없으면 조용히 넘어간다.
+    }
 } else {
-    const mode = process.argv[2]
     let why = null
     try {
         const payload = JSON.parse(require('fs').readFileSync(0, 'utf8'))
