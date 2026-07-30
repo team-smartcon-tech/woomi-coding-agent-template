@@ -4,7 +4,7 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.7-draft`
+- 표준 버전: `2.8-draft`
 - 최종 수정일: 2026-07-30
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
@@ -64,7 +64,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 | API/백엔드 | `.agents/code/API.md`, `.agents/code/ERROR_HANDLING.md`, `.agents/ARCHITECTURE.md` | `.agents/data/API_CONTRACT.md`, 기존 route/service/repository |
 | DB schema/RLS/index | `.agents/data/DB_SCHEMA.md`, `.agents/data/MIGRATION.md` | `.agents/data/DOMAIN_MODEL.md`, `.agents/code/API.md` |
 | migration/backfill | `.agents/data/MIGRATION.md`, `.agents/data/DB_SCHEMA.md` | `.agents/DEPLOYMENT.md`, `.agents/WORKFLOW.md` |
-| 배포/secret/binding | `.agents/DEPLOYMENT.md` | `wrangler.jsonc`, `.github/workflows/*`, `.agents/WORKFLOW.md` |
+| 배포/secret/binding | `.agents/DEPLOYMENT.md` | `wrangler.jsonc`·`.github/workflows/*`(있는 경우), `.agents/WORKFLOW.md` |
 | MCP/외부 도구 연동 | `.agents/TOOLING.md` | `CLAUDE.md`, `CODEX.md`, `.github/*`, 도구별 설정 파일 |
 | PR/push/commit | `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, tool command/prompt |
 | 리뷰 | `.agents/WORKFLOW.md`, 작업 영역별 문서 | diff, tests, 관련 code/data/ui 문서 |
@@ -107,16 +107,16 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 
 ```txt
 .
-├── apps/                 # 실행/배포 단위
-├── packages/             # 공유 코드
+├── apps/                 # 실행/배포 단위 (이 템플릿에는 apps/web 만 있음)
+├── packages/             # 공유 코드            — 필요할 때 생성, 아직 없음
 ├── .agents/              # 에이전트 공통 규칙과 컨텍스트
 ├── .claude/              # Claude Code commands/skills/settings
 ├── .codex/               # Codex prompts/skills/hooks
-├── .github/              # Copilot prompts/instructions, CI
+├── .github/              # Copilot prompts/instructions (CI 워크플로우는 아직 없음)
 ├── .githooks/            # 로컬 git hook
-├── docs/                 # 사람용 문서
+├── docs/                 # 사람용 문서          — 필요할 때 생성, 아직 없음
 ├── scripts/              # 반복 자동화
-├── supabase/             # migration, seed, local Supabase 설정
+├── supabase/             # migration, seed 설정 — 필요할 때 생성, 아직 없음
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── CODEX.md
@@ -177,6 +177,8 @@ pnpm test
 pnpm build
 ```
 
+이 스캐폴드가 제공하는 스크립트는 `typecheck`, `test`, `build` 다. `lint`와 아래 `deploy:dry`는 없으므로 프로젝트에서 도입한 경우에만 실행한다. 없는 명령을 실행해 실패를 확인하지 않는다.
+
 Cloudflare Worker 배포 전에는 프로젝트별 dry-run 명령을 우선한다.
 
 ```bash
@@ -231,11 +233,11 @@ Risk:
 
 문구 오타 수정처럼 사소한 변경은 버전을 올리지 않고 `CHANGELOG.md` 항목만 남기거나 생략할 수 있다. 이 갱신은 `git commit`/`push` 없이도 수행하며, 커밋과 별개다.
 
-**git 태그**: 표준 버전을 올린 PR이 `main`에 머지되면 `main`에서 `v<표준 버전>` 태그를 만들어 푸시한다.
+**git 태그**: 표준 버전을 올린 PR이 `main`에 머지되면 `main`에서 `v<표준 버전>` 태그를 만들어 **사용자 승인 후** 푸시한다(6장의 승인 없는 `git push` 금지가 태그에도 적용된다).
 
 ```bash
 git switch main && git pull
-git tag -a v2.7-draft -m v2.7-draft && git push origin v2.7-draft
+git tag -a v2.8-draft -m v2.8-draft && git push origin v2.8-draft
 ```
 
 - 태그는 **`main`에만** 남긴다. 피처 브랜치 커밋은 머지 방식(squash·rebase)에 따라 사라지거나 다른 커밋이 되어, 태그가 어디에도 없는 커밋을 가리키게 된다.
