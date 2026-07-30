@@ -1,0 +1,153 @@
+#!/usr/bin/env node
+'use strict'
+
+// Claude Code / Codex 공용 PreToolUse 가드.
+//
+// 판정 로직을 여기 한 곳에 둔다. 훅 정의 파일(.claude/settings.json, .codex/hooks.json)에
+// 인라인 정규식을 두 벌 넣으면 JSON + 셸 이스케이프가 겹쳐 조용히 어긋난다. 실제로 그래서
+// `git push`(refspec 없이 main 에서) 가 통과하고 있었다.
+//
+//   node scripts/agent-guard.cjs file|bash   훅 payload 를 stdin JSON 으로 받아 판정
+//   node scripts/agent-guard.cjs --selftest  판정 로직 자체 점검
+//
+// 차단은 exit code 2 + stderr 다(Claude Code 훅 규약). 그 외 실패는 통과시킨다 —
+// 가드가 깨졌을 때 에이전트를 멈추게 하는 것보다 훅이 실제로 도는지 --selftest 로
+// 확인하는 편이 낫다.
+
+// ── 파일 경로 ───────────────────────────────────────────────────────────────
+// 값이 들어 있는 파일만 막는다. `app/lib/secrets.ts` 처럼 secret 을 다루는 소스 코드는
+// 편집 대상이지 차단 대상이 아니다(기존 규칙은 경로에 'secret' 이 있으면 전부 막았다).
+function blockedFile(input) {
+    const path = String(input || '').replace(/\\/g, '/')
+    const base = path.split('/').pop()
+
+    // .env.example / .env.*.example 은 .gitignore 의 `!.env.example` 과 같은 기준으로 허용한다.
+    if (/^\.env($|\.)/.test(base) && !/\.example$/.test(base)) return '.env 계열 파일'
+    if (/\.(pem|key|p12|pfx|jks)$/i.test(base)) return '키·인증서 파일'
+    if (/^secrets?\.(json|ya?ml|toml|txt|enc)$/i.test(base)) return 'secret 값 파일'
+    if (/(^|\/)secrets?\//i.test(path)) return 'secret 디렉터리 안의 파일'
+    return null
+}
+
+// ── Bash 명령 ───────────────────────────────────────────────────────────────
+// 문장 시작에 있는 git 호출만 본다. `grep 'git push'` 같은 인용은 잡지 않는다.
+const STMT = '(?:^|\\n|&&|\\|\\||;|\\|)\\s*'
+const PROTECTED = /^(?:refs\/heads\/)?(?:main|master)$/
+
+// 플래그를 판정하기 전에 인용 문자열을 지운다. `git commit -m "fix -n bug"` 오탐 방지.
+const unquote = s => s.replace(/'[^']*'/g, ' ').replace(/"[^"]*"/g, ' ')
+
+function gitArgs(command, sub) {
+    const m = command.match(new RegExp(STMT + 'git\\s+(?:-\\S+\\s+)*' + sub + '\\b([^\\n&|;]*)'))
+    return m ? unquote(m[1]) : null
+}
+
+function currentBranch() {
+    try {
+        return require('child_process')
+            .execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+            .trim()
+    } catch {
+        return ''
+    }
+}
+
+function blockedBash(input, branch) {
+    const command = String(input || '')
+
+    const commit = gitArgs(command, 'commit')
+    // commit 에서 -n 은 --no-verify 다. -nm 같은 묶음 형태도 같은 우회다.
+    if (commit !== null && /(?:^|\s)(?:--no-verify|-[a-z]*n[a-z]*)(?:\s|$)/i.test(commit)) {
+        return '안전 훅을 건너뛰는 커밋'
+    }
+
+    const push = gitArgs(command, 'push')
+    // push 에서 -n 은 --dry-run 이다. 원격을 바꾸지 않으므로 전부 통과시킨다.
+    if (push !== null && !/(?:^|\s)(?:-n|--dry-run)(?:\s|$)/.test(push)) {
+        if (/(?:^|\s)--no-verify(?:\s|$)/.test(push)) return '안전 훅을 건너뛰는 푸시'
+        if (/(?:^|\s)(?:--all|--mirror)(?:\s|$)/.test(push)) return '모든 ref 를 한 번에 푸시'
+
+        // 플래그를 걷어내고 남은 토큰은 [remote, refspec...] 이다.
+        const refs = push.trim().split(/\s+/).filter(t => t && !t.startsWith('-')).slice(1)
+        const dst = refs.map(r => r.split(':').pop())
+        if (dst.some(d => PROTECTED.test(d))) return 'main 브랜치 직접 푸시'
+        // ref 를 안 적었거나 HEAD 면 현재 브랜치로 판정한다. 명시한 ref 가 main 이 아니면
+        // (태그·피처 브랜치) 통과 — AGENTS.md 10장의 `git push origin v<버전>` 이 여기 걸리면 안 된다.
+        if ((dst.length === 0 || dst.includes('HEAD')) && PROTECTED.test(branch)) {
+            return 'main 브랜치 직접 푸시'
+        }
+    }
+
+    if (new RegExp(STMT + 'git\\s+reset\\s+[^\\n&|;]*--hard').test(command)) return 'git reset --hard (사용자 변경 소실)'
+    if (new RegExp(STMT + 'supabase\\s+db\\s+reset').test(command)) return 'supabase db reset (DB 초기화)'
+
+    return null
+}
+
+// ── 자체 점검 ───────────────────────────────────────────────────────────────
+function selftest() {
+    const assert = require('assert')
+    const block = (c, br) => assert.ok(blockedBash(c, br), 'BLOCK 이어야 함: ' + c + ' @' + br)
+    const pass = (c, br) => assert.strictEqual(blockedBash(c, br), null, '통과여야 함: ' + c + ' @' + br)
+
+    // main 직접 푸시 — 기존 인라인 훅이 놓친 형태들
+    block('git push', 'main')
+    block('git push origin', 'main')
+    block('git push -u origin HEAD', 'main')
+    block('git push origin HEAD:main', 'feature/x')
+    block('git push --force origin main', 'feature/x')
+    block('git push origin :main', 'feature/x')
+    block('git push --all', 'feature/x')
+    block('pnpm build && git push', 'main')
+
+    // 허용해야 하는 것 — 태그 푸시(AGENTS.md 10장)와 피처 브랜치
+    pass('git push origin v2.7-draft', 'main')
+    pass('git push origin feature/x', 'main')
+    pass('git push', 'feature/x')
+    pass('git push -n', 'main') // --dry-run
+    pass("grep -n 'git push' README.md", 'main')
+
+    // 훅 우회
+    block('git commit --no-verify -m "x"', 'feature/x')
+    block('git commit -nm "x"', 'feature/x')
+    block('git push --no-verify origin feature/x', 'feature/x')
+    pass('git commit -m "fix -n flag handling"', 'feature/x')
+    pass('git commit -am "x"', 'feature/x')
+
+    // 파괴적 명령
+    block('git reset --hard HEAD~1', 'feature/x')
+    block('supabase db reset', 'feature/x')
+
+    // 파일 경로
+    const bf = (p, want) => assert.strictEqual(!!blockedFile(p), want, p)
+    bf('.env', true)
+    bf('.env.production', true)
+    bf('apps/web/.env.local', true)
+    bf('certs/server.pem', true)
+    bf('supabase/secrets.json', true)
+    bf('secrets/prod.yaml', true)
+    bf('.env.example', false)
+    bf('.env.production.example', false)
+    bf('apps/web/app/lib/secrets.ts', false) // secret 을 다루는 소스 코드는 편집 대상
+    bf('apps/web/app/routes/settings.tsx', false)
+
+    console.log('agent-guard selftest OK')
+}
+
+if (process.argv[2] === '--selftest') {
+    selftest()
+} else {
+    const mode = process.argv[2]
+    let why = null
+    try {
+        const payload = JSON.parse(require('fs').readFileSync(0, 'utf8'))
+        const toolInput = payload.tool_input || {}
+        why = mode === 'file' ? blockedFile(toolInput.file_path) : blockedBash(toolInput.command, currentBranch())
+    } catch {
+        process.exit(0)
+    }
+    if (why) {
+        console.error('BLOCK: ' + why + ' — 사용자 승인이 필요합니다. (AGENTS.md 6장)')
+        process.exit(2)
+    }
+}

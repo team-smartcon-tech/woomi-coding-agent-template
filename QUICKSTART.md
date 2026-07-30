@@ -33,11 +33,24 @@ git config core.hooksPath .githooks
 - **Git Bash / WSL**을 쓴다면 실행 권한도 부여하세요: `chmod +x .githooks/*`
 - **Windows PowerShell만** 쓴다면 `chmod`는 필요 없습니다. 줄바꿈 문제는 이 저장소의 `.gitattributes`(`.githooks/* text eol=lf`)가 처리하지만, 그래도 켠 뒤에는 AI에게 "일부러 `.env`를 스테이징해서 커밋이 막히는지 확인해 줘"라고 시켜 실제로 작동하는지 한 번 점검하세요.
 - 이걸 켜지 **않으면** `.env`·비밀키 커밋 차단과 `main` 직접 push 차단이 **전혀 작동하지 않습니다.**
+- `pnpm install`을 한 번이라도 실행하면 이 설정이 자동으로 켜집니다(루트 `package.json`의 `prepare`). 그래도 위 명령을 직접 실행해 두는 편이 확실합니다.
+- 잘 켜졌는지 확인: `node scripts/agent-guard.cjs --selftest` 를 실행해 `agent-guard selftest OK` 가 나오면 AI 도구 쪽 차단 규칙이 정상입니다.
 
-**3) 도구 선택**
+**3) GitHub 저장소 보호 켜기 — 권장**
+위 2번은 **내 컴퓨터에만** 걸리는 잠금입니다. 팀원 컴퓨터에서 안 켜져 있으면 `main`에 바로 푸시할 수 있습니다. GitHub 웹에서 한 번 설정해 두면 누가 어떤 도구로 작업하든 막힙니다.
+
+GitHub 저장소 → **Settings → Branches → Add branch ruleset** → 대상 브랜치 `main`:
+
+- ☑ Require a pull request before merging
+- ☑ Block force pushes
+- **Bypass list는 비워 둡니다** (관리자도 예외 없이)
+
+이것이 Claude Code·Codex·Copilot 세 도구에 똑같이 적용되는 **유일한 우회 불가 장치**입니다.
+
+**4) 도구 선택**
 어떤 도구로 쓰든(Claude Code / Codex CLI / GitHub Copilot) 공통 1차 소스는 `AGENTS.md`라 동일하게 작동합니다. 단 **GitHub Copilot에는 위험 동작을 막는 자동 훅이 없으므로**, Copilot을 쓴다면 위 2번(`.githooks`)을 반드시 먼저 켜세요. Copilot에서는 `.githooks`가 사실상 유일한 자동 안전망입니다.
 
-> **안전장치의 솔직한 한계:** 자동 secret 차단은 흔한 키 패턴(AWS `AKIA`, GitHub `ghp_`, PEM PRIVATE KEY)만 잡습니다. **Supabase service role key·JWT secret 같은 값은 자동으로 안 걸립니다.** 또 `main` 직접 push 차단은 위 `.githooks`를 켰을 때만 완전히 작동합니다(도구 내장 차단은 명령에 'main' 글자가 있을 때만 막아, 그냥 `git push`는 통과할 수 있습니다). 결국 `.env`에 실제 키를 넣고 그 파일을 커밋에서 빼는 것은 **사람이 직접 확인**해야 합니다.
+> **안전장치의 솔직한 한계:** 자동 secret 차단은 알려진 키 패턴(AWS `AKIA`, GitHub `ghp_`, Supabase `sb_secret_`, JWT, PEM PRIVATE KEY)만 잡고, **커밋에 담긴 내용만** 봅니다. 채팅창에 붙여넣은 값, `wrangler.jsonc`의 `vars`, 이미 커밋 이력에 들어간 값, 형태가 일정하지 않은 비밀번호는 걸리지 않습니다. `main` 직접 push 차단도 위 `.githooks`를 켰을 때만 내 컴퓨터에서 작동하므로, 3번 GitHub 저장소 보호를 함께 켜야 팀 전체에 걸립니다. 결국 `.env`에 실제 키를 넣고 그 파일을 커밋에서 빼는 것은 **사람이 직접 확인**해야 합니다.
 
 ---
 

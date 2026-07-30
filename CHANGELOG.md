@@ -8,6 +8,33 @@
 
 ---
 
+## [2.7-draft] - 2026-07-30
+
+컨텍스트 엔지니어링 감사(`.userdocs/우미건설 코딩 에이전트 템플릿 컨텍스트 엔지니어링 평가 보고서.md`)에서 확정된 **안전 결함**을 먼저 처리한 릴리스다. 감사 결론: 문서 구조(프로그레시브 디스클로저, 지연 로드 90.5%, SKILL.md 500줄 초과 0건)는 이미 기준을 충족했고, 실제 결함은 훅 쪽에 몰려 있었다.
+
+### 수정
+
+- **`.githooks/*` 가 한 번도 실행되지 않고 있었다.** `core.hooksPath` 를 켜라는 안내가 문서 5곳에 있었을 뿐, 켜는 장치가 없어 `.env` 커밋 차단과 `main` 직접 푸시 차단이 모두 무효였다. 루트 `package.json` 에 `prepare` 를 넣어 `pnpm install` 시 자동으로 켜지게 했다. Git 저장소가 아닌 ZIP 사본에서 `pnpm install` 전체가 실패하지 않도록 `|| exit 0` 를 붙인다.
+- **`pre-push` 판정을 현재 브랜치(HEAD)에서 푸시 대상 ref(stdin)로 교체.** HEAD 로 판정하면 두 가지가 동시에 틀렸다 — `main` 에서 태그를 푸시하는 10장 절차가 막히고(문서가 "반드시" 하라는 명령을 훅이 차단), 반대로 `git push origin HEAD:main` 은 통과했다. 이제 `refs/heads/main` 을 대상으로 하는 푸시만 막고 태그 푸시는 통과하며, `--all`·`--mirror`·브랜치 삭제(`:main`)도 함께 걸린다.
+- **`pre-commit` 이 `.env.example` 을 차단하던 모순 해소.** `.gitignore` 의 `!.env.example`(예시 파일은 추적) 및 `.agents/DEPLOYMENT.md` 의 표준 지시와 충돌했다. `.env.*.example` 도 함께 허용한다.
+- **PreToolUse 훅이 `git push`(refspec 없이) 를 통과시키던 문제 해소.** 기존 규칙은 명령 문자열에 `main` 이라는 글자가 있을 때만 막아, `main` 브랜치에서의 `git push`·`git push origin HEAD`·`git push --all` 이 전부 통과했다.
+- **민감 파일 차단이 `app/lib/secrets.ts` 같은 소스 코드까지 막던 문제 해소.** 경로에 `secret` 이 있으면 무조건 차단했다. 이제 값이 들어 있는 파일(`.env` 계열, `*.pem|key|p12|pfx|jks`, `secrets.json` 계열, `secrets/` 디렉터리)만 막는다.
+
+### 추가
+
+- `scripts/agent-guard.cjs` — Claude Code / Codex **공용** PreToolUse 가드. 판정 로직을 한 곳에 모은다. 기존에는 같은 정규식이 `.claude/settings.json` 과 `.codex/hooks.json` 에 인라인으로 복붙돼 있었고, JSON + 셸 이스케이프가 겹쳐 조용히 어긋난 것이 위 `git push` 누락의 원인이다. `node scripts/agent-guard.cjs --selftest` 로 판정 규칙 24건을 검증한다(main 푸시 형태, 태그 푸시 허용, 훅 우회 옵션, `git push -n` = `--dry-run` 오탐 방지 포함).
+- `pre-commit` 시크릿 패턴에 **Supabase `sb_secret_`** 와 **JWT(`eyJ….eyJ….…`)** 추가. `README.md`·`QUICKSTART.md` 가 스스로 "못 막는다"고 인정했던 구멍이다. 대신 `pnpm-lock.yaml`·`build/`·`dist/`·`coverage/` 는 오탐만 만들어 검사에서 제외한다.
+- `AGENTS.md` 6장에 **안전 훅 우회 옵션 금지**(`--no-verify`, `-n`, `--force`) 규칙. 한 플래그로 `pre-commit`·`pre-push` 가 동시에 무력화되는데 레포 어디에도 언급이 없었다.
+- **GitHub 저장소 branch ruleset 안내**(`README.md`, `QUICKSTART.md`) — Require a pull request, Block force pushes, bypass 없음. 기존 `main` 보호는 전부 클라이언트 측이라 기본 OFF·`--no-verify` 우회 가능·Copilot 은 훅 0개였다. 세 하네스에 동일하게 걸리는 유일한 우회 불가 통제다.
+- `CLAUDE.md` 5장에 `.claude/settings.local.json` allowlist 금지 규칙. 이 파일은 `.gitignore` 대상이라 6장이 승인 대상으로 지정한 `git`·`wrangler`·`supabase`·`deploy` 명령이 조용히 사전 승인되고 PR 리뷰에도 보이지 않는다.
+
+### 변경
+
+- `README.md` "안전장치가 막아주는 것 / 못 막는 것" 표를 실제 커버리지에 맞춰 갱신. 새 패턴을 반영하되 **커버하지 못하는 경로**(채팅창에 붙여넣은 값, `wrangler.jsonc` 의 `vars`, 이미 커밋 이력에 들어간 값)를 명시해 과대 광고하지 않는다.
+- `.githooks/README.md` — 각 훅의 판정 기준과 `--no-verify` 한계, `core.hooksPath` 확인 방법을 명시.
+
+---
+
 ## [2.6-draft] - 2026-07-29
 
 ### 추가

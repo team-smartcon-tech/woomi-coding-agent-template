@@ -4,8 +4,8 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.6-draft`
-- 최종 수정일: 2026-07-29
+- 표준 버전: `2.7-draft`
+- 최종 수정일: 2026-07-30
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
 
@@ -148,6 +148,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 - 프론트엔드에 서버 secret 노출
 - 인증 없이 private storage URL 발급
 - 사용자 승인 없는 `git commit`, `git push`, `git pull`
+- 안전 훅이나 보호 규칙을 우회하는 옵션(`--no-verify`, `-n`, `--force`)을 붙인 `git commit`, `git push`
 - 사용자 승인 없는 production 배포
 - 사용자 승인 없는 운영 DB 변경
 - 사용자 승인 없는 destructive migration
@@ -234,7 +235,7 @@ Risk:
 
 ```bash
 git switch main && git pull
-git tag -a v2.6-draft -m v2.6-draft && git push origin v2.6-draft
+git tag -a v2.7-draft -m v2.7-draft && git push origin v2.7-draft
 ```
 
 - 태그는 **`main`에만** 남긴다. 피처 브랜치 커밋은 머지 방식(squash·rebase)에 따라 사라지거나 다른 커밋이 되어, 태그가 어디에도 없는 커밋을 가리키게 된다.
