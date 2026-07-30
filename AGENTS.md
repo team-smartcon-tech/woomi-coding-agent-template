@@ -4,7 +4,7 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.8-draft`
+- 표준 버전: `2.9-draft`
 - 최종 수정일: 2026-07-30
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
@@ -67,6 +67,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 | 배포/secret/binding | `.agents/DEPLOYMENT.md` | `wrangler.jsonc`·`.github/workflows/*`(있는 경우), `.agents/WORKFLOW.md` |
 | MCP/외부 도구 연동 | `.agents/TOOLING.md` | `CLAUDE.md`, `CODEX.md`, `.github/*`, 도구별 설정 파일 |
 | PR/push/commit | `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, tool command/prompt |
+| 테스트 작성/실행 | `.agents/code/TESTING.md` | 대상 코드, `AGENTS.md` 7장 Quality Gates |
 | 리뷰 | `.agents/WORKFLOW.md`, 작업 영역별 문서 | diff, tests, 관련 code/data/ui 문서 |
 | 스택 변경 | `.agents/STACK.md` | `.agents/ARCHITECTURE.md`, README |
 | 에이전트 규칙 변경 | `AGENTS.md`, `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, `.github/*` |
@@ -87,6 +88,8 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 | `.agents/code/CODE_STYLE.md` | TypeScript, 네이밍, 주석, 코드 스타일 |
 | `.agents/code/ERROR_HANDLING.md` | ErrorCode, response, logging 기준 |
 | `.agents/code/TESTING.md` | 테스트 범위와 검증 명령 |
+| `.agents/code/NEST_GUIDE.md` | NestJS 프로젝트에만 적용 (적용 조건은 문서 1장) |
+| `.agents/code/NEST_CF_WORKER.md` | NestJS + Cloudflare Worker 조합 기준 |
 | `.agents/data/DOMAIN_MODEL.md` | 진행 중 작성하는 도메인 모델 |
 | `.agents/data/DB_SCHEMA.md` | DB schema, RLS, index 가드레일 |
 | `.agents/data/API_CONTRACT.md` | 진행 중 작성하는 API 계약 |
@@ -152,6 +155,10 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 - 사용자 승인 없는 production 배포
 - 사용자 승인 없는 운영 DB 변경
 - 사용자 승인 없는 destructive migration
+- 사용자 승인 없는 운영 secret 변경
+- 사용자 승인 없는 외부 서비스 데이터 생성/수정/삭제 — 결제, 알림 발송, 고객 데이터 변경 포함
+- destructive filesystem command
+- secret 값을 대화, 보고, 문서에 출력
 - `git reset --hard` 또는 사용자 변경사항 되돌리기
 - 템플릿 규칙을 실제 프로젝트 코드보다 우선해 기계적으로 강제
 
@@ -237,13 +244,13 @@ Risk:
 
 ```bash
 git switch main && git pull
-git tag -a v2.8-draft -m v2.8-draft && git push origin v2.8-draft
+git tag -a v2.9-draft -m v2.9-draft && git push origin v2.9-draft
 ```
 
 - 태그는 **`main`에만** 남긴다. 피처 브랜치 커밋은 머지 방식(squash·rebase)에 따라 사라지거나 다른 커밋이 되어, 태그가 어디에도 없는 커밋을 가리키게 된다.
 - 버전당 하나다. 같은 버전을 여러 PR로 나눠 머지했다면 마지막 머지 후에 한 번만 붙인다.
 
-누락 방지: `.claude/settings.json`의 `Stop` 훅이 작업 종료 시 두 가지를 본다. (1) `git status`를 보고 변경사항이 있는데 `CHANGELOG.md`가 그대로면 리마인더를 띄운다. (2) 현재 브랜치가 `main`이면 최상단 CHANGELOG 버전에 해당하는 태그가 있는지 확인하고, 없으면 실행할 명령까지 붙여 알린다(피처 브랜치에서는 침묵 — 그때 태그를 붙이면 안 되기 때문).
+누락 방지: `.claude/settings.json`의 `Stop` 훅이 작업 종료 시 두 가지를 본다. (1) 위 갱신 대상에 해당하는 파일이 바뀌었는데 `CHANGELOG.md`가 그대로면 리마인더를 띄운다(`.userdocs/`와 빌드 산출물은 제외해 소음을 막는다). (2) 현재 브랜치가 `main`이면 최상단 CHANGELOG 버전에 해당하는 태그가 있는지 확인하고, 없으면 실행할 명령까지 붙여 알린다(피처 브랜치에서는 침묵 — 그때 태그를 붙이면 안 되기 때문).
 
 ---
 

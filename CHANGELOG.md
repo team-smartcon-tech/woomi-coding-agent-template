@@ -8,6 +8,29 @@
 
 ---
 
+## [2.9-draft] - 2026-07-30
+
+컨텍스트 엔지니어링 감사의 P2 — **중복 삭제와 색인 정리**. 동작 변경은 Stop 훅 발화 조건 하나뿐이다.
+
+### 삭제
+
+- **`.agents/skills/` 전체(6개, 123줄)** — 저장소 어디에서도 이 경로를 참조하지 않고(인바운드 참조 0건), 어떤 하네스도 여기서 스킬을 로드하지 않는다. `component-generator`·`db-migration` 은 `.claude/skills/` 사본과 **바이트 동일**이었고, `source-command-*` 4개는 `.claude/commands/` 본문에 "이 스킬은 마이그레이션된 커맨드를 실행할 때 쓴다"는 래퍼 문장만 덧붙인 것이었다. 고유 정보 손실 0. 상시 로드 토큰은 줄지 않지만 하네스 동기화 표면이 4벌 → 3벌로 줄어든다.
+- **`CLAUDE.md` 4장의 훅 "기본 목적" 불릿 3개** — 훅은 프롬프트가 설명하든 안 하든 발화한다. `CLAUDE.md` 는 매 세션 자동 주입되므로 이 저장소에서 **상시 로드 토큰을 실제로 줄이는 유일한 항목**이다. `git config core.hooksPath` 명령은 에이전트가 읽는 유일한 활성화 지시라 유지했다.
+
+### 변경
+
+- **Stop 훅의 CHANGELOG 리마인더가 대상 파일만 보도록 제한.** 지금까지는 무관한 임시 파일 하나만 있어도 매 턴 발화해, 정작 필요할 때 무시되는 소음이 되고 있었다. 이제 `AGENTS.md` 10장이 갱신을 요구하는 대상(`AGENTS.md`·`CLAUDE.md`·`CODEX.md`·`README.md`·`QUICKSTART.md`, `.agents/`·`.claude/`·`.codex/`·`.github/`·`.githooks/`, `apps/`·`packages/`·`scripts/`, 루트 설정 파일)만 본다. `.userdocs/` 와 빌드 산출물은 제외한다. 판정 로직은 `scripts/agent-guard.cjs stop-changelog` 로 옮겨 자체 점검에 포함했다(태그 검사 훅은 그대로 인라인).
+- **`AGENTS.md` 6장이 안전 규칙의 상위집합이 되도록 4항목 흡수** — 운영 secret 변경, 외부 서비스 데이터 생성/수정/삭제(결제·알림·고객 데이터 포함), destructive filesystem command, secret 값을 대화·보고·문서에 출력. 그동안 이 항목들은 `.agents/TOOLING.md` 3장과 `CLAUDE.md` 5장에만 있어, 항상 읽히는 목록에는 빠져 있었다. **원본 목록은 지우지 않는다** — MCP 작업 중인 에이전트가 여는 바로 그 문서에 남아 있어야 하고, 상위집합이므로 drift 가 모순이 되지 않는다.
+- **`.agents/code/NEST_GUIDE.md` 2장 "Mandatory Reading Order" → "함께 볼 문서"** + 읽기 범위는 `AGENTS.md` 1장을 따른다고 명시. "작은 작업에서 모든 문서를 읽지 않는다"(1장)와 정면 충돌해, 매번 8장 충돌 우선순위로 해소해야 했다.
+
+### 수정
+
+- **`AGENTS.md` 2장 라우팅 표에 테스트 행 추가** — `.agents/code/TESTING.md`(140줄)가 3장 문서 지도에만 있고 라우팅 표 12행에는 없어, 문서화된 도달 경로가 없었다.
+- **`AGENTS.md` 3장에 `NEST_GUIDE.md`·`NEST_CF_WORKER.md` 등재**(214줄) — `.agents/STACK.md` 8장을 경유하는 2-hop 외에 도달 경로가 없었다.
+- **`QUICKSTART.md` 장 번호 오류** — "10장 Project Override" → 11장. 10장은 Versioning & Changelog 다.
+
+---
+
 ## [2.8-draft] - 2026-07-30
 
 컨텍스트 엔지니어링 감사의 P1 — **문서가 지시하지만 저장소에 존재하지 않던 것**을 정정한다. 에이전트가 없는 명령·없는 디렉터리·없는 설정 파일을 찾느라 매 턴 실패 호출을 반복하던 비용을 없애는 것이 목적이다.
