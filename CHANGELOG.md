@@ -8,6 +8,22 @@
 
 ---
 
+## [2.11-draft] - 2026-08-06
+
+**팀 지식 위키 도입.** llm-wiki(도슨티 바이브코딩 표준 과정 자료)의 Obsidian 구조를 이 저장소에 맞게 적용했다. 사람은 Obsidian vault로, AI는 Claude Code로 같은 파일을 읽고 쓴다.
+
+### 추가
+
+- **`wiki/` 지식 위키 볼트** — `sources/`(출처 기록 19건, 읽기 전용) + `notes/`(정리본 20개) + `index.md`/`log.md` + 볼트 규칙 `wiki/CLAUDE.md` + Obsidian 그래프 설정. `AGENTS.md`·`.agents/*` 규칙 전체를 정리본으로 이식해 그래프로 탐색할 수 있다. 저장소 규칙 문서가 원본일 때는 내용을 복사하지 않고 출처 기록이 실제 `.agents/*` 파일을 가리킨다 — 원본 이중화를 막기 위해서다. 규칙이 어긋나면 `.agents/*`가 이기고(8장 충돌 우선순위), 위키는 온보딩·검색·팀 학습 축적용 레이어로 동작한다. llm-wiki 원본의 `wiki/wiki/` 경로 중복을 피해 정리본 폴더만 `notes/`로 바꿨다.
+- **위키 명령 4종**(`.claude/commands/`) — `/wiki-add-source`(자료 넣기, 왜 모으는지 먼저 질문), `/wiki-ask`(위키에서만 찾아 출처와 함께 답), `/wiki-log-today`(하루 정리 5분), `/wiki-check`(출처 없는 문장·끊긴 링크·`.agents/*` 원본과 어긋난 낡은 정리본 점검). llm-wiki 원본 명령을 계승하되 기존 명령과 충돌하지 않게 `wiki-` 접두사를 붙였다.
+
+### 변경
+
+- 루트 `.gitignore`에 `llm-wiki/` 추가 — 교육 원본은 자체 git 저장소라 중첩 커밋을 막고 로컬 참고용으로만 둔다.
+- `AGENTS.md` 4장 Directory Baseline과 `README.md` 문서 지도·명령 안내에 `wiki/`와 위키 명령 반영.
+
+---
+
 ## [2.10-draft] - 2026-07-30
 
 **표준 버전 태그 자동화.** 10장의 수동 태그 절차를 GitHub Actions 로 대체한다. 그 수동 절차는 이미 실패한 이력이 있다 — 태그가 `v2.4`·`v2.6`·`v2.7` 뿐이고 `v2.5-draft`·`v2.8-draft`·`v2.9-draft` 가 빠져 있었다.
