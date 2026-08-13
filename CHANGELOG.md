@@ -8,6 +8,17 @@
 
 ---
 
+## [2.12-draft] - 2026-08-13
+
+**`CLAUDE.md` 경량화.** [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)의 "프로젝트 특정 규칙만 남기고 열거·일반론·중복은 뺀다" 원칙을 적용했다. `CLAUDE.md`가 `AGENTS.md`와 겹치던 내용을 포인터로 대체하고, Claude Code에만 있는 것만 남겼다. 규칙 내용 자체는 바뀌지 않았다(`AGENTS.md`가 그대로 보유).
+
+### 변경
+
+- **`CLAUDE.md` 6개 장 → 4개 섹션으로 축소.** 삭제한 중복: 읽는 순서(`AGENTS.md` §1과 동일), 명령·스킬 파일 열거(디렉터리에서 직접 확인), Work Rules 승인 목록(`AGENTS.md` §6), 변경·CHANGELOG 규칙(`AGENTS.md` §10). 유지한 Claude 전용 항목: hooks 설정(`.claude/settings.json`·`scripts/agent-guard.cjs`·git hooks 활성화), `.claude/settings.local.json` allowlist 금지, commands/skills 위치와 충돌 우선순위. 겹치는 규칙은 `AGENTS.md` 해당 장으로 포인터 처리.
+- **위키 능동 사용 지침 추가**(`AGENTS.md` §1, `README.md`, `wiki/README.md`). `wiki/` 볼트가 있는 프로젝트에서는 에이전트가 시키지 않아도 작업 전 위키를 찾고, 의미 있는 결정·해결·재사용 자료가 나오면 먼저 위키에 남기자고 제안·기록한다. 게이트("왜 모으는지 먼저 묻기, 출처 아는 자료만")는 유지한다. 사용 여부는 `wiki/` 존재로 판정 — 쓰지 않는 프로젝트는 `wiki/`를 지운다.
+
+---
+
 ## [2.11-draft] - 2026-08-06
 
 **팀 지식 위키 도입.** llm-wiki(도슨티 바이브코딩 표준 과정 자료)의 Obsidian 구조를 이 저장소에 맞게 적용했다. 사람은 Obsidian vault로, AI는 Claude Code로 같은 파일을 읽고 쓴다.
