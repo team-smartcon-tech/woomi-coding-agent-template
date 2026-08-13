@@ -2,8 +2,8 @@
 
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.11-draft`
-- 최종 수정일: 2026-08-06
+- 표준 버전: `2.12-draft`
+- 최종 수정일: 2026-08-13
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
@@ -185,7 +185,7 @@ Claude Code 기준 `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/
 | `.agents/data/*` | 도메인 모델, DB 스키마, API 계약, 마이그레이션 기록 |
 | `.agents/ui/*` | 디자인, UX, 컴포넌트 기준 |
 | `.agents/examples/*` | 좋은 예시와 금지 예시 |
-| [`wiki/`](./wiki/README.md) | 팀 지식 위키 (Obsidian 볼트). 규칙을 그래프로 탐색하고 배운 것을 축적 |
+| [`wiki/`](./wiki/README.md) | 팀 지식 위키 (Obsidian 볼트). 규칙을 그래프로 탐색하고 배운 것을 축적. 폴더가 있으면 에이전트가 작업 중 알아서 찾고 남긴다(안 쓰면 폴더 삭제) |
 | `.userdocs/*` | 템플릿 설계 기록. 모든 프로젝트에 복사할 필요는 없음 |
 | `CHANGELOG.md` | 표준 버전별 변경 기록 |
 
