@@ -66,11 +66,10 @@ git config core.hooksPath .githooks
 
 ## 5. Work Rules
 
+`git` 작업의 승인 경계는 `AGENTS.md` 6장(Non-Negotiable Rules)의 "git 작업 경계"를 따른다. 저장소 안에서 끝나는 작업(`git init`, 브랜치 생성, `git add`, `git commit`)은 사전 승인, 밖으로 나가는 작업(`git push`, `git pull`, PR 생성, 원격 저장소 생성)은 되돌리기 어렵다는 사실을 알린 뒤 진행한다.
+
 Codex는 다음을 사용자 승인 없이 수행하지 않는다.
 
-- `git commit`
-- `git push`
-- `git pull`
 - production 배포
 - 운영 DB 변경
 - destructive filesystem command

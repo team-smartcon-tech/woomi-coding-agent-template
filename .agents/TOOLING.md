@@ -44,13 +44,14 @@ MCP 또는 외부 도구는 아래 상황에서 사용한다.
 
 사용자 승인 없이 금지:
 
-- `git commit`, `git push`, `git pull`
 - production 배포
 - 운영 DB 변경
 - 운영 secret 변경
 - 외부 서비스 데이터 생성/수정/삭제
 - 결제, 알림 발송, 고객 데이터 변경
 - destructive filesystem command
+
+`git` 작업의 승인 경계는 여기서 다시 정의하지 않는다. `AGENTS.md` 6장(Non-Negotiable Rules)의 "git 작업 경계"를 따른다 — 저장소 안에서 끝나는 작업은 사전 승인, 밖으로 나가는 작업은 안내 후 진행.
 
 프로젝트별 도구가 자체 승인 UI를 제공하더라도, 이 문서와 `AGENTS.md`의 금지 규칙을 우선한다.
 

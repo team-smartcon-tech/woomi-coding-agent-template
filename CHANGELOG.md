@@ -23,10 +23,16 @@
 ### 추가
 
 - **`/onboard` 명령**(`.claude/commands/onboard.md`) — 환경 확인(`git init`·훅 활성화·`--selftest`) → 차단 메시지 사전 설명 → `AGENTS.md` 0장 9개 항목 인터뷰 → 작업 브랜치 생성 → `apps/web`의 사이드바 이름 교체 → `pnpm dev`로 눈으로 확인 → 커밋 1개. **종료 조건은 로컬 커밋이지 PR이 아니다** — 공식 도입 경로(ZIP)에는 원격 저장소가 없어 PR을 넣으면 GitHub 계정 장벽이 온보딩 안으로 들어온다. 저장소 생성은 종료 후 안내로 분리했다. Claude Code 전용이며 `.codex/`·`.github/`에 미러하지 않는다(위키 명령 4종과 같은 선례).
+
+  ZIP 배포 환경의 함정 4개를 함께 막았다 — 상위 저장소 안에 압축을 푼 경우 `git rev-parse --git-dir`이 남의 `.git`을 찾아 그 저장소에 커밋하게 되므로 `--show-toplevel`을 현재 폴더와 비교한다. ZIP은 실행 권한이 빠져 macOS·Linux에서 `.githooks/`가 조용히 죽으므로 `chmod +x`를 함께 실행한다. `Woomi Admin`은 `_app.tsx`와 `login.tsx` 두 곳에 있어 둘 다 바꾼다(로그인 화면이 사용자가 처음 보는 화면이다). 9개 항목을 모두 비우면 커밋할 변경이 없어 실패하므로 Project name은 반드시 받는다. Stop 훅의 CHANGELOG 리마인더가 온보딩 내내 뜨는 것도 미리 설명한다.
 - **`.claude/settings.json`에 `permissions.allow`** — 로컬 git 작업과 읽기 전용 `gh` 조회를 등재해 권한 프롬프트 연타를 없앴다. `git push`·`gh repo create`·`gh pr create`는 **의도적으로 뺐다.** 그 프롬프트가 저장소 밖으로 나가는 작업의 마지막 확인 지점이다.
+
+  **등재 규칙은 접두사 매칭이므로 플래그까지 좁혀 적었다.** `Bash(git config core.hooksPath:*)`는 `git config core.hooksPath /dev/null`을 함께 허용해 `.githooks/` 안전장치를 프롬프트 없이 끌 수 있어 완전 일치로 바꿨다. 같은 이유로 `git switch:*`(`--discard-changes`가 미커밋 작업 삭제) → `git switch -c:*`, `git branch:*`(`-D`) → `--show-current`/`--list`, `git remote:*`(`add`·`set-url`이 푸시 목적지 변경) → `-v`/`get-url`로 좁혔다.
 
 ### 변경
 
+- **같은 규칙을 복제하던 6개 문서를 포인터로 교체.** `.agents/TOOLING.md`, `.agents/WORKFLOW.md`(3곳), `CODEX.md`, 위키 정리본 3개가 각자 승인 목록 사본을 갖고 있어 §6만 고치면 문서끼리 모순됐다. 특히 `.agents/TOOLING.md`는 "프로젝트별 도구가 자체 승인 UI를 제공하더라도 이 문서를 우선한다"고 적혀 있어 새 allowlist를 무효화했고, `CODEX.md`가 옛 규칙을 유지해 Claude와 Codex가 서로 다른 기준으로 일하게 돼 있었다(`AGENTS.md` §5 위반). 이제 각 문서는 사본 대신 §6을 가리킨다.
+- **비개발자용 문서 정합성 수정.** `QUICKSTART.md` 프롬프트 A·B에 남아 있던 "제 승인 없이 git commit 절대 금지"가 **사용자가 붙여넣는 지시**라 §6보다 우선해 규칙 변경을 되돌리고 있었다. `README.md` FAQ와 `QUICKSTART.md` 5장의 보증 문구도 같은 파일 안에서 서로 모순돼 함께 고쳤다. `README.md` 시작하기의 "1·2단계를 건너뛰어도 된다"는 1단계(폴더 준비) 없이는 `/onboard`를 칠 수도 없어 2단계만 건너뛰는 것으로 정정.
 - **`AGENTS.md` 6장 git 승인 경계 재정의.** "사용자 승인 없는 `git commit`/`push`/`pull` 금지"를 작업 성격으로 나눴다. 저장소 안에서 끝나는 작업(`git init`·브랜치·`add`·`commit`)은 사전 승인으로 보고, 밖으로 나가는 작업(`push`·`pull`·PR·저장소 생성)은 되돌리기 어렵다는 사실을 한 줄로 알린 뒤 진행한다. **우회 옵션(`--no-verify`·`-n`·`--force`)과 `git reset --hard` 금지는 그대로다.** `scripts/agent-guard.cjs`의 하드 차단 6종과 `.githooks/` 2종도 손대지 않았다 — 이들은 원래 되돌릴 수 없는 것만 골라 막는다. 10장의 태그 푸시는 예외에서 제외했다.
 - **`CLAUDE.md`** — `.claude/settings.local.json` allowlist 금지 규칙은 유지하되, 금지 이유가 "리뷰에 안 보이는 곳에서 승인이 사라지는 것"이므로 추적되는 `.claude/settings.json`에 명시 등재하는 것은 해당하지 않음을 구분해 적었다. 처음 온 사용자의 첫 질문을 `/onboard`로 유도하는 지침도 추가 — `CLAUDE.md`는 세션 시작 시 자동으로 읽히므로 `SessionStart` 훅 없이 같은 효과를 낸다.
 - **`QUICKSTART.md` 2장에 `git init` 추가** — `README.md`와 어긋나 있던 것을 맞췄다. ZIP으로 시작한 사용자가 2단계에서 막히던 버그다.
