@@ -14,7 +14,6 @@
       "Bash(git config core.hooksPath .githooks)",
       "Bash(git add:*)",
       "Bash(git switch -c:*)",
-      "Bash(git checkout -b:*)",
       "Bash(git commit:*)",
       "Bash(gh auth status:*)",
       "Bash(gh repo view:*)",
