@@ -432,9 +432,8 @@ Risks:
 
 금지:
 
-- 사용자 승인 없는 `git commit`
-- 사용자 승인 없는 `git push`
-- 사용자 승인 없는 PR 생성/merge
+- 되돌리기 어렵다는 안내 없이 실행하는 `git push`, PR 생성 (`AGENTS.md` 6장 git 작업 경계)
+- 사용자 승인 없는 PR merge
 - 검증 실패 상태에서 production 기준 브랜치로 push
 - GitHub Actions와 Cloudflare 자동 배포가 중복 실행되는 상태로 merge
 - secret 또는 `.env`가 포함된 commit 생성

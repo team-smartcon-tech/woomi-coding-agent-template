@@ -8,6 +8,32 @@
 
 ---
 
+## [2.13-draft] - 2026-08-14
+
+**신규 사용자 온보딩.** 이 저장소를 처음 여는 비개발자를 **첫 커밋 1개까지** 데려가는 `/onboard` 명령을 넣었다. 온보딩 문서가 없어서 만든 것이 아니다 — `QUICKSTART.md`에 이미 AI 주도 프롬프트가 있다. 실제 결손은 비개발자 경로의 단절 3개였고, 그중 둘은 문서로 메울 수 없는 종류다.
+
+| 단절 | 실태 |
+|---|---|
+| `QUICKSTART.md` 2장에 `git init` 없음 | ZIP 폴더에는 `.git`이 없어 `git config core.hooksPath`가 실패한다. `README.md`에는 있어 두 문서가 어긋나 있었다 |
+| GitHub 저장소 만드는 안내 0회 | `git remote add`·`gh auth`·`gh repo create`가 저장소 전체에 없는데, `README.md`·`QUICKSTART.md`는 저장소가 이미 있다고 전제한다 |
+| 차단은 있는데 출구가 없음 | `git init` 기본 브랜치가 `main`이라 첫 푸시가 반드시 차단되고 "PR을 통해 병합하세요"가 뜨는데, PR 만드는 법이 비개발자용 문서에 없다. 유일한 설명인 `.agents/WORKFLOW.md`는 스스로 "개발자 대상"을 선언한다 |
+
+비개발자에게 브랜치·PR 개념을 글로 설명하면 따라오지 못한다. 에이전트가 옆에서 직접 실행하고 결과를 보여주는 형태만 작동한다.
+
+### 추가
+
+- **`/onboard` 명령**(`.claude/commands/onboard.md`) — 환경 확인(`git init`·훅 활성화·`--selftest`) → 차단 메시지 사전 설명 → `AGENTS.md` 0장 9개 항목 인터뷰 → 작업 브랜치 생성 → `apps/web`의 사이드바 이름 교체 → `pnpm dev`로 눈으로 확인 → 커밋 1개. **종료 조건은 로컬 커밋이지 PR이 아니다** — 공식 도입 경로(ZIP)에는 원격 저장소가 없어 PR을 넣으면 GitHub 계정 장벽이 온보딩 안으로 들어온다. 저장소 생성은 종료 후 안내로 분리했다. Claude Code 전용이며 `.codex/`·`.github/`에 미러하지 않는다(위키 명령 4종과 같은 선례).
+- **`.claude/settings.json`에 `permissions.allow`** — 로컬 git 작업과 읽기 전용 `gh` 조회를 등재해 권한 프롬프트 연타를 없앴다. `git push`·`gh repo create`·`gh pr create`는 **의도적으로 뺐다.** 그 프롬프트가 저장소 밖으로 나가는 작업의 마지막 확인 지점이다.
+
+### 변경
+
+- **`AGENTS.md` 6장 git 승인 경계 재정의.** "사용자 승인 없는 `git commit`/`push`/`pull` 금지"를 작업 성격으로 나눴다. 저장소 안에서 끝나는 작업(`git init`·브랜치·`add`·`commit`)은 사전 승인으로 보고, 밖으로 나가는 작업(`push`·`pull`·PR·저장소 생성)은 되돌리기 어렵다는 사실을 한 줄로 알린 뒤 진행한다. **우회 옵션(`--no-verify`·`-n`·`--force`)과 `git reset --hard` 금지는 그대로다.** `scripts/agent-guard.cjs`의 하드 차단 6종과 `.githooks/` 2종도 손대지 않았다 — 이들은 원래 되돌릴 수 없는 것만 골라 막는다. 10장의 태그 푸시는 예외에서 제외했다.
+- **`CLAUDE.md`** — `.claude/settings.local.json` allowlist 금지 규칙은 유지하되, 금지 이유가 "리뷰에 안 보이는 곳에서 승인이 사라지는 것"이므로 추적되는 `.claude/settings.json`에 명시 등재하는 것은 해당하지 않음을 구분해 적었다. 처음 온 사용자의 첫 질문을 `/onboard`로 유도하는 지침도 추가 — `CLAUDE.md`는 세션 시작 시 자동으로 읽히므로 `SessionStart` 훅 없이 같은 효과를 낸다.
+- **`QUICKSTART.md` 2장에 `git init` 추가** — `README.md`와 어긋나 있던 것을 맞췄다. ZIP으로 시작한 사용자가 2단계에서 막히던 버그다.
+- **`README.md` 시작하기 3단계** — Claude Code 사용자는 `/onboard` 한 줄로 시작할 수 있음을 안내. 세 도구 대등 서술은 유지하고, "`/onboard`는 Claude Code에서만 동작한다"는 사실 진술만 넣었다.
+
+---
+
 ## [2.12-draft] - 2026-08-13
 
 **`CLAUDE.md` 경량화.** [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills)의 "프로젝트 특정 규칙만 남기고 열거·일반론·중복은 뺀다" 원칙을 적용했다. `CLAUDE.md`가 `AGENTS.md`와 겹치던 내용을 포인터로 대체하고, Claude Code에만 있는 것만 남겼다. 규칙 내용 자체는 바뀌지 않았다(`AGENTS.md`가 그대로 보유).

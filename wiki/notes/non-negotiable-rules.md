@@ -8,7 +8,6 @@
 - 실제 값이 들어간 `.env` 커밋
 - 프론트엔드에 서버 secret 노출
 - 인증 없이 private storage URL 발급
-- 사용자 승인 없는 `git commit`, `git push`, `git pull`
 - 안전 훅이나 보호 규칙을 우회하는 옵션(`--no-verify`, `-n`, `--force`)을 붙인 commit/push
 - 사용자 승인 없는 production 배포
 - 사용자 승인 없는 운영 DB 변경
@@ -22,6 +21,7 @@
 
 ## 필수
 
+- **git 작업 경계.** 저장소 안에서 끝나는 작업(`git init`, 브랜치 생성, `git add`, `git commit`)은 사전 승인된 것으로 보고 매번 묻지 않는다. 저장소 밖으로 나가는 작업(`git push`, `git pull`, PR 생성, 원격 저장소 생성)은 되돌리기 어렵다는 사실을 한 줄로 알린 뒤 진행한다 — [작업 흐름](workflow.md).
 - secret은 환경변수 또는 platform secret으로 관리한다.
 - MCP와 외부 도구는 read-only 조회와 write/delete/deploy 작업을 구분해서 사용한다 — [도구 사용 기준](tooling.md).
 - 파일 업로드는 확장자, MIME, 크기, 권한을 검증한다.

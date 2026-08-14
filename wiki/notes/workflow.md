@@ -26,7 +26,7 @@ commit은 Conventional Commits(`<type>: <한국어 요약>`, 제목 72자 이내
 
 ## 승인 경계
 
-에이전트는 사용자가 **명시적으로 요청·승인한 경우에만** commit/push/PR/merge를 한다. "수정해줘"·"반영해줘"는 커밋·푸시 승인이 아니다. `main` 직접 push는 원칙적으로 금지 — [절대 금지·필수 규칙](non-negotiable-rules.md).
+작업의 성격으로 나뉜다. 저장소 안에서 끝나는 것(`git init`, 브랜치 생성, `git add`, `git commit`)은 되돌릴 수 있으므로 사전 승인된 것으로 보고 매번 묻지 않는다 — 오히려 커밋을 미루는 쪽이 작업 유실 위험이 크다. 저장소 밖으로 나가는 것(`git push`, `git pull`, PR 생성, 원격 저장소 생성)은 되돌리기 어렵다는 사실을 한 줄로 알린 뒤 진행한다. **PR merge는 여전히 사용자 승인이 필요하다.** `main` 직접 push는 원칙적으로 금지 — [절대 금지·필수 규칙](non-negotiable-rules.md).
 
 ## 리뷰
 

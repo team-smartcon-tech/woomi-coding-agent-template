@@ -2,8 +2,8 @@
 
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.12-draft`
-- 최종 수정일: 2026-08-13
+- 표준 버전: `2.13-draft`
+- 최종 수정일: 2026-08-14
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
@@ -82,7 +82,17 @@ chmod +x .githooks/*
 
 ### 3단계 — AI에게 맡기기
 
-[`QUICKSTART.md`](./QUICKSTART.md)를 열어 상황에 맞는 프롬프트를 통째로 복사해 AI 첫 대화에 붙여넣으세요.
+**Claude Code를 쓴다면 위 1·2단계도 건너뛰고 바로 여기서 시작해도 됩니다.** 폴더를 열고 첫 대화에 이렇게만 입력하세요.
+
+```text
+/onboard
+```
+
+AI가 `git init`부터 안전장치 켜기, 프로젝트 정보 받기, 화면 한 곳 바꾸기, 첫 작업 기록(커밋) 남기기까지 **직접 실행하며** 데려갑니다. 10~15분 걸리고, 당신은 질문에 답만 하면 됩니다.
+
+> **`/onboard`는 Claude Code에서만 동작합니다.** Codex·Copilot을 쓴다면 아래 `QUICKSTART.md` 프롬프트를 직접 복사해 붙여넣으세요.
+
+**직접 프롬프트를 붙여넣는 방법**은 [`QUICKSTART.md`](./QUICKSTART.md)를 열어 상황에 맞는 것을 통째로 복사해 AI 첫 대화에 넣으면 됩니다.
 
 | 내 상황 | 쓸 프롬프트 |
 |---|---|
@@ -135,7 +145,7 @@ pnpm dev        # http://localhost:5173
 - 실제 비밀키가 들어간 `.env` 커밋
 - service role key를 화면(프론트엔드) 코드에 노출
 - 승인 없는 자동 배포
-- 승인 없는 `git commit`, `git push`, `git pull`
+- 안내 없는 `git push`, `git pull` — 내 컴퓨터 안에서 끝나는 작업(브랜치 만들기, 커밋)은 AI가 알아서 해도 되지만, GitHub로 올리고 내리는 것은 되돌리기 어려워 먼저 알려야 합니다
 - 운영 데이터베이스에 데이터를 지우는 변경을 자동 실행
 - **템플릿 규칙을 실제 코드보다 우선시하기** — 충돌하면 항상 실제 코드가 이깁니다
 
@@ -161,7 +171,7 @@ pnpm dev        # http://localhost:5173
 "깨끗하게 되돌려줘" 같은 말은 작업물을 영구 삭제할 수 있습니다(`git reset --hard`). AI가 이런 걸 하려 하면 막도록 되어 있고, 당신도 함부로 요청하지 마세요.
 
 **Q. 쓸 수 있는 명령이 뭐가 있나요?**
-Claude Code 기준 `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리) 4개, 지식 위키용 `/wiki-add-source`·`/wiki-ask`·`/wiki-log-today`·`/wiki-check` 4개, 그리고 자연어로 말하면 작동하는 스킬 2개(공통 부품 만들기, DB 구조 변경)입니다. Codex는 `.codex/prompts/`, Copilot은 `.github/prompts/`에 같은 워크플로우가 있습니다. **`/deploy`, `/test` 같은 다른 명령은 없으니 AI가 지어내면 의심하세요.**
+Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리) 4개, 지식 위키용 `/wiki-add-source`·`/wiki-ask`·`/wiki-log-today`·`/wiki-check` 4개, 그리고 자연어로 말하면 작동하는 스킬 2개(공통 부품 만들기, DB 구조 변경)입니다. Codex는 `.codex/prompts/`, Copilot은 `.github/prompts/`에 같은 워크플로우가 있습니다. **`/deploy`, `/test` 같은 다른 명령은 없으니 AI가 지어내면 의심하세요.**
 
 ---
 

@@ -172,8 +172,8 @@ GitHub 저장소 → **Settings → Branches → Add branch ruleset** → 대상
 
 ## 6. 도구별 한 줄 팁 (실재 명령만)
 
-- **Claude Code:** 위 프롬프트를 그대로 붙여넣으세요. 반복 작업은 슬래시 명령 `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리)을 쓰고, "공통 컴포넌트 만들어줘"·"DB 스키마 바꿔줘"처럼 **자연어로 말하면** `component-generator` / `db-migration` 스킬이 작동합니다.
+- **Claude Code:** 처음이라면 프롬프트를 붙여넣는 대신 `/onboard`만 입력해도 됩니다 — 환경 설정부터 첫 커밋까지 AI가 직접 실행하며 데려갑니다. 반복 작업은 슬래시 명령 `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리)을 쓰고, "공통 컴포넌트 만들어줘"·"DB 스키마 바꿔줘"처럼 **자연어로 말하면** `component-generator` / `db-migration` 스킬이 작동합니다.
 - **Codex CLI:** 같은 프롬프트를 그대로 붙여넣으세요. 같은 워크플로우가 `.codex/prompts/`·`.codex/skills/`에 들어 있습니다.
 - **GitHub Copilot:** 같은 프롬프트를 그대로 붙여넣으세요. 같은 워크플로우가 `.github/prompts/`·`.github/instructions/`에 있습니다. Copilot에는 자동 차단 훅이 없으니 위 2장(안전 훅)을 반드시 먼저 켜세요.
 
-> 이 템플릿에 실제로 있는 워크플로우는 위 4개 명령과 2개 스킬뿐입니다. `/deploy`, `/test` 같은 다른 명령은 **없으니**, AI가 지어내면 의심하세요.
+> 이 템플릿에 실제로 있는 워크플로우는 위 4개 명령과 2개 스킬, 그리고 Claude Code 전용인 `/onboard`와 위키 명령 4종뿐입니다. `/deploy`, `/test` 같은 다른 명령은 **없으니**, AI가 지어내면 의심하세요.
