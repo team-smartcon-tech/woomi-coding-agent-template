@@ -15,7 +15,9 @@ read-only 조회, 로컬 파일 분석, 로컬 테스트 실행, 로컬 브라�
 
 ## 승인 없이 금지
 
-`git commit`/`push`/`pull`, production 배포, 운영 DB 변경, 운영 secret 변경, 외부 서비스 데이터 생성·수정·삭제, 결제·알림 발송·고객 데이터 변경, destructive filesystem command.
+production 배포, 운영 DB 변경, 운영 secret 변경, 외부 서비스 데이터 생성·수정·삭제, 결제·알림 발송·고객 데이터 변경, destructive filesystem command.
+
+`git`은 작업 성격으로 나뉜다 — 로컬 작업은 사전 승인, `push`/`pull`은 안내 후 진행. [작업 흐름](workflow.md)의 승인 경계를 따른다.
 
 ## Secret · Privacy
 

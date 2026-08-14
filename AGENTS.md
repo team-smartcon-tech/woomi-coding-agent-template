@@ -4,8 +4,8 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.12-draft`
-- 최종 수정일: 2026-08-13
+- 표준 버전: `2.13-draft`
+- 최종 수정일: 2026-08-14
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
 
@@ -157,7 +157,6 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 - 실제 값이 들어간 `.env` 커밋
 - 프론트엔드에 서버 secret 노출
 - 인증 없이 private storage URL 발급
-- 사용자 승인 없는 `git commit`, `git push`, `git pull`
 - 안전 훅이나 보호 규칙을 우회하는 옵션(`--no-verify`, `-n`, `--force`)을 붙인 `git commit`, `git push`
 - 사용자 승인 없는 production 배포
 - 사용자 승인 없는 운영 DB 변경
@@ -171,6 +170,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 
 필수:
 
+- **git 작업 경계.** 저장소 안에서 끝나는 작업(`git init`, 브랜치 생성, `git add`, `git commit`)은 사전 승인된 것으로 보고 매번 묻지 않는다 — 되돌릴 수 있고, 오히려 커밋을 미루는 쪽이 작업 유실 위험이 크다. 저장소 밖으로 나가는 작업(`git push`, `git pull`, PR 생성, 원격 저장소 생성)은 **되돌리기 어렵다는 사실을 한 줄로 알린 뒤** 진행한다. 위 금지 목록의 우회 옵션과 `git reset --hard`는 이 예외에 해당하지 않는다.
 - secret은 환경변수 또는 platform secret으로 관리한다.
 - MCP와 외부 도구는 read-only 조회와 write/delete/deploy 작업을 구분해서 사용한다.
 - 파일 업로드는 확장자, MIME, 크기, 권한을 검증한다.
@@ -255,7 +255,7 @@ Risk:
 
 태그 ruleset을 만들 때 `Restrict creations`를 켜면 이 워크플로우가 막힌다. branch ruleset은 태그에 영향이 없다.
 
-Actions를 쓸 수 없는 프로젝트(비활성, 사설 러너 없음)에서는 아래를 **사용자 승인 후** 실행한다. 6장의 승인 없는 `git push` 금지가 태그에도 적용된다.
+Actions를 쓸 수 없는 프로젝트(비활성, 사설 러너 없음)에서는 아래를 **사용자 승인 후** 실행한다. 태그는 한 번 공개되면 되돌리기 어려우므로 6장의 로컬 작업 예외가 적용되지 않는다.
 
 ```bash
 git switch main && git pull
