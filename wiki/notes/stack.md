@@ -34,6 +34,8 @@ Woomi 신규 프로젝트의 표준 기술 선택. 스택을 바꾸려면 사유
 - [배포](deployment.md)
 - [바이브코딩 가이드](vibe-coding-guide.md)
 - [DB 스키마 가드레일](db-schema-guardrails.md)
+- [NestJS 프로젝트 규칙](nestjs.md)
+- [작업 흐름](workflow.md)
 
 ## 출처
 

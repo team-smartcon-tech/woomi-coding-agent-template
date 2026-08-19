@@ -40,6 +40,7 @@
 - [진입 규칙](agents-entry.md)
 - [바이브코딩 가이드](vibe-coding-guide.md)
 - [작업 흐름](workflow.md)
+- [좋은 예시와 금지 예시](examples.md)
 
 ## 출처
 

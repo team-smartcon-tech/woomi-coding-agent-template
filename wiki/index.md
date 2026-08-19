@@ -1,9 +1,9 @@
 # 색인
 
-이 위키에 무엇이 있는지의 목록. 자료를 넣을 때마다 갱신됩니다.
+이 위키에 무엇이 있는지의 목록. 자료를 넣을 때마다 갱신됩니다. 처음이면 [여는 법과 네 가지 명령](README.md)부터 읽고, 언제 무엇을 왜 넣었는지는 [기록](log.md)에 있습니다.
 
-- 원본 20건
-- 정리본 20개
+- 원본 24건 — 저장소 규칙 문서 23건 + 저장소 밖 자료 1건
+- 정리본 22개
 
 ## 정리본
 
@@ -13,6 +13,7 @@
 - [바이브코딩 가이드](notes/vibe-coding-guide.md) — 비개발자의 템플릿 도입과 세 도구 역할 분담
 - [작업 흐름](notes/workflow.md) — 절차가 중요한 작업의 순서와 승인 경계
 - [팀 위키](notes/team-wiki.md) — 이 폴더 구조 자체
+- [좋은 예시와 금지 예시](notes/examples.md) — 좋은 패턴·금지 패턴을 언제 어떤 항목으로 남기나
 
 ### 안전
 
@@ -28,6 +29,7 @@
 - [코드 스타일](notes/code-style.md) — TypeScript 스타일과 상태 관리 우선순위
 - [에러 처리](notes/error-handling.md) — 표준 error shape·code·로깅
 - [테스트와 검증](notes/testing.md) — 테스트 우선순위와 표준 검증 명령
+- [NestJS 프로젝트 규칙](notes/nestjs.md) — **조건부.** NestJS·Worker·Drizzle 조합에만 적용
 
 ### 데이터
 
@@ -47,7 +49,7 @@
 
 ## 원본
 
-저장소 규칙 문서를 가리키는 출처 기록 19건. 진짜 원본은 각 파일이 가리키는 `.agents/*`·`AGENTS.md`에 있다. 마지막 1건만 저장소 밖 자료이고, 그 본문은 보관하지 않았다.
+대부분 저장소 규칙 문서를 가리키는 출처 기록이다. 진짜 원본은 각 파일이 가리키는 `.agents/*`·`AGENTS.md`에 있고 거기서만 고친다. 저장소 밖 자료는 목록에서 `(외부)`로 표시했다.
 
 - [AGENTS.md](sources/agents-md.md)
 - [.agents/VIBE_CODING_GUIDE.md](sources/vibe-coding-guide.md)
@@ -68,4 +70,8 @@
 - [.agents/ui/DESIGN.md](sources/design.md)
 - [.agents/ui/UX_RULES.md](sources/ux-rules.md)
 - [.agents/ui/COMPONENTS.md](sources/components.md)
-- [llm-wiki (도슨티 바이브코딩 표준 과정)](sources/2026-08-19-llm-wiki.md) — 저장소 밖 자료, 본문 미보관
+- [.agents/code/NEST_GUIDE.md](sources/nest-guide.md)
+- [.agents/code/NEST_CF_WORKER.md](sources/nest-cf-worker.md)
+- [.agents/examples/GOOD_EXAMPLES.md](sources/good-examples.md)
+- [.agents/examples/BAD_EXAMPLES.md](sources/bad-examples.md)
+- **(외부)** [llm-wiki (도슨티 바이브코딩 표준 과정)](sources/2026-08-19-llm-wiki.md) — 본문 미보관

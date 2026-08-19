@@ -30,6 +30,7 @@ endpoint/요청·응답/error code/권한/DB 영향이 바뀌면 [API 계약과 
 - [프로젝트 구조](project-structure.md)
 - [작업 흐름](workflow.md)
 - [진입 규칙](agents-entry.md)
+- [NestJS 프로젝트 규칙](nestjs.md)
 
 ## 출처
 

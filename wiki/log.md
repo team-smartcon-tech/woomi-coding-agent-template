@@ -57,3 +57,19 @@
   - **정리본이 원본을 바로잡는 쪽으로 썼다** — `lint` 어긋남의 1차 원인은 원본(`.agents/code/TESTING.md`, `.agents/DEPLOYMENT.md`)이 CTPA 레퍼런스 기준 4종을 적어 둔 것이다. 원본은 고치지 않고(`wiki/CLAUDE.md` 규칙), 정리본에 실제 상태를 덧붙였다. 근거는 `.agents/STACK.md` §7과 루트 `package.json`이라 위키 안에서 출처가 추적된다.
   - **`.agents/*`를 고치지 않았다** — 2.13-draft에서 추가된 `/onboard`가 `.agents/VIBE_CODING_GUIDE.md`에도 없다. 1차 결손이 원본 쪽이므로 위키를 먼저 고치면 규칙이 갈라진다. 원본을 고치는 작업은 `CHANGELOG.md`·표준 버전 갱신을 함께 요구하므로 따로 다룬다.
 - 갱신한 정리본: [테스트와 검증](notes/testing.md), [배포](notes/deployment.md), [기술 스택](notes/stack.md), [절대 금지·필수 규칙](notes/non-negotiable-rules.md), [팀 위키](notes/team-wiki.md), [진입 규칙](notes/agents-entry.md). 새 원본 기록 1건([llm-wiki](sources/2026-08-19-llm-wiki.md)). 새 정리본 없음.
+
+## 2026-08-19 · 넣기·고치기 · 위키 커버리지 완성과 남은 점검 지적 정리
+
+- 왜 했나: 앞선 점검에서 "남은 것"으로 미뤄 둔 항목을 전부 닫으려고. 위키가 저장소 규칙 지도를 자칭하는데 `.agents/*` 4개가 아예 빠져 있어, 위키만 보면 지도가 완전한 것으로 읽히는 상태였다.
+- 넣은 것: `.agents/*` 미수록 4건. 새 원본 기록 4개([NEST_GUIDE](sources/nest-guide.md), [NEST_CF_WORKER](sources/nest-cf-worker.md), [GOOD_EXAMPLES](sources/good-examples.md), [BAD_EXAMPLES](sources/bad-examples.md))와 새 정리본 2개([NestJS 프로젝트 규칙](notes/nestjs.md), [좋은 예시와 금지 예시](notes/examples.md)). **이제 `.agents/*` + `AGENTS.md` 23개가 23/23 수록됐다.**
+- 고친 것:
+  - **원본 규칙 영역 누락 3건** — [UX 규칙](notes/ux-rules.md)에 원본 16장 중 빠져 있던 7장(파일 업로드·이동과 현재 위치·키보드와 단축키·패널과 밀도·피드백·모바일·UX 문서화)을 넣고 선택·일괄 작업과 AI 체크리스트를 원본에 맞췄다. [공통 컴포넌트](notes/components.md)에 빠져 있던 컴포넌트 6개(Select·Checkbox·Field·PageHeader·StatCard·Placeholder)와 마크다운 렌더 규칙을 넣었다. [작업 흐름](notes/workflow.md)에 문서 업데이트 표와 최종 보고 형식을 넣었다.
+  - **고아 페이지** — [README](README.md) 표의 `index.md`·`log.md`·`CLAUDE.md`가 백틱이라 그래프에 선이 안 그려졌다. 링크로 바꾸고 [색인](index.md)에서 README와 기록을 걸었다. **이제 혼자 떨어진 페이지 0개.**
+  - **외부 자료 기록 형식** — [llm-wiki](sources/2026-08-19-llm-wiki.md)의 `원본:`이 산문이라 다른 23건과 형식이 갈렸다. `원본:`은 자료 이름, `본문: 미보관 — 대조 불가`를 별 필드로 분리했다.
+  - **색인 문장의 순서 의존** — "마지막 1건만 저장소 밖 자료"가 목록을 재정렬하면 틀려진다. 목록에서 `(외부)`로 표시하는 방식으로 바꿨다.
+- 정한 것과 이유:
+  - **`sources/`의 `정리한 노트:` 줄은 갱신한다고 규칙에 명시했다** — [`wiki/CLAUDE.md`](CLAUDE.md). "읽기만 한다"(3단계)와 "양쪽 다 건다"(5단계)가 정면으로 충돌하던 자리다. "읽기만 한다"가 막으려는 건 자료 본문·원본 경로·목적을 고쳐 기록을 흐리는 것이고, 저 줄은 어느 정리본이 이 원본에서 나왔는지의 링크 색인이다. 갱신하지 않으면 한쪽만 걸린 링크가 구조적으로 남는다. 이 판정에 따라 [AGENTS.md 출처 기록](sources/agents-md.md)의 색인 줄에 팀 위키를 추가했다.
+  - **볼트 밖 링크의 한계를 규칙에 적었다** — 볼트가 `wiki/`라서 `../../AGENTS.md` 류는 옵시디언에서 열리지 않는다. 고칠 수 있는 결함이 아니라 구조의 결과이므로, 정리본의 `## 출처`는 `sources/` 기록을 가리키는 것을 기본으로 하고 직접 링크는 예외로 둔다고 명시했다.
+  - **NestJS 규칙을 한 정리본으로 묶었다** — 원본이 두 개(`NEST_GUIDE`, `NEST_CF_WORKER`)지만 적용 조건이 하나로 이어지고, 후자는 전자의 8장이 가리키는 add-on이다. [API 계약과 도메인 모델](notes/api-contract.md)이 원본 두 개를 묶은 것과 같은 방식.
+  - **조건부 규칙임을 정리본 첫 줄에 박았다** — 이 스캐폴드는 React Router + Hono다. 조건 확인 없이 NestJS 규칙을 적용하면 [기술 스택](notes/stack.md)과 충돌한다. 위키에서 검색해 읽는 사람이 그 사실을 첫 줄에서 보게 했다.
+- 갱신한 정리본: [UX 규칙](notes/ux-rules.md), [공통 컴포넌트](notes/components.md), [작업 흐름](notes/workflow.md), 그리고 새 정리본 2개와 짝을 맞추려고 `함께 보기`를 보강한 10개([진입 규칙](notes/agents-entry.md), [계층 아키텍처](notes/layered-architecture.md), [기술 스택](notes/stack.md), [API 계층 규칙](notes/api-layers.md), [프로젝트 구조](notes/project-structure.md), [코드 스타일](notes/code-style.md), [테스트와 검증](notes/testing.md), [마이그레이션](notes/migration.md), [팀 위키](notes/team-wiki.md), [DB 스키마 가드레일](notes/db-schema-guardrails.md), [API 계약과 도메인 모델](notes/api-contract.md)).
