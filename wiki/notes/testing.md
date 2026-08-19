@@ -46,6 +46,7 @@ Worker는 `pnpm --filter <worker-package> run typecheck/test/deploy:dry`. **존�
 - [기술 스택](stack.md)
 - [배포](deployment.md)
 - [절대 금지·필수 규칙](non-negotiable-rules.md)
+- [NestJS 프로젝트 규칙](nestjs.md)
 
 ## 출처
 

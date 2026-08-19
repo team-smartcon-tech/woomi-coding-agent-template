@@ -6,17 +6,19 @@
 
 템플릿을 도입할 때 `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.agents/`, `.claude/`, `.codex/`, `.github/`, `.githooks/`를 루트에 복사하고 `git config core.hooksPath .githooks`로 훅을 건다.
 
+AI가 온보딩 전체를 주도하게 하려면 루트 `QUICKSTART.md`의 프롬프트 A(기존 프로젝트)/B(새 프로젝트)를 붙여넣고, Claude Code에서는 `/onboard`를 쓴다.
+
 복사 뒤 문서를 정해진 순서로 내 프로젝트에 맞춘다: `README.md` → `AGENTS.md` → [기술 스택](stack.md) → [계층 아키텍처](layered-architecture.md) → [디자인 원칙](design-principles.md) → [프로젝트 구조](project-structure.md). 완벽하지 않아도 비워두지 말고 아는 만큼 적는다.
 
 ## 세 도구의 역할
 
 - **Codex** — 저장소 전체를 읽고 계획·구현·검증.
 - **GitHub Copilot** — VS Code 안에서 현재 파일 소규모 수정.
-- **Claude Code** — 명령·스킬·훅으로 반복 작업 처리(`/new-feature`, `/new-api`, `/review-pr`, `/commit`).
+- **Claude Code** — 명령·스킬·훅으로 반복 작업 처리(`/new-feature`, `/new-api`, `/review-pr`, `/commit`). 처음 오는 사람은 `/onboard` — 환경 확인부터 첫 커밋 1개까지 데려간다. 종료 조건이 로컬 커밋이고 원격 저장소·PR은 그 뒤 안내인 이유는, GitHub 계정 만들기를 온보딩 안으로 끌어들이지 않기 위해서다. Codex·Copilot에는 없는 명령이다.
 
 ## 운영 4계층
 
-일을 네 계층으로 나눈다. **Commands**(반복 절차), **Skills**(체크리스트가 필요한 복잡 작업), **Rules**(항상 적용되는 기준), **Hooks**(막아야 할 위험 행동). 이 위키의 네 명령(`/wiki-add-source` 등)도 같은 Commands 계층이다 — [팀 위키](team-wiki.md).
+일을 네 계층으로 나눈다. **Commands**(반복 절차), **Skills**(체크리스트가 필요한 복잡 작업), **Rules**(항상 적용되는 기준), **Hooks**(막아야 할 위험 행동). 이 위키의 네 명령(`/wiki-add-source` 등)과 `/onboard`도 같은 Commands 계층이다 — [팀 위키](team-wiki.md).
 
 ## DB를 AI가 직접 확인하게 하기 (선택)
 

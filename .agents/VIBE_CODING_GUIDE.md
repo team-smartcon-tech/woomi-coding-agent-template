@@ -79,6 +79,8 @@ Codex, Claude Code, Copilot Chat에 공통으로 이렇게 시작한다.
 
 한 번의 복사-붙여넣기로 AI가 온보딩 전체를 단계별로 주도하게 하려면, 루트 [`QUICKSTART.md`](../QUICKSTART.md)의 **프롬프트 A(기존 프로젝트 적용)** 또는 **프롬프트 B(새 프로젝트 시작)**를 그대로 붙여넣는다.
 
+**Claude Code를 쓴다면 `/onboard` 한 줄이 더 짧다.** 환경 확인(`git init`·훅 활성화)부터 프로젝트 정보 인터뷰, 화면 한 곳 수정, 첫 커밋 1개까지 에이전트가 옆에서 실행한다. 종료 조건은 로컬 커밋이고 원격 저장소·PR은 그 뒤에 따로 안내한다 — 처음 오는 사람에게 GitHub 계정 만들기를 온보딩 안으로 끌어들이지 않기 위해서다. Codex·Copilot에는 이 명령이 없으므로 위 프롬프트 A/B를 쓴다.
+
 ### 2.4 DB를 AI가 직접 확인하게 하기 (선택)
 
 Supabase를 쓰는 프로젝트라면, AI가 실제 DB 구조를 읽어서 문서(`.agents/data/DB_SCHEMA.md`)와 대조할 수 있다. 문서와 실제 DB가 갈라지는 게 이 방식의 가장 흔한 사고이므로, 연결해 두면 그걸 막을 수 있다.
@@ -175,7 +177,9 @@ Claude Code는 `CLAUDE.md`, 명령, 스킬, 훅을 묶어 반복 작업을 안�
 
 권장 사용:
 
+- 처음 이 템플릿을 여는 사람은 `/onboard` — 첫 커밋까지 데려간다
 - `/new-feature`, `/new-api`, `/review-pr`, `/commit` 같은 반복 워크플로우
+- `wiki/` 볼트를 쓰는 프로젝트는 `/wiki-add-source`, `/wiki-ask`, `/wiki-log-today`, `/wiki-check`
 - Claude 전용 스킬 사용
 - 작업이 끝난 뒤 프로젝트 기억 갱신
 - 훅을 통한 위험 행동 차단

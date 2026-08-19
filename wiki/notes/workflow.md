@@ -28,6 +28,25 @@ commit은 Conventional Commits(`<type>: <한국어 요약>`, 제목 72자 이내
 
 작업의 성격으로 나뉜다. 저장소 안에서 끝나는 것(`git init`, 브랜치 생성, `git add`, `git commit`)은 되돌릴 수 있으므로 사전 승인된 것으로 보고 매번 묻지 않는다 — 오히려 커밋을 미루는 쪽이 작업 유실 위험이 크다. 저장소 밖으로 나가는 것(`git push`, `git pull`, PR 생성, 원격 저장소 생성)은 되돌리기 어렵다는 사실을 한 줄로 알린 뒤 진행한다. **PR merge는 여전히 사용자 승인이 필요하다.** `main` 직접 push는 원칙적으로 금지 — [절대 금지·필수 규칙](non-negotiable-rules.md).
 
+## 문서를 함께 갱신할 때
+
+어떤 변경이 어떤 문서를 끌고 오는지가 정해져 있다.
+
+| 변경 | 갱신 후보 |
+|---|---|
+| 새 도메인 | [계층 아키텍처](layered-architecture.md), [API 계약과 도메인 모델](api-contract.md) |
+| 새 API | [API 계약과 도메인 모델](api-contract.md) |
+| DB schema·RPC·RLS 변경 | [DB 스키마 가드레일](db-schema-guardrails.md), [마이그레이션](migration.md) |
+| 스택 변경 | [기술 스택](stack.md) |
+| 배포·secret 변경 | [배포](deployment.md) |
+| 반복 실수 발견 / 좋은 패턴 정착 | [좋은 예시와 금지 예시](examples.md)와 관련 규칙 문서 |
+
+**문서가 아직 비어 있으면 추측해서 채우지 않는다.** 실제 변경이 생긴 범위만 갱신한다.
+
+## 최종 보고
+
+작업이 끝나면 짧게 보고한다: 변경한 핵심 내용, 수정한 주요 파일, 실행한 검증, **실행하지 못한 검증과 이유**, 남은 리스크. 간단한 작업은 한두 문단으로 끝내고 긴 작업은 목록으로 정리한다. commit·push·PR을 수행하거나 안내할 때는 Branch / Base branch / Commit / Push target / PR URL / Checks / Skipped checks / Deploy trigger / Risks를 적고, 아직 하지 않은 항목은 "아직 수행하지 않음"이라고 적는다.
+
 ## 리뷰
 
 리뷰 요청을 받으면 구현 설명보다 문제 발견을 먼저 쓴다. 우선순위: 버그 → 보안 → 데이터 손실 → 권한/인증 → 회귀 → 누락 테스트 → 문서 불일치.
@@ -42,6 +61,7 @@ commit은 Conventional Commits(`<type>: <한국어 요약>`, 제목 72자 이내
 - [도구 사용 기준](tooling.md)
 - [바이브코딩 가이드](vibe-coding-guide.md)
 - [팀 위키](team-wiki.md)
+- [좋은 예시와 금지 예시](examples.md)
 
 ## 출처
 

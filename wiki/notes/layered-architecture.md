@@ -37,6 +37,7 @@ React Router v7 Framework Mode + Feature-Sliced Design 계열 구조. 앱 루트
 - [배포](deployment.md)
 - [진입 규칙](agents-entry.md)
 - [바이브코딩 가이드](vibe-coding-guide.md)
+- [NestJS 프로젝트 규칙](nestjs.md)
 
 ## 출처
 

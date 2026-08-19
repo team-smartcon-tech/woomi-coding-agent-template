@@ -36,6 +36,7 @@
 - [공통 컴포넌트](components.md)
 - [바이브코딩 가이드](vibe-coding-guide.md)
 - [작업 흐름](workflow.md)
+- [NestJS 프로젝트 규칙](nestjs.md)
 
 ## 출처
 

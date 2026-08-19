@@ -36,6 +36,7 @@ AI가 index를 자동 생성하지 않는다. query pattern·table size·write f
 - [절대 금지·필수 규칙](non-negotiable-rules.md)
 - [기술 스택](stack.md)
 - [진입 규칙](agents-entry.md)
+- [작업 흐름](workflow.md)
 
 ## 출처
 
