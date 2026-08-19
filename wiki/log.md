@@ -73,3 +73,14 @@
   - **NestJS 규칙을 한 정리본으로 묶었다** — 원본이 두 개(`NEST_GUIDE`, `NEST_CF_WORKER`)지만 적용 조건이 하나로 이어지고, 후자는 전자의 8장이 가리키는 add-on이다. [API 계약과 도메인 모델](notes/api-contract.md)이 원본 두 개를 묶은 것과 같은 방식.
   - **조건부 규칙임을 정리본 첫 줄에 박았다** — 이 스캐폴드는 React Router + Hono다. 조건 확인 없이 NestJS 규칙을 적용하면 [기술 스택](notes/stack.md)과 충돌한다. 위키에서 검색해 읽는 사람이 그 사실을 첫 줄에서 보게 했다.
 - 갱신한 정리본: [UX 규칙](notes/ux-rules.md), [공통 컴포넌트](notes/components.md), [작업 흐름](notes/workflow.md), 그리고 새 정리본 2개와 짝을 맞추려고 `함께 보기`를 보강한 10개([진입 규칙](notes/agents-entry.md), [계층 아키텍처](notes/layered-architecture.md), [기술 스택](notes/stack.md), [API 계층 규칙](notes/api-layers.md), [프로젝트 구조](notes/project-structure.md), [코드 스타일](notes/code-style.md), [테스트와 검증](notes/testing.md), [마이그레이션](notes/migration.md), [팀 위키](notes/team-wiki.md), [DB 스키마 가드레일](notes/db-schema-guardrails.md), [API 계약과 도메인 모델](notes/api-contract.md)).
+
+## 2026-08-19 · 고치기 · 위키가 찾아낸 원본 결손 2건 (2.13 → 2.14-draft)
+
+- 왜 했나: 앞선 점검에서 "1차 결손이 원본 쪽이라 위키를 먼저 고치면 규칙이 갈라진다"고 미뤄 둔 것을 닫으려고. 위키가 `.agents/*`의 사본이 아니라 **대조 장치**로 작동한 사례다 — 정리본을 원본과 맞추려다 원본의 구멍을 찾았다.
+- 고친 원본:
+  - **`.agents/VIBE_CODING_GUIDE.md`에 `/onboard`가 없었다.** 2.13-draft에서 명령을 만들었는데, 처음 오는 사람이 실제로 읽는 2.3절·4.3절에는 여전히 `QUICKSTART.md` 프롬프트와 `/new-feature` 계열만 있었다. `/onboard`를 알 방법이 에이전트용 `CLAUDE.md`뿐이었다. 4.3절에 위키 명령 4종도 함께 등재했다.
+  - **`/wiki-add-source`가 스스로 모순이었다.** 2단계 "sources는 읽기만 한다"와 5단계 "양쪽 다 건다"가 `정리한 노트:` 줄에서 충돌한다. 5단계를 따르면 2단계를 어기고, 2단계를 지키면 한쪽만 걸린 링크가 구조적으로 남는다. 그 줄은 색인이므로 갱신한다고 명령과 [`wiki/CLAUDE.md`](CLAUDE.md) 양쪽에 적었다. 자료 본문 미보관 표기도 규약으로 넣었다.
+- 정한 것과 이유:
+  - **원본을 고칠 때는 `CHANGELOG.md`와 표준 버전을 함께 올린다** — `AGENTS.md` §10. 위키만 고치던 앞선 두 작업과 갈리는 지점이다(위키 변경은 표준 버전을 올리지 않는다). 2.13 → **2.14-draft**, 최종 수정일 2026-08-19. 태그는 머지 시 워크플로우가 붙이므로 직접 만들지 않는다.
+  - **명령 문서와 위키 규칙 양쪽에 같은 판정을 적었다** — 한쪽만 고치면 다음 사람이 다른 쪽을 근거로 반대로 판단한다. 규칙을 고칠 때 어디가 그 규칙을 복제하고 있는지 먼저 찾는다는 것은 2026-08-14 항목에서 이미 배운 것이다.
+- 갱신한 정리본: [바이브코딩 가이드](notes/vibe-coding-guide.md) — 원본에 `/onboard`가 들어갔으므로 같은 작업에서 동기화.
