@@ -11,7 +11,7 @@
 
 - [진입 규칙](notes/agents-entry.md) — 모든 에이전트가 먼저 읽는 규칙과 Task Routing
 - [바이브코딩 가이드](notes/vibe-coding-guide.md) — 비개발자의 템플릿 도입과 세 도구 역할 분담
-- [작업 흐름](notes/workflow.md) — 절차가 중요한 작업의 순서와 승인 경계
+- [작업 흐름](notes/workflow.md) — 절차가 중요한 작업의 순서·승인 경계·문서 갱신·보고 형식
 - [팀 위키](notes/team-wiki.md) — 이 폴더 구조 자체
 - [좋은 예시와 금지 예시](notes/examples.md) — 좋은 패턴·금지 패턴을 언제 어떤 항목으로 남기나
 
@@ -40,7 +40,7 @@
 ### UI
 
 - [디자인 원칙](notes/design-principles.md) — 정보 밀도 우선·화면 비율·안티패턴
-- [UX 규칙](notes/ux-rules.md) — 일곱 상태·폼·권한·파괴적 작업
+- [UX 규칙](notes/ux-rules.md) — 일곱 상태·폼·권한·파괴적 작업·업로드·이동·단축키·모바일
 - [공통 컴포넌트](notes/components.md) — 제공 컴포넌트와 사용 기준
 
 ### 배포
