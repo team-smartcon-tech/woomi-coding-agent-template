@@ -30,6 +30,8 @@ Woomi 신규 프로젝트의 표준 기술 선택. 스택을 바꾸려면 사유
 - [계층 아키텍처](layered-architecture.md)
 - [프로젝트 구조](project-structure.md)
 - [코드 스타일](code-style.md)
+- [테스트와 검증](testing.md)
+- [배포](deployment.md)
 - [바이브코딩 가이드](vibe-coding-guide.md)
 - [DB 스키마 가드레일](db-schema-guardrails.md)
 

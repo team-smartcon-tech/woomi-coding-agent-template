@@ -2,7 +2,7 @@
 
 이 위키에 무엇이 있는지의 목록. 자료를 넣을 때마다 갱신됩니다.
 
-- 원본 19건
+- 원본 20건
 - 정리본 20개
 
 ## 정리본
@@ -47,7 +47,7 @@
 
 ## 원본
 
-저장소 규칙 문서를 가리키는 출처 기록. 진짜 원본은 각 파일이 가리키는 `.agents/*`·`AGENTS.md`에 있다.
+저장소 규칙 문서를 가리키는 출처 기록 19건. 진짜 원본은 각 파일이 가리키는 `.agents/*`·`AGENTS.md`에 있다. 마지막 1건만 저장소 밖 자료이고, 그 본문은 보관하지 않았다.
 
 - [AGENTS.md](sources/agents-md.md)
 - [.agents/VIBE_CODING_GUIDE.md](sources/vibe-coding-guide.md)
@@ -68,3 +68,4 @@
 - [.agents/ui/DESIGN.md](sources/design.md)
 - [.agents/ui/UX_RULES.md](sources/ux-rules.md)
 - [.agents/ui/COMPONENTS.md](sources/components.md)
+- [llm-wiki (도슨티 바이브코딩 표준 과정)](sources/llm-wiki.md) — 저장소 밖 자료, 본문 미보관

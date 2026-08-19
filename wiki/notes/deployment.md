@@ -18,6 +18,8 @@ R2는 production/dev bucket을 분리하고, private 파일은 인증 없이 sig
 
 `git status`/`git fetch`/`git status -sb` → `pnpm lint/typecheck/test/build` → dry-run(`pnpm --filter <worker-package> run deploy:dry`). 미커밋·untracked·ahead/behind·검증 실패·dry-run 실패·production secret 누락·dev가 prod 리소스 참조·문서와 `package.json` 불일치면 배포를 보류한다.
 
+**이 스캐폴드에는 `lint`와 `deploy:dry`가 없다** — 실제로 돌리는 것은 `typecheck`·`test`·`build`뿐이고, 없는 명령을 만들어 채우지 않는다. 건너뛴 검증은 배포 보고에 명시한다 — [테스트와 검증](testing.md), [기술 스택](stack.md).
+
 배포 명령 컨벤션: `pnpm deploy`(production) / `deploy:dry` / `deploy:dev` / `deploy:dev:dry`. 명령 이름은 `package.json`과 `README.md`에서 일치해야 한다.
 
 ## Secret
@@ -36,6 +38,8 @@ rollback도 승인 없이 실행하지 않는다 — 영향 범위·되돌릴 �
 
 - [절대 금지·필수 규칙](non-negotiable-rules.md)
 - [작업 흐름](workflow.md)
+- [테스트와 검증](testing.md)
+- [기술 스택](stack.md)
 - [마이그레이션](migration.md)
 - [도구 사용 기준](tooling.md)
 - [진입 규칙](agents-entry.md)

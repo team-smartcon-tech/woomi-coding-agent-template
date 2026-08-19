@@ -26,6 +26,7 @@
 - MCP와 외부 도구는 read-only 조회와 write/delete/deploy 작업을 구분해서 사용한다 — [도구 사용 기준](tooling.md).
 - 파일 업로드는 확장자, MIME, 크기, 권한을 검증한다.
 - DB/API/배포 변경은 관련 `.agents/*` 문서를 함께 갱신한다.
+- 반복되는 UX 패턴이나 공통 화면 정책이 생기면 `.agents/ui/UX_RULES.md` 또는 프로젝트별 UX 문서에 기록한다 — [UX 규칙](ux-rules.md).
 - 검증하지 못한 항목은 최종 보고에 명시한다 — [테스트와 검증](testing.md).
 
 ## 왜 중요한가

@@ -44,3 +44,16 @@
   - "온보딩 문서가 없다"고 보고 새로 쓰려 했으나, `QUICKSTART.md`에 이미 AI 주도 프롬프트 A/B가 있었다 → 실제 결손은 문서가 아니라 **비개발자 경로의 단절 3개**(`git init` 누락 / GitHub 저장소 만드는 안내 0회 / 차단은 있는데 PR 만드는 법이 없음)였다. 조사 없이 만들었으면 있는 것을 또 만들 뻔했다.
   - `AGENTS.md` §6을 고치자 `.agents/WORKFLOW.md`와 위키 정리본 3개에 옛 규칙이 남아 모순이 생겼다 → 같은 작업에서 전부 동기화. 규칙을 고칠 때 어디가 그 규칙을 복제하고 있는지 먼저 grep해야 한다.
 - 갱신한 정리본: [절대 금지·필수 규칙](notes/non-negotiable-rules.md), [작업 흐름](notes/workflow.md), [도구 사용 기준](notes/tooling.md). 새 페이지 없음.
+
+## 2026-08-19 · 고치기 · `/wiki-check` 지적 3건 반영 (검증 명령 어긋남·필수 규칙 누락·출처 귀속)
+
+- 왜 고쳤나: `/wiki-check` 점검에서 나온 9개 항목 중, 에이전트가 실제로 오작동할 수 있는 것부터 셋을 골라 고쳤다. 나머지(고아 페이지 3개, 원본 규칙 영역 누락 3건, `.agents/*` 4개 미수록)는 아직 남아 있다.
+- 고친 것:
+  - **검증 명령 어긋남** — [테스트와 검증](notes/testing.md)과 [배포](notes/deployment.md)가 `pnpm lint`·`deploy:dry`를 표준·필수 단계로 제시하고 있었다. 이 스캐폴드에는 둘 다 없다(루트 `package.json`은 `typecheck`·`test`·`build`만 제공, ESLint 설정 파일 없음). [기술 스택](notes/stack.md)은 정반대로 적고 있어 위키 안에서 모순이었다. 두 페이지에 실제 상태 단서를 넣고 세 페이지를 상호 링크로 묶었다.
+  - **필수 규칙 1항목 복원** — [절대 금지·필수 규칙](notes/non-negotiable-rules.md)의 필수 목록이 `AGENTS.md` §6의 7개 중 6개만 담고 있었다. "반복되는 UX 패턴·공통 화면 정책은 `.agents/ui/UX_RULES.md`에 기록한다"가 빠져 있었다.
+  - **출처 귀속 2건** — [팀 위키](notes/team-wiki.md)의 출처가 링크가 아닌 산문이었고(그래프에 선이 안 그려짐), [진입 규칙](notes/agents-entry.md)의 「이 프로젝트에서 정한 것」이 `AGENTS.md`에 없는 내용을 `AGENTS.md` 출처로 달고 있었다.
+- 정한 것과 이유:
+  - **`sources/`에 저장소 밖 자료 기록을 처음 만들었다** — [llm-wiki](sources/llm-wiki.md). 본문을 받아 두지 않았으므로 "본문 미보관·대조 불가"를 기록 자체에 적었다. 출처를 지우거나 산문으로 남기는 대신 링크가 되게 한 이유는, 대조할 수 없다는 사실이 다음 점검에서 보여야 하기 때문이다. 본문을 확보하면 `/wiki-add-source`로 채운다.
+  - **정리본이 원본을 바로잡는 쪽으로 썼다** — `lint` 어긋남의 1차 원인은 원본(`.agents/code/TESTING.md`, `.agents/DEPLOYMENT.md`)이 CTPA 레퍼런스 기준 4종을 적어 둔 것이다. 원본은 고치지 않고(`wiki/CLAUDE.md` 규칙), 정리본에 실제 상태를 덧붙였다. 근거는 `.agents/STACK.md` §7과 루트 `package.json`이라 위키 안에서 출처가 추적된다.
+  - **`.agents/*`를 고치지 않았다** — 2.13-draft에서 추가된 `/onboard`가 `.agents/VIBE_CODING_GUIDE.md`에도 없다. 1차 결손이 원본 쪽이므로 위키를 먼저 고치면 규칙이 갈라진다. 원본을 고치는 작업은 `CHANGELOG.md`·표준 버전 갱신을 함께 요구하므로 따로 다룬다.
+- 갱신한 정리본: [테스트와 검증](notes/testing.md), [배포](notes/deployment.md), [기술 스택](notes/stack.md), [절대 금지·필수 규칙](notes/non-negotiable-rules.md), [팀 위키](notes/team-wiki.md), [진입 규칙](notes/agents-entry.md). 새 원본 기록 1건([llm-wiki](sources/llm-wiki.md)). 새 정리본 없음.
