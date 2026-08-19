@@ -68,4 +68,4 @@
 - [.agents/ui/DESIGN.md](sources/design.md)
 - [.agents/ui/UX_RULES.md](sources/ux-rules.md)
 - [.agents/ui/COMPONENTS.md](sources/components.md)
-- [llm-wiki (도슨티 바이브코딩 표준 과정)](sources/llm-wiki.md) — 저장소 밖 자료, 본문 미보관
+- [llm-wiki (도슨티 바이브코딩 표준 과정)](sources/2026-08-19-llm-wiki.md) — 저장소 밖 자료, 본문 미보관
