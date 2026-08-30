@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-19
+tags: [area/ui]
+---
+
 # UX 규칙
 
 모든 주요 화면이 고려해야 할 상태와 사용자 흐름. AI 에이전트는 happy path만 구현하지 않는다.

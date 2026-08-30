@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-06
+tags: [area/코드품질, area/api]
+---
+
 # 에러 처리
 
 일관된 error response로 클라이언트가 `code` 기준으로 안정 분기하게 하고, raw provider error를 사용자에게 노출하지 않는 기준.

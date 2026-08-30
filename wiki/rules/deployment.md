@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-19
+tags: [area/배포]
+---
+
 # 배포
 
 배포 환경·secret·Cloudflare/Wrangler 운영 규칙. "배포는 코드 변경보다 위험하다. 에이전트는 사용자 승인 없이 자동 배포하지 않는다."
