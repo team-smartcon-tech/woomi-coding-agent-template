@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-19
+tags: [area/아키텍처, area/조건부]
+---
+
 # NestJS 프로젝트 규칙
 
 **조건부 규칙.** NestJS를 쓰는 프로젝트에서만 적용되고, 이 저장소의 표준 스택(React Router v7 + Hono/Workers — [기술 스택](stack.md))에는 적용되지 않는다. 이 스캐폴드에는 `apps/web` 하나만 있어 Worker 앱 자체가 없다. 조건을 만족하면 다른 코드 문서보다 이 규칙을 우선한다.

@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-19
+tags: [area/코드품질]
+---
+
 # 코드 스타일
 
 Woomi 표준 TypeScript 작성 기준. strict mode 기준이고, indent·semicolon·quote는 포맷터 설정이 있으면 그것을 따르고 없으면 **주변 파일의 스타일에 맞춘다**. 타입 전용 import는 `import type`.

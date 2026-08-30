@@ -9,6 +9,7 @@
 //
 //   node scripts/agent-guard.cjs file|bash        PreToolUse. 훅 payload 를 stdin JSON 으로 받는다
 //   node scripts/agent-guard.cjs stop-changelog   Stop. CHANGELOG 갱신 리마인더
+//   node scripts/agent-guard.cjs commit-wiki      PostToolUse(Bash). 커밋 직후 위키 기록 리마인더
 //   node scripts/agent-guard.cjs --selftest       판정 로직 자체 점검
 //
 // 차단은 exit code 2 + stderr 다(Claude Code 훅 규약). 그 외 실패는 통과시킨다 —
@@ -97,6 +98,18 @@ function needsChangelog(files) {
     return inScope.length > 0 && !files.includes('CHANGELOG.md')
 }
 
+// ── 위키 기록 리마인더 (커밋 직후 PostToolUse 훅) ──────────────────────────
+// wiki/README.md·AGENTS.md §1: 남길 것이 생기면 에이전트가 먼저 위키에 남긴다.
+// 파생 프로젝트에서 실작업 커밋 26건이 위키 갱신 0건으로 지나간 사례가 있었고, 소급 복원은 커밋
+// 메시지에 남은 사실까지만 됐다("왜"는 유실) — 커밋 직후가 맥락이 살아 있어 가장 싸다.
+// CHANGELOG 와 달리 코드·규칙 변경만 본다. 문서·설정 잔손질에까지 발화하면 소음이 된다.
+const WIKI_SCOPE = /^(?:apps|packages|supabase)\/|^\.agents\/|^scripts\//
+
+function needsWikiNote(files) {
+    if (files.some(f => f.startsWith('wiki/'))) return false
+    return files.some(f => !GENERATED.test(f) && WIKI_SCOPE.test(f))
+}
+
 // `git status --porcelain` 한 줄에서 경로만 뽑는다. 비ASCII 경로는 인용되고, rename 은 `a -> b` 다.
 function porcelainPath(line) {
     const p = line.slice(3)
@@ -164,6 +177,18 @@ function selftest() {
     nc(['node_modules/x/index.js'], false)
     nc([], false)
 
+    // 위키 기록 리마인더 대상
+    const nw = (files, want) => assert.strictEqual(needsWikiNote(files), want, files.join(','))
+    nw(['apps/web/app/root.tsx'], true)
+    nw(['supabase/migrations/20260825_x.sql'], true)
+    nw(['.agents/DEPLOYMENT.md'], true)
+    nw(['scripts/agent-guard.cjs'], true)
+    nw(['apps/web/app/root.tsx', 'wiki/log.md'], false) // 같은 커밋에 위키가 있으면 침묵
+    nw(['wiki/log.md', 'wiki/index.md'], false) // 위키만 고친 커밋
+    nw(['CHANGELOG.md', 'AGENTS.md'], false) // 루트 문서만 — CHANGELOG 리마인더의 몫
+    nw(['apps/web/build/index.js'], false) // 빌드 산출물
+    nw([], false)
+
     assert.strictEqual(porcelainPath('?? "\\355\\225\\234.md"'), '\\355\\225\\234.md')
     assert.strictEqual(porcelainPath('R  old.md -> new.md'), 'new.md')
 
@@ -174,6 +199,34 @@ const mode = process.argv[2]
 
 if (mode === '--selftest') {
     selftest()
+} else if (mode === 'commit-wiki') {
+    try {
+        const fs = require('fs')
+        const cp = require('child_process')
+        const run = cmd => cp.execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+
+        const payload = JSON.parse(fs.readFileSync(0, 'utf8'))
+        const command = String((payload.tool_input || {}).command || '')
+        // 커밋 명령이 아니면 즉시 통과. 위키가 없는 저장소(템플릿 이식처)도 통과.
+        if (gitArgs(command, 'commit') === null || !fs.existsSync('wiki')) process.exit(0)
+
+        // 방금 만든 커밋인지 확인한다 — 커밋이 실패했으면 HEAD 는 옛 커밋이라 오탐이 된다.
+        const age = Date.now() / 1000 - Number(run('git log -1 --format=%ct').trim())
+        if (!(age >= 0 && age < 300)) process.exit(0)
+
+        // 위키 수정이 작업트리에 남아 있으면(따로 커밋할 계획) 침묵한다.
+        if (run('git status --porcelain -- wiki').trim()) process.exit(0)
+
+        const files = run('git log -1 --name-only --format=').split('\n').filter(Boolean)
+        if (needsWikiNote(files)) {
+            process.stdout.write(JSON.stringify({
+                decision: 'block',
+                reason: '방금 커밋에 위키 기록이 없습니다. wiki/log.md 에 항목을 덧붙이고, 배운 것·정한 것이 있으면 관련 정리본도 갱신하세요(규칙은 wiki/rules/, 화면·경로는 wiki/systems/, 두 번 이상 반복된 실패는 wiki/patterns/)(규칙: wiki/CLAUDE.md). 정말 남길 것이 없는 사소한 변경이면 그렇게 판단했다고 사용자에게 한 줄 보고하고 넘어갑니다.',
+            }))
+        }
+    } catch {
+        // 저장소가 아니거나 git 이 없으면 조용히 넘어간다.
+    }
 } else if (mode === 'stop-changelog') {
     try {
         const out = require('child_process').execSync('git status --porcelain', { encoding: 'utf8' })

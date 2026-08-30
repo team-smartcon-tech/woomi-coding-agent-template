@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-19
+tags: [area/아키텍처]
+---
+
 # 프로젝트 구조
 
 파일이 어디에 있어야 하고 무엇을 import할 수 있는지의 규칙. [계층 아키텍처](layered-architecture.md)를 파일 단위로 구체화한 것이다.

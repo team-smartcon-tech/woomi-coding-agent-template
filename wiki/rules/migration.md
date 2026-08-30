@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-19
+tags: [area/데이터]
+---
+
 # 마이그레이션
 
 DB schema·RPC·RLS·seed·데이터 보정의 변경 절차. Supabase PostgreSQL 기준이다.

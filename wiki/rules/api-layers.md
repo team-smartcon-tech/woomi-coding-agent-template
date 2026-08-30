@@ -1,3 +1,9 @@
+---
+type: rule
+updated: 2026-08-19
+tags: [area/아키텍처, area/api]
+---
+
 # API 계층 규칙
 
 백엔드 route/service/repository와 프론트 API client의 책임 분리. 표준 흐름은 `HTTP request → middleware → route → schema validation → service → repository/RPC/storage → response helper`다.
