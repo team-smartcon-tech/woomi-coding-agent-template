@@ -28,7 +28,10 @@ type ProfileInput = z.infer<typeof profileSchema>
 
 export default function SettingsRoute() {
   return (
-    <div className="space-y-6">
+    // 설정은 폼이라 본문 폭을 다 쓰지 않는다. 본문 컨테이너의 폭 제한을 없앴으므로
+    // (routes/_app.tsx) 여기서 읽기 좋은 폭으로 묶는다 — 이름·이메일 입력이 1,200px 로
+    // 늘어나는 것을 막는다. 표·대시보드는 폭을 쓰는 것이 이득이라 제한하지 않는다.
+    <div className="max-w-3xl space-y-4">
       <PageHeader title="설정" description="프로필, 알림, 계정 관련 설정을 관리합니다." />
       <ProfileSection />
       <NotificationSection />

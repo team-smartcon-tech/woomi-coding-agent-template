@@ -108,7 +108,7 @@ export default function AppLayout() {
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/80 px-3 backdrop-blur sm:px-5">
           <Button
             variant="ghost"
             size="icon"
@@ -150,7 +150,7 @@ export default function AppLayout() {
 
         <main className="flex-1">
           {bannerOpen ? (
-            <div className="flex items-center justify-between gap-3 bg-accent px-4 py-2 text-sm text-accent-foreground sm:px-6">
+            <div className="flex items-center justify-between gap-3 bg-accent px-3 py-1.5 text-sm text-accent-foreground sm:px-5">
               <p>
                 이 화면은 스캐폴드입니다. 점선 가이드 영역과 샘플 데이터를 실제 콘텐츠로 교체하세요.
               </p>
@@ -165,7 +165,13 @@ export default function AppLayout() {
             </div>
           ) : null}
 
-          <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
+          {/*
+            본문은 폭을 제한하지 않는다. 예전에는 `mx-auto max-w-6xl` 이라 1,600px 화면에서
+            좌우에 각각 90px 이 넘는 빈 띠가 생겼고, 표·대시보드처럼 폭이 곧 정보량인 화면이
+            손해를 봤다(`.agents/ui/DESIGN.md` "정보 밀도와 스캔 가능성을 우선한다").
+            폼처럼 넓으면 오히려 읽기 나쁜 화면은 그 화면에서 감싼다 — routes/settings.tsx 참고.
+          */}
+          <div className="w-full px-3 py-3 sm:px-5 sm:py-4">
             <Outlet />
           </div>
         </main>

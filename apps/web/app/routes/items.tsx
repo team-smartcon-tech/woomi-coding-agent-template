@@ -271,7 +271,7 @@ export default function ItemsRoute() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="항목 관리"
         description="등록된 항목을 검색·필터하고, 여러 항목을 선택해 일괄 수정합니다."

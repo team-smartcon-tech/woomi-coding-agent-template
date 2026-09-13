@@ -45,7 +45,7 @@ export default function DashboardRoute() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="대시보드"
         description={`${user.name}님, 오늘의 주요 지표와 최근 활동입니다.`}
@@ -55,7 +55,7 @@ export default function DashboardRoute() {
       {isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {isPending ? (
             <>
               <Skeleton className="h-28" />
@@ -94,7 +94,7 @@ export default function DashboardRoute() {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-3 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>최근 활동</CardTitle>

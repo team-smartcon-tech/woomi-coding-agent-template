@@ -23,7 +23,7 @@ export default function MembersRoute() {
   const { members, currentUserId } = useLoaderData<typeof loader>()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="구성원"
         description="팀 구성원과 로그인 계정을 관리합니다."
