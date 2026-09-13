@@ -8,6 +8,27 @@
 
 ---
 
+## [2.17-draft] - 2026-09-13
+
+**위키 명령 4개가 Claude 면에만 있었다.** 훅은 세 도구 모두에서 위키 기록을 요구하는데, 그걸 수행할 명령은 한 도구에만 있었다 — 요구와 수단이 어긋나 있었다.
+
+### 추가
+
+- **`.codex/prompts/` · `.github/prompts/` 에 `wiki-add-source`·`wiki-ask`·`wiki-check`·`wiki-log-today` 4개씩 이식.** 이제 `/onboard` 를 뺀 8개 명령이 세 면에 모두 있다(`.claude/commands/` 9 · `.codex/prompts/` 8 · `.github/prompts/` 8).
+- 기존 규약 그대로 옮겼다 — Codex 판은 Claude 판과 바이트 동일(이 4개에는 치환 대상인 "이 command는" 표현이 없다), Copilot 판은 frontmatter 에 `mode: agent` 한 줄만 더한다. 내용은 `diff` 로 대조해 나머지 차이가 없음을 확인했다.
+
+### 변경
+
+- **`README.md`** — "Codex·Copilot 에 같은 워크플로우가 있습니다" 가 사실이 아니었다(실제 4/9). 이식으로 사실이 되었고, 유일한 예외인 `/onboard` 를 문장 안에 명시했다.
+- **`AGENTS.md` 1장** — 위키 기록 항목의 "Claude Code는 …, 명령이 없으면 직접 편집" 단서를 "세 도구 모두에 있다" 로 고쳤다.
+- **`.gitignore` 에 `/.obsidian/` 추가.** 저장소 루트를 Obsidian 볼트로 연 흔적(`workspace.json` 등 기계별 파일 5개)이 untracked 로 남아 `git status` 가 늘 dirty 로 보였다. 위키 볼트는 `wiki/` 이고 `wiki/.obsidian/graph.json` 은 그래프 뷰 설정이라 계속 추적한다 — 그래서 앵커를 `/` 로 시작해 루트만 막는다.
+
+### 남은 것
+
+- **세 면의 명령 패리티를 검사하는 장치가 없다.** 이번 드리프트는 위키 명령 4종을 `.claude/commands/` 에만 넣은 `70e75a8`(2.11-draft, 2026-08-06)에서 생겨 6주간 아무도 몰랐다. 목록을 세어 본 뒤에야 드러났다. `scripts/agent-guard.cjs` 에 패리티 판정을 더해 `--selftest` 에 넣는 것이 다음 후보다.
+
+---
+
 ## [2.16-draft] - 2026-08-31
 
 **이 템플릿을 임원에게 설명하는 자료를 저장소 안에 두었다.** 4장(Directory Baseline)이 "필요할 때 생성"으로 비워 둔 `docs/` 자리를 처음 쓴다.

@@ -2,8 +2,8 @@
 
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.16-draft`
-- 최종 수정일: 2026-08-31
+- 표준 버전: `2.17-draft`
+- 최종 수정일: 2026-09-13
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
@@ -173,7 +173,7 @@ pnpm dev        # http://localhost:5173
 "깨끗하게 되돌려줘" 같은 말은 작업물을 영구 삭제할 수 있습니다(`git reset --hard`). AI가 이런 걸 하려 하면 막도록 되어 있고, 당신도 함부로 요청하지 마세요.
 
 **Q. 쓸 수 있는 명령이 뭐가 있나요?**
-Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리) 4개, 지식 위키용 `/wiki-add-source`·`/wiki-ask`·`/wiki-log-today`·`/wiki-check` 4개, 그리고 자연어로 말하면 작동하는 스킬 2개(공통 부품 만들기, DB 구조 변경)입니다. Codex는 `.codex/prompts/`, Copilot은 `.github/prompts/`에 같은 워크플로우가 있습니다. **`/deploy`, `/test` 같은 다른 명령은 없으니 AI가 지어내면 의심하세요.**
+Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리) 4개, 지식 위키용 `/wiki-add-source`·`/wiki-ask`·`/wiki-log-today`·`/wiki-check` 4개, 그리고 자연어로 말하면 작동하는 스킬 2개(공통 부품 만들기, DB 구조 변경)입니다. Codex는 `.codex/prompts/`, Copilot은 `.github/prompts/`에 같은 워크플로우가 있습니다 — `/onboard` 하나만 Claude Code 전용이고 나머지 8개는 세 도구 모두에 있습니다. **`/deploy`, `/test` 같은 다른 명령은 없으니 AI가 지어내면 의심하세요.**
 
 ---
 
