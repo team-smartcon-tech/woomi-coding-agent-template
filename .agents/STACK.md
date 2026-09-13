@@ -98,12 +98,63 @@ strict mode는 타입을 복잡하게 만들라는 뜻이 아니다. 제품 코�
 - pnpm workspace
 - TypeScript project references
 - Vitest
+- **Prettier** (`.prettierrc.json`, `.prettierignore`)
+- **ESLint 9 flat config** (`eslint.config.mjs`)
+- GitHub Actions — `pr-checks.yml`(필수 검사), `tag-version.yml`(태그)
 
-아래는 **프로젝트에서 도입한 경우에만** 기준으로 삼는다. 이 스캐폴드에는 설정 파일이 없다.
+아래는 **프로젝트에서 도입한 경우에만** 기준으로 삼는다.
 
-- ESLint / Prettier — 타입 검사(`tsconfig.base.json` strict)로 커버하는 범위라면 굳이 추가하지 않는다.
-- GitHub Actions
 - Wrangler
+
+### Prettier — 값과 그 근거
+
+```json
+{ "printWidth": 100, "semi": false, "endOfLine": "auto" }
+```
+
+- **`semi: false`** — 이 스캐폴드는 세미콜론을 쓰지 않는다(도입 시점 실측: 세미콜론으로 끝나는 줄 163/2,702). 기본값 `true` 로 두면 전 파일에 세미콜론이 박힌다.
+- **`endOfLine: "auto"`** — `core.autocrlf=true` 환경이고 `.ts`/`.tsx` 는 `.gitattributes` 의 `eol=lf` 대상이 아니라 작업 트리가 CRLF 다. 기본값 `lf` 로 두면 실행할 때마다 git 이 "LF will be replaced by CRLF" 경고를 쏟아낸다.
+- 따옴표는 설정하지 않았다 — 기본값(큰따옴표)이 이미 관행과 같다(import 163 vs 2).
+
+**포맷하지 않는 것 — 소스가 아닌 것.** `.prettierignore` 로 `*.md`, `docs/`, `.userdocs/` 를 뺀다. 이 저장소는 **문서가 본체**다(`AGENTS.md`·`.agents/` 22종·`wiki/` 46면). prettier 는 표 셀을 정렬할 때 폭을 글자 수로 세어 한글 표를 오히려 어긋나게 하고, 표 한 줄만 고쳐도 전체가 재정렬돼 문서 diff 가 매번 부풀어 오른다. `docs/exec-brief/` 의 `*.dc.html` 은 손으로 만든 발표 슬라이드 원본이라 포맷하면 원본과 대조할 수 없게 된다.
+
+**대량 재포맷은 설정 커밋과 분리한다.** `.git-blame-ignore-revs` 가 재포맷 커밋만 가리켜야 설정 변경 이력까지 함께 가려지지 않는다. 로컬 적용은 `git config blame.ignoreRevsFile .git-blame-ignore-revs` 한 번(GitHub 은 자동으로 읽는다).
+
+### ESLint — 최소 구성, 그리고 늘리는 방법
+
+켠 것은 이것뿐이다.
+
+- `@eslint/js` recommended
+- `typescript-eslint` recommended (**타입 인지 세트 아님**)
+- `react-hooks` 에서 **두 규칙만** — `rules-of-hooks`, `exhaustive-deps`
+- `@typescript-eslint/no-base-to-string` (타입 정보 필요)
+- `@typescript-eslint/no-unused-vars` 재설정 — `argsIgnorePattern: "^_"`
+
+**이 구성으로 이 스캐폴드는 0건이다.** 빚을 치우려고 넣은 게 아니라 **앞으로 생길 빚을 막으려고** 넣는다 — 이 저장소는 파생 프로젝트의 출발점이고, 켜진 채로 출발하면 계속 0으로 남는다.
+
+`no-base-to-string` 이 잡는 것:
+
+```ts
+`${form.get("name") ?? ""}`   // FormData.get 은 string | File | null
+```
+
+`File` 이 들어오면 `[object File]` 이 그대로 저장·전송된다. **타입 검사는 이걸 못 잡는다** — `String()` 은 어떤 값이든 받기 때문이다. 이 스캐폴드의 로그인 action 에 실제로 있었고(`~/shared/lib/form-data` 의 `formString()` 으로 정리), 파생 프로젝트에서는 같은 패턴이 **43곳까지 번진 뒤에야** 발견됐다. 그 43곳의 출발점이 여기 복사해 간 로그인 action 이다.
+
+**규칙을 늘릴 때 recommended 세트를 통째로 펼치지 않는다.** 지적 건수를 먼저 재고, 오탐 비중을 확인한 뒤 규칙 단위로 켠다. 파생 프로젝트 실측이 그 방법의 값을 보여 준다 — 타입 인지 세트 전체는 352건이 나왔는데 `no-floating-promises` 26건·`no-misused-promises` 11건이 거의 전부 React Router v7 의 `fetcher.submit(...)` 정상 사용법이었고 `no-unsafe-argument` 116건은 잡음이었다. 진짜 버그(`no-base-to-string`)가 그 안에 묻힌다.
+
+### `eslint-config-prettier` — 넣되, 이유는 다르다
+
+배열 **마지막 원소**로 넣는다. 다만 흔한 설명("충돌이 심해서")은 이 구성에 맞지 않는다.
+
+실제로 끄는 건 `no-unexpected-multiline` 하나뿐이다 — 이 패키지가 끄는 358개 중 우리가 켠 규칙과의 교집합이 그것뿐이고, 358개 중 19개는 지금 typescript-eslint 에 존재하지도 않는 옛 설정 호환용 목록이다. 그래도 넣는 이유는 **보험**이다. 나중에 누가(사람이든 에이전트든) `@stylistic` 같은 포맷 규칙 프리셋을 추가했을 때 조용히 막아 준다.
+
+**주의: 무딘 도구다.** 358개를 무조건 끄고 배열 마지막에 있으므로, 그 목록의 규칙을 나중에 **의도적으로** 켜려 하면 말없이 무시된다. 그때는 이것 뒤에 다시 켠다.
+
+### 하지 말 것
+
+- `String(...)` 로 감싸거나 `as string` 으로 캐스팅해 `no-base-to-string` 을 침묵시키지 않는다. 버그를 그대로 두고 경고만 끄는 짓이다. 타입 가드로 좁히거나 `formString()` 같은 헬퍼를 쓴다.
+- `// eslint-disable` 로 넘어가지 않는다. 정말 필요하면 **왜** 필요한지 같은 줄에 적는다.
+- 마크다운과 `docs/` 를 포맷 대상에 다시 넣지 않는다.
 
 ---
 

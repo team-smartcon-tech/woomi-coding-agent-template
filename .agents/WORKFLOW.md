@@ -208,8 +208,9 @@ bucket이 아직 없다면:
 기본 검증:
 
 ```bash
-pnpm lint
+pnpm format:check
 pnpm typecheck
+pnpm lint
 pnpm test
 pnpm build
 ```
@@ -355,8 +356,9 @@ PR 생성 전에는 아래 검증을 우선한다.
 git status
 git fetch
 git status -sb
-pnpm lint
+pnpm format:check
 pnpm typecheck
+pnpm lint
 pnpm test
 pnpm build
 ```

@@ -1,6 +1,6 @@
 ---
 type: schema
-updated: 2026-08-30
+updated: 2026-09-13
 tags: [wiki/schema]
 ---
 
@@ -49,17 +49,36 @@ wiki/
 
 가치는 `rules/`·`systems/`·`patterns/` 에 있고, `sources/` 는 그 페이지들이 어디서 왔는지를 밝히는 재료입니다.
 
-## 모든 페이지에 frontmatter를 답니다
+## 페이지마다 frontmatter를 답니다
+
+정리본(`rules/`·`systems/`·`patterns/`)과 위키 자체 문서(`index`·`log`·`README`·`CLAUDE`)는 이 형식입니다.
 
 ```yaml
 ---
-type: rule | system | pattern | source | index | log | schema
+type: rule | system | pattern | index | log | schema
 updated: YYYY-MM-DD
 tags: [area/…, domain/…]
 ---
 ```
 
 `updated` 는 **내용이 마지막으로 바뀐 날**입니다. 파일 이동·형식 정리처럼 내용이 그대로인 변경에는 갱신하지 않습니다. 원본(`.agents/*`)의 최종 수정일보다 정리본의 `updated` 가 오래됐으면 낡았는지 의심할 자리입니다.
+
+### `sources/` 는 형식이 다릅니다
+
+원본 기록은 **넣은 뒤 고치지 않는 것**이 규칙이라 `updated` 가 의미를 갖지 않습니다. 대신 넣을 때의 사실을 적습니다.
+
+```yaml
+---
+type: source
+원본: ../../.agents/…  또는  자료 이름
+넣은날: YYYY-MM-DD
+목적: 왜 모았는지 (`/wiki-add-source` 1단계에서 받은 답)
+---
+```
+
+`tags` 도 달지 않습니다 — 원본은 탐색 대상이 아니라 정리본의 근거입니다. 본문 아래에는 `정리한 노트:` 줄을 두어 어느 정리본이 이 원본에서 나왔는지 가리킵니다. **이 줄만은 갱신합니다**(아래 표의 예외).
+
+> 이 절은 2026-09-13 점검에서 추가됐습니다. 그전에는 위 문단이 "모든 페이지"라고 적혀 있었는데 `/wiki-add-source` 는 원본에 `원본`/`넣은날`/`목적` 만 적으라고 지시하고 있어, `sources/` 24개 전부가 명령을 따르고 README 를 어긴 상태로 보였습니다. **명령이 맞고 README 가 틀렸던 것**이라 README 를 고쳤습니다.
 
 ## 네 가지 명령
 

@@ -12,7 +12,7 @@
 
 - TypeScript를 기본으로 사용한다.
 - `strict` mode를 기준으로 한다.
-- indent, semicolon, 문자열 quote는 포맷터 설정이 있으면 그것을 따르고, 없으면 **주변 파일의 스타일에 맞춘다.** (이 스캐폴드에는 포맷터 설정 파일이 없고 파일별로 다르다.)
+- indent, semicolon, 문자열 quote는 **손으로 맞추지 않는다.** 이 스캐폴드에는 Prettier 설정(`.prettierrc.json`)이 있고 `pnpm format` 이 전부 정리한다. 값과 그 근거는 [`.agents/STACK.md`](../STACK.md) 7장. 포맷 대상이 아닌 파일(`*.md`·`docs/`)은 주변 파일의 스타일에 맞춘다.
 - 타입 전용 import는 `import type`을 사용한다.
 - 사용하지 않는 import, 변수, dead code를 남기지 않는다.
 - 의미 있는 숫자와 문자열은 상수로 분리한다.

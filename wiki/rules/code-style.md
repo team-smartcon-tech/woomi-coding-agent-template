@@ -1,12 +1,12 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-09-13
 tags: [area/코드품질]
 ---
 
 # 코드 스타일
 
-Woomi 표준 TypeScript 작성 기준. strict mode 기준이고, indent·semicolon·quote는 포맷터 설정이 있으면 그것을 따르고 없으면 **주변 파일의 스타일에 맞춘다**. 타입 전용 import는 `import type`.
+Woomi 표준 TypeScript 작성 기준. strict mode 기준이고, indent·semicolon·quote는 **손으로 맞추지 않는다** — `pnpm format` 이 정리한다([포맷과 린트 기준](formatting-and-linting.md), 2.18-draft 도입). 포맷 대상이 아닌 파일(`*.md`·`docs/`)만 주변 파일의 스타일에 맞춘다. 타입 전용 import는 `import type`.
 
 ## 공통
 
@@ -36,6 +36,7 @@ Woomi 표준 TypeScript 작성 기준. strict mode 기준이고, indent·semicol
 - [프로젝트 구조](project-structure.md)
 - [에러 처리](error-handling.md)
 - [테스트와 검증](testing.md)
+- [포맷과 린트 기준](formatting-and-linting.md)
 - [기술 스택](stack.md)
 - [NestJS 프로젝트 규칙](nestjs.md)
 - [좋은 예시와 금지 예시](examples.md)

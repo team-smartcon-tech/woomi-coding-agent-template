@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-08-30
+updated: 2026-09-13
 tags: [wiki/index]
 ---
 
@@ -9,7 +9,7 @@ tags: [wiki/index]
 이 위키에 무엇이 있는지의 목록. 자료를 넣을 때마다 갱신됩니다. 처음이면 [여는 법과 네 가지 명령](README.md)부터 읽고, 언제 무엇을 왜 넣었는지는 [기록](log.md)에 있습니다.
 
 - 원본 24건 — 저장소 규칙 문서 23건 + 저장소 밖 자료 1건
-- 규칙 정리본 22개 (`rules/`)
+- 규칙 정리본 23개 (`rules/`)
 - 시스템 0 · 패턴 0 — `systems/`·`patterns/` 는 프로젝트에서 실제로 생겼을 때 만든다([README](README.md) "안에 든 것")
 
 ## 규칙 — `.agents/*` 정리본
@@ -36,6 +36,7 @@ tags: [wiki/index]
 - [코드 스타일](rules/code-style.md) — TypeScript 스타일과 상태 관리 우선순위
 - [에러 처리](rules/error-handling.md) — 표준 error shape·code·로깅
 - [테스트와 검증](rules/testing.md) — 테스트 우선순위와 표준 검증 명령
+- [포맷과 린트 기준](rules/formatting-and-linting.md) — Prettier·ESLint 설정과 **그 범위로 정한 근거**. 마크다운·`docs/` 를 뺀 이유, 타입 인지 규칙을 미룬 이유, `eslint-config-prettier` 가 실제로 끄는 규칙은 하나뿐
 - [NestJS 프로젝트 규칙](rules/nestjs.md) — **조건부.** NestJS·Worker·Drizzle 조합에만 적용
 
 ### 데이터

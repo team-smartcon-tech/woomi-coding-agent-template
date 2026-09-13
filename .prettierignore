@@ -1,0 +1,20 @@
+node_modules
+build
+dist
+.react-router
+coverage
+pnpm-lock.yaml
+
+# 마크다운은 포맷하지 않는다 — 이 저장소는 문서가 본체다(AGENTS.md·.agents/ 22종·wiki/ 46면).
+# prettier 가 표 셀을 정렬할 때 폭을 글자 수로 세어 한글 표가 오히려 어긋나고, 표 한 줄만
+# 고쳐도 표 전체가 재정렬돼 문서 diff 가 매번 부풀어 오른다.
+*.md
+
+# 사람이 손으로 만든 산출물은 원문 그대로 둔다. docs/exec-brief/ 의 *.dc.html 은 발표 슬라이드
+# 원본이라 포맷하면 원본과 대조할 수 없게 되고, .userdocs/ 는 설계 기록이다.
+docs/
+.userdocs/
+
+# 옵시디언 볼트 설정(기계가 쓰고 사람이 안 읽는다)
+.obsidian/
+wiki/.obsidian/

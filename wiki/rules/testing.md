@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-09-13
 tags: [area/검증]
 ---
 
@@ -20,8 +20,9 @@ tags: [area/검증]
 ## 표준 명령
 
 ```bash
-pnpm lint
+pnpm format:check
 pnpm typecheck
+pnpm lint
 pnpm test
 pnpm build
 ```
@@ -44,6 +45,8 @@ Worker는 `pnpm --filter <worker-package> run typecheck/test/deploy:dry`. **존�
 - AI 에이전트는 완료 보고에 검증 결과(Checks run/Passed/Failed/Skipped/Reason/Residual risk)를 포함하고, 검증을 못 했으면 "검증하지 못함"이라고 명확히 적는다.
 
 ## 함께 보기
+
+- [포맷과 린트 기준](formatting-and-linting.md)
 
 - [작업 흐름](workflow.md)
 - [에러 처리](error-handling.md)

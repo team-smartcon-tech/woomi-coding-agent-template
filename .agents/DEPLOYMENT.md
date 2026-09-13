@@ -224,8 +224,9 @@ Cron은 production과 dev/staging에서 모두 필요한지 확인한다. dev/st
 git status
 git fetch
 git status -sb
-pnpm lint
+pnpm format:check
 pnpm typecheck
+pnpm lint
 pnpm test
 pnpm build
 ```

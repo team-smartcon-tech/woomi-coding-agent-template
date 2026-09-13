@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-09-13
 tags: [area/아키텍처]
 ---
 
@@ -14,7 +14,7 @@ Woomi 신규 프로젝트의 표준 기술 선택. 스택을 바꾸려면 사유
 - **백엔드** — Cloudflare Workers(또는 Pages Functions), Hono, TypeScript strict, Zod, Supabase JS.
 - **데이터베이스** — Supabase PostgreSQL, PostgreSQL function/RPC.
 - **스토리지/인프라** — Cloudflare R2 또는 Supabase Storage, Cron Triggers 또는 Queue, Wrangler.
-- **툴링** — pnpm workspace, TypeScript project references, Vitest. ESLint/Prettier/GitHub Actions/Wrangler는 **프로젝트에서 도입한 경우에만** 기준으로 삼는다(이 스캐폴드에는 설정 파일이 없고, strict 타입 검사로 커버되면 굳이 추가하지 않는다).
+- **툴링** — pnpm workspace, TypeScript project references, Vitest, **Prettier**, **ESLint 9**, GitHub Actions(`pr-checks.yml`·`tag-version.yml`). 2.18-draft 에서 포맷·린트가 표준이 됐다 — 그 전 규칙이던 "strict 타입 검사로 커버되면 굳이 추가하지 않는다" 는 **근거가 틀렸다**(타입 검사가 못 잡는 버그가 스캐폴드에 실제로 있었다). 값과 근거는 [포맷과 린트 기준](formatting-and-linting.md). Wrangler는 여전히 **프로젝트에서 도입한 경우에만**.
 
 ## 상태·데이터 역할 분담
 
@@ -42,6 +42,7 @@ Woomi 신규 프로젝트의 표준 기술 선택. 스택을 바꾸려면 사유
 - [DB 스키마 가드레일](db-schema-guardrails.md)
 - [NestJS 프로젝트 규칙](nestjs.md)
 - [작업 흐름](workflow.md)
+- [포맷과 린트 기준](formatting-and-linting.md)
 
 ## 출처
 
