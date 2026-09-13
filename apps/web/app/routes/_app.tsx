@@ -25,8 +25,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
  * **로고 이미지 위에 색을 덮지 않는다** — `bg-primary` 배지 안에 넣거나 `filter` 로
  * 물들이지 않는다. 로고 블루와 UI `--primary` 는 다른 값이고, 덮으면 브랜드 색이 깨진다.
  *
- * 접힘(w-16)에서는 워드마크를 빼고 로고만 남긴다. 폭이 48px 뿐이라 로고가 작아지는데,
- * 정사각 심볼 자산(`woomi-icon.svg` 같은)이 생기면 그걸로 교체하는 것이 맞다.
+ * 접힘(w-16)에서는 **정사각 심볼**(`woomi-icon.png`)로 바꾼다. 가로 3:1 워드마크를 48px 폭에
+ * 욱여넣으면 47×16px 로 뭉개진다 — 줄이는 대신 자산을 교체한다.
+ * 심볼은 원본 `docs/logo/우미2.png` 에서 심볼 부분(x 0–55)만 잘라낸 것이다. 원본이 정확히
+ * 56×56 정사각이라 비율 왜곡 없이 떨어졌다.
  */
 function Brand({ collapsed }: { collapsed?: boolean }) {
   return (
@@ -37,9 +39,9 @@ function Brand({ collapsed }: { collapsed?: boolean }) {
       )}
     >
       <img
-        src="/woomi.png"
+        src={collapsed ? "/woomi-icon.png" : "/woomi.png"}
         alt="우미"
-        className={cn("w-auto shrink-0 object-contain", collapsed ? "h-4" : "h-5")}
+        className={cn("shrink-0 object-contain", collapsed ? "size-7" : "h-5 w-auto")}
         draggable={false}
       />
       {!collapsed ? (
