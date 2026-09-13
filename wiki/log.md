@@ -1,6 +1,6 @@
 ---
 type: log
-updated: 2026-08-30
+updated: 2026-09-13
 tags: [wiki/log]
 ---
 
@@ -101,3 +101,19 @@ tags: [wiki/log]
 - **`/wiki-check` 4번에 "`sources/` 도 반드시 스캔"을 박았다.** 파생 프로젝트가 `notes/`→`rules/` 이름을 바꾸면서 출처 노트의 `정리한 노트:` 줄 21개를 놓쳤는데, 검사 스크립트가 `sources/` 를 스캔에서 빼놔 "끊긴 링크 0건"으로 통과했다. **검사에서 뺀 폴더는 검사한 것이 아니다**
 - `AGENTS.md` 10장에 **분기 프로젝트의 제품 버전 분리 지침**을 넣었다. 이건 실제로 사고가 났다 — 파생 프로젝트가 템플릿 번호 라인을 그대로 이어 써서 `2.14-draft` 가 두 저장소에서 서로 다른 내용을 가리키게 됐고, 양쪽에 태그까지 붙었다. 분기하면 제품 버전(`MAJOR.MINOR.PATCH`, `1.0.0` 은 운영 전환)과 기반 템플릿 표준을 **두 축으로 나눠 적는다**
 - 가져오지 않은 것: 파생 프로젝트의 `patterns/`·`systems/` **내용**(그쪽 커밋·사고 기록이라 템플릿에 맞지 않는다)과 `AGENTS.md` 7장의 `deploy:dry` 정정(**이 저장소 루트 `package.json` 에는 실제로 없다** — 파생 쪽이 Cloudflare 배포를 하면서 추가한 스크립트다. 같은 문장이라도 저장소마다 참·거짓이 갈린다)
+
+## 2026-09-13 · 고치기 · 위키 명령을 Codex·Copilot 면으로 이식 (2.16 → 2.17-draft)
+
+- 계기: 하네스 구조 점검. 실행 검사(`agent-guard --selftest`·`pnpm typecheck`·`pnpm test`)는 전부 통과했고, 드리프트는 **파일 목록을 세어 보고서야** 드러났다 — 명령이 `.claude/commands/` 9개인데 `.codex/prompts/`·`.github/prompts/`는 4개였다.
+- 고친 것:
+  - `wiki-add-source`·`wiki-ask`·`wiki-check`·`wiki-log-today` 를 Codex·Copilot 면에 이식(8파일). 기존 규약 그대로 — Codex 판은 바이트 동일, Copilot 판은 frontmatter 에 `mode: agent` 한 줄만 추가. `diff` 로 나머지 차이 0 확인.
+  - `README.md` — "Codex·Copilot 에 같은 워크플로우가 있습니다"가 **거짓이었다**(실제 4/9). 이식으로 참이 되었고 유일한 예외 `/onboard` 를 문장에 박았다.
+  - `AGENTS.md` §1 — "Claude Code는 …, 명령이 없으면 직접 편집" 단서를 "세 도구 모두에 있다"로.
+  - `.gitignore` 에 `/.obsidian/` — 저장소 루트를 볼트로 연 흔적이 늘 untracked 로 남아 있었다. 위키 볼트는 `wiki/` 이고 `wiki/.obsidian/graph.json` 은 추적 유지라 앵커를 `/` 로 시작해 루트만 막았다.
+- 정한 것과 이유:
+  - **요구와 수단은 같은 면에 있어야 한다.** `commit-wiki` 훅은 `.codex/hooks.json` 에도 등록되어 Codex 에서 똑같이 위키 기록을 요구하는데, 그걸 수행할 명령은 Claude 면에만 있었다. 훅을 세 면에 걸면서 명령은 한 면에만 두는 것이 이 어긋남의 모양이다.
+  - **드리프트 시점을 추정하지 않고 실측했다.** `git log --diff-filter=A` 로 `70e75a8`(2.11-draft, 2026-08-06)에서 네 파일이 한 번에 `.claude/commands/` 에만 들어왔음을 확인했다. 6주간 아무도 몰랐다. 처음 CHANGELOG 초안에는 "2.13·2.15 커밋에서" 라고 적었다가 실측하고 고쳤다 — **커밋을 짚기 전에 로그를 본다.**
+  - **`wiki/CLAUDE.md` 경로는 그대로 뒀다.** 파일명이 Claude 를 가리키지만 실제로는 위키 폴더 규칙 파일이고, 이식된 명령들은 필요한 지점에서 이 경로를 인라인으로 가리킨다. 이름을 바꾸면 `commit-wiki` 훅 메시지·`wiki/README.md`·정리본 출처 링크까지 따라가야 한다 — 이번 작업의 값어치를 넘는다.
+- 남은 것: **세 면의 패리티를 검사하는 장치가 없다.** 이번에도 사람이 세어서 찾았다. `scripts/agent-guard.cjs` 에 패리티 판정을 더해 `--selftest` 에 넣는 것이 다음 후보다.
+- 갱신한 정리본: [팀 위키](rules/team-wiki.md) — 「네 동작」에 세 면 이식 사실과 그 어긋남의 모양을 적었다.
+
