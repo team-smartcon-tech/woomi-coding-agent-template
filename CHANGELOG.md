@@ -8,6 +8,35 @@
 
 ---
 
+## [2.19-draft] - 2026-09-13
+
+**`.userdocs/` 를 없애고 `docs/` 로 합친다.** 사람용 문서를 두 곳에 두던 것을 한 곳으로 모은다.
+
+### 바뀐 것
+
+- **`.userdocs/우미건설 코딩 에이전트 템플릿 컨텍스트 엔지니어링 평가 보고서.md` → `docs/`.** 이 저장소에서 유일하게 남아 있던 `.userdocs/` 내용물이다.
+- **`.userdocs/` 디렉터리 삭제.** 그 안의 `README.md` 도 함께 지웠다 — `.userdocs/` 자체를 설명하는 문서라 폴더가 없어지면 남을 이유가 없다.
+- 참조 8곳을 따라갔다 — `.prettierignore`, `scripts/agent-guard.cjs` selftest 케이스, `AGENTS.md`(Stop 훅 설명 · 4장 Directory Baseline), `README.md`(문서 지도 · 디렉터리 구조), `QUICKSTART.md`(복사 목록), `.agents/STACK.md` 7장, `wiki/rules/formatting-and-linting.md`.
+
+### 왜
+
+**`docs/` 가 있는데 `.userdocs/` 가 따로 있던 게 아니라, `.userdocs/` 가 먼저 있었고 `docs/` 가 나중에 생겼다.** `.userdocs/` 는 `41f8f85`(하네스 엔지니어링 템플릿 도입) 때 만들어졌고 그때 `docs/` 는 존재하지 않았다 — `AGENTS.md` 4장이 최근까지 "`docs/` — 필요할 때 생성, 아직 없음" 이라고 적고 있었다. `docs/` 에 처음 내용이 들어간 건 2주 전 `2.16-draft`(임원 브리핑 덱)이고, **그때 둘의 관계를 정리하지 않았다.**
+
+남은 구분은 "템플릿이 만들어 내는 산출물(`docs/`)" 대 "템플릿 설계에 들어간 기록(`.userdocs/`)" 이었는데 약하다. 그리고 **점 디렉터리인 것이 특히 맞지 않았다** — 이 저장소의 다른 점 디렉터리(`.agents`·`.claude`·`.codex`·`.github`·`.githooks`)는 전부 도구 설정이고, `.userdocs/` 만 사람이 읽는 문서인데 탐색기·`ls`·검색에서 기본으로 숨었다.
+
+### 방치의 증거 — 이게 결정적이었다
+
+`.userdocs/README.md` 가 나열한 파일 **4개가 하나도 없었다**: `woomi-repo-frontend-backend-architecture-standard.docx`, `bim-ux-rules.md`, `harness-engineering/`, `spicy-hatching-axolotl.md`. 뒤의 둘은 `32f6176`(v2.7-draft)에서 지워졌는데 README 를 안 고쳤다. 반대로 **실제로 있던 평가 보고서는 표에 없었다.** 6주 넘게 아무도 안 봤다는 뜻이다.
+
+`AGENTS.md` 4장 Directory Baseline 에는 `.userdocs/` 가 **아예 없었고** `README.md` 트리에는 있었다 — 두 문서가 다른 구조를 그리고 있었다.
+
+### 하지 않은 것
+
+- **`docs/README.md` 를 새로 만들지 않았다.** `docs/` 의 내용은 `README.md` 문서 지도와 `AGENTS.md` 4장이 이미 가리킨다. 색인을 하나 더 만들면 **낡을 것을 하나 더 만드는 것**이고, 이번에 지운 `.userdocs/README.md` 가 정확히 그렇게 됐다.
+- **과거 `CHANGELOG` 항목의 `.userdocs/` 경로 인용은 고치지 않았다.** 그 시점의 사실이고 이미 태그가 붙었다. 다만 `2.8-draft` 항목은 사람이 따라갈 만한 경로라 "2.19-draft 에서 `docs/` 로 이동" 을 괄호로 덧붙였다.
+
+---
+
 ## [2.18-draft] - 2026-09-13
 
 **Prettier 와 ESLint 를 표준으로 넣는다.** 그 전에는 포매터도 린터도 없었고, `.agents/STACK.md` 는 "타입 검사로 커버하는 범위라면 굳이 추가하지 않는다" 고 적고 있었다. **그 근거가 틀렸다** — 타입 검사가 못 잡는 버그가 이 스캐폴드의 로그인 action 에 실제로 있었다.
@@ -268,7 +297,7 @@
 
 ## [2.7-draft] - 2026-07-30
 
-컨텍스트 엔지니어링 감사(`.userdocs/우미건설 코딩 에이전트 템플릿 컨텍스트 엔지니어링 평가 보고서.md`)에서 확정된 **안전 결함**을 먼저 처리한 릴리스다. 감사 결론: 문서 구조(프로그레시브 디스클로저, 지연 로드 90.5%, SKILL.md 500줄 초과 0건)는 이미 기준을 충족했고, 실제 결함은 훅 쪽에 몰려 있었다.
+컨텍스트 엔지니어링 감사(`.userdocs/우미건설 코딩 에이전트 템플릿 컨텍스트 엔지니어링 평가 보고서.md` — 2.19-draft 에서 `docs/` 로 이동)에서 확정된 **안전 결함**을 먼저 처리한 릴리스다. 감사 결론: 문서 구조(프로그레시브 디스클로저, 지연 로드 90.5%, SKILL.md 500줄 초과 0건)는 이미 기준을 충족했고, 실제 결함은 훅 쪽에 몰려 있었다.
 
 ### 수정
 

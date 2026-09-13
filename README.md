@@ -2,7 +2,7 @@
 
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.18-draft`
+- 표준 버전: `2.19-draft`
 - 최종 수정일: 2026-09-13
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
@@ -198,8 +198,7 @@ Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(�
 | `.agents/ui/*` | 디자인, UX, 컴포넌트 기준 |
 | `.agents/examples/*` | 좋은 예시와 금지 예시 |
 | [`wiki/`](./wiki/README.md) | 팀 지식 위키 (Obsidian 볼트). 규칙을 그래프로 탐색하고 배운 것을 축적. 폴더가 있으면 에이전트가 작업 중 알아서 찾고 남긴다(안 쓰면 폴더 삭제) |
-| [`docs/exec-brief/`](./docs/exec-brief/README.md) | 사람용 문서. 이 템플릿을 임원에게 소개하는 9장 브리핑 덱(발표용 `.pptx` 포함) |
-| `.userdocs/*` | 템플릿 설계 기록. 모든 프로젝트에 복사할 필요는 없음 |
+| [`docs/`](./docs/) | 사람용 문서. `exec-brief/` 는 이 템플릿을 임원에게 소개하는 9장 브리핑 덱(발표용 `.pptx` 포함), 그 밖에 템플릿 설계 기록이 있다. 복사하지 않아도 된다 |
 | `.prettierrc.json` · `.prettierignore` · `eslint.config.mjs` | 포맷·린트 설정. 값과 그 근거는 `.agents/STACK.md` 7장 |
 | `CHANGELOG.md` | 표준 버전별 변경 기록 |
 
@@ -271,8 +270,7 @@ Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(�
 │   ├── prompts/
 │   └── instructions/
 ├── .githooks/
-├── .userdocs/              # 참고 문서와 설계 기록
-├── docs/exec-brief/        # 임원 브리핑 덱 (슬라이드 원본 + 발표용 .pptx)
+├── docs/                   # 사람용 문서 (임원 브리핑 덱 · 설계 기록)
 ├── eslint.config.mjs       # ESLint 최소 구성
 ├── .prettierrc.json        # 포맷 값
 ├── .prettierignore         # 포맷하지 않는 것 (문서·손으로 만든 산출물)

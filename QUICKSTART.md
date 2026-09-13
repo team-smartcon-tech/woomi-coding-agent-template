@@ -20,7 +20,7 @@
 ## 2. 붙여넣기 전 준비 (한 번만)
 
 **1) 템플릿 파일 복사**
-다음을 프로젝트 폴더 루트에 복사합니다: `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.agents/`, `.claude/`, `.codex/`, `.github/`, `.githooks/`, 그리고 포맷·린트 설정 `.prettierrc.json`·`.prettierignore`·`eslint.config.mjs`·`.nvmrc`. (`.userdocs/`는 설계 기록이라 선택입니다.)
+다음을 프로젝트 폴더 루트에 복사합니다: `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.agents/`, `.claude/`, `.codex/`, `.github/`, `.githooks/`, 그리고 포맷·린트 설정 `.prettierrc.json`·`.prettierignore`·`eslint.config.mjs`·`.nvmrc`. (`docs/`는 사람용 문서라 복사하지 않아도 됩니다.)
 - 기존 프로젝트라 같은 이름의 파일·폴더(특히 `.github/`, `.claude/`, `AGENTS.md`)가 이미 있으면 **통째로 덮어쓰지 말고 백업 후 병합**하세요. 안 그러면 기존 CI 설정이나 규칙이 사라질 수 있습니다. (프롬프트 A가 AI에게 이 점을 확인하게 합니다.)
 
 **2) 안전장치(훅) 켜기 — 권장**

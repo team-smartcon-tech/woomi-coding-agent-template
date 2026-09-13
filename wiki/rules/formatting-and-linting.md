@@ -53,10 +53,10 @@ const email = String(form.get("email") ?? "") // FormData#get 은 string | File 
 
 ### 포맷하지 않는 것 — 소스가 아닌 것
 
-`.prettierignore` 로 `*.md`, `docs/`, `.userdocs/` 를 뺀다.
+`.prettierignore` 로 `*.md` 와 `docs/` 를 뺀다.
 
 - **마크다운**: 이 저장소는 **문서가 본체**다(`AGENTS.md` + `.agents/` 22종 + `wiki/` 47면 + 루트 문서 5종). prettier 는 표 셀을 정렬할 때 폭을 **글자 수로 세어** 한글 표를 오히려 어긋나게 하고, 표 한 줄만 고쳐도 전체가 재정렬돼 문서 diff 가 매번 부풀어 오른다.
-- **`docs/`**: `exec-brief/*.dc.html` 은 손으로 만든 발표 슬라이드 원본이다. 포맷하면 원본과 대조할 수 없게 된다.
+- **`docs/`**: `exec-brief/*.dc.html` 은 손으로 만든 발표 슬라이드 원본이다. 포맷하면 원본과 대조할 수 없게 된다. 설계 기록도 여기 있다.
 
 기준은 **"소스가 아닌 것은 포맷하지 않는다"** 다.
 
