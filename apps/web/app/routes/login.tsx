@@ -5,7 +5,6 @@ import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from "react-router"
-import { Boxes } from "lucide-react"
 import { loginSchema } from "~/features/auth/model/login.schema"
 import { createUserSession, getUserId, safeRedirect } from "~/features/auth/model/session.server"
 import { DEMO_ACCOUNTS, verifyCredentials } from "~/features/auth/model/credentials.server"
@@ -59,11 +58,10 @@ export default function LoginRoute() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <div className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Boxes className="size-5" aria-hidden />
-          </div>
-          <h1 className="text-lg font-semibold tracking-tight">Woomi Admin</h1>
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          {/* 로고 이미지 위에 색을 덮지 않는다 — routes/_app.tsx 의 Brand 주석 참조 */}
+          <img src="/woomi.png" alt="우미" className="h-7 w-auto" draggable={false} />
+          <h1 className="text-lg font-semibold tracking-tight">표준템플릿</h1>
           <p className="text-sm text-muted-foreground">관리자 콘솔에 로그인</p>
         </div>
 

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Form, NavLink, Outlet, useLoaderData, type LoaderFunctionArgs } from "react-router"
-import { Bell, Boxes, LogOut, Menu, PanelLeft, PanelLeftClose, X } from "lucide-react"
+import { Bell, LogOut, Menu, PanelLeft, PanelLeftClose, X } from "lucide-react"
 import { MEMBER_ROLE_LABEL } from "~/entities/member/model/member"
 import { requireUser } from "~/features/auth/model/session.server"
 import { getVersionInfo } from "~/shared/lib/version.server"
@@ -18,13 +18,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { user, version: getVersionInfo().version }
 }
 
+/**
+ * 브랜드 — 우미 로고 + 구분선 + 제품 워드마크.
+ *
+ * 자산은 `docs/logo/우미2.png` 원본을 `public/woomi.png` 로 복사한 것이다.
+ * **로고 이미지 위에 색을 덮지 않는다** — `bg-primary` 배지 안에 넣거나 `filter` 로
+ * 물들이지 않는다. 로고 블루와 UI `--primary` 는 다른 값이고, 덮으면 브랜드 색이 깨진다.
+ *
+ * 접힘(w-16)에서는 워드마크를 빼고 로고만 남긴다. 폭이 48px 뿐이라 로고가 작아지는데,
+ * 정사각 심볼 자산(`woomi-icon.svg` 같은)이 생기면 그걸로 교체하는 것이 맞다.
+ */
 function Brand({ collapsed }: { collapsed?: boolean }) {
   return (
-    <div className="flex h-14 items-center gap-2 border-b border-border px-3">
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-        <Boxes className="size-5" aria-hidden />
-      </div>
-      {!collapsed ? <span className="truncate text-sm font-semibold">Woomi Admin</span> : null}
+    <div
+      className={cn(
+        "flex h-14 items-center border-b border-border",
+        collapsed ? "justify-center px-2" : "gap-3 px-3",
+      )}
+    >
+      <img
+        src="/woomi.png"
+        alt="우미"
+        className={cn("w-auto shrink-0 object-contain", collapsed ? "h-4" : "h-5")}
+        draggable={false}
+      />
+      {!collapsed ? (
+        <>
+          <span className="h-4 w-px shrink-0 bg-border" aria-hidden />
+          <span className="truncate text-sm font-semibold">표준템플릿</span>
+        </>
+      ) : null}
     </div>
   )
 }
