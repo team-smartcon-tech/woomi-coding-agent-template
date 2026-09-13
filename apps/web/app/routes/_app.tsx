@@ -151,7 +151,9 @@ export default function AppLayout() {
         <main className="flex-1">
           {bannerOpen ? (
             <div className="flex items-center justify-between gap-3 bg-accent px-4 py-2 text-sm text-accent-foreground sm:px-6">
-              <p>이 화면은 스캐폴드입니다. 점선 가이드 영역과 샘플 데이터를 실제 콘텐츠로 교체하세요.</p>
+              <p>
+                이 화면은 스캐폴드입니다. 점선 가이드 영역과 샘플 데이터를 실제 콘텐츠로 교체하세요.
+              </p>
               <button
                 type="button"
                 onClick={() => setBannerOpen(false)}

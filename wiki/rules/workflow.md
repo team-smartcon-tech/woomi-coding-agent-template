@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-09-13
 tags: [area/프로세스, area/검증]
 ---
 
@@ -58,6 +58,8 @@ commit은 Conventional Commits(`<type>: <한국어 요약>`, 제목 72자 이내
 리뷰 요청을 받으면 구현 설명보다 문제 발견을 먼저 쓴다. 우선순위: 버그 → 보안 → 데이터 손실 → 권한/인증 → 회귀 → 누락 테스트 → 문서 불일치.
 
 ## 함께 보기
+
+- [포맷과 린트 기준](formatting-and-linting.md)
 
 - [진입 규칙](agents-entry.md)
 - [절대 금지·필수 규칙](non-negotiable-rules.md)

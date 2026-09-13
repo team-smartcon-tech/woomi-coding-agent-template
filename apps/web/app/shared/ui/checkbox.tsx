@@ -9,7 +9,10 @@ export function Checkbox({ className, ref, ...props }: CheckboxProps) {
     <input
       ref={ref}
       type="checkbox"
-      className={cn("size-4 rounded border-input text-primary focus-visible:ring-2 focus-visible:ring-ring", className)}
+      className={cn(
+        "size-4 rounded border-input text-primary focus-visible:ring-2 focus-visible:ring-ring",
+        className,
+      )}
       {...props}
     />
   )

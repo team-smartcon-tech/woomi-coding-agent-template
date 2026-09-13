@@ -7,13 +7,10 @@ import {
 } from "react-router"
 import { Boxes } from "lucide-react"
 import { loginSchema } from "~/features/auth/model/login.schema"
-import {
-  createUserSession,
-  getUserId,
-  safeRedirect,
-} from "~/features/auth/model/session.server"
+import { createUserSession, getUserId, safeRedirect } from "~/features/auth/model/session.server"
 import { DEMO_ACCOUNTS, verifyCredentials } from "~/features/auth/model/credentials.server"
 import { LoginForm } from "~/features/auth/ui/login-form"
+import { formString } from "~/shared/lib/form-data"
 import { Card, CardContent, CardHeader, CardTitle } from "~/shared/ui/card"
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -24,8 +21,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
-  const email = String(form.get("email") ?? "")
-  const password = String(form.get("password") ?? "")
+  const email = formString(form, "email")
+  const password = formString(form, "password")
   const redirectTo = safeRedirect(form.get("redirectTo"))
 
   const parsed = loginSchema.safeParse({ email, password })

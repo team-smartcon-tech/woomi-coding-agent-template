@@ -13,32 +13,32 @@
  * 편집 셀은 호출부가 cell() 안에 input/select/button 을 넣으면 된다 — 주행이 그 컨트롤로 포커스한다
  * (select 는 네이티브 키 동작을 유지하려 주행에서 제외). 편집 불가 셀은 td 자체가 포커스 대상이 된다.
  */
-import * as React from "react";
-import { cn } from "~/shared/lib/cn";
+import * as React from "react"
+import { cn } from "~/shared/lib/cn"
 
 export interface SheetColumn<T> {
-  key: string;
-  header: React.ReactNode;
+  key: string
+  header: React.ReactNode
   /** 셀 내용. input/select/button 을 넣으면 키보드 주행이 그 컨트롤을 포커스한다. */
-  cell: (row: T, pos: { r: number; c: number }) => React.ReactNode;
+  cell: (row: T, pos: { r: number; c: number }) => React.ReactNode
   /** 범위 복사(TSV)용 셀 텍스트. 미지정 시 빈 칸으로 복사된다. */
-  copyText?: (row: T) => string;
+  copyText?: (row: T) => string
   /** 최소 폭(tailwind min-w-* 클래스). */
-  minW?: string;
-  align?: "left" | "right" | "center";
+  minW?: string
+  align?: "left" | "right" | "center"
   /** 좌/우 고정(색인·작업 열 등). 고정 셀은 배경을 깔아 스크롤 콘텐츠를 가린다. */
-  sticky?: "left" | "right";
+  sticky?: "left" | "right"
   /** 키보드 주행·범위 선택 대상 여부(기본 true). 색인/작업 버튼 열은 false 로. */
-  focusable?: boolean;
-  headerClassName?: string;
-  cellClassName?: string;
+  focusable?: boolean
+  headerClassName?: string
+  cellClassName?: string
 }
 
 const ALIGN: Record<NonNullable<SheetColumn<unknown>["align"]>, string> = {
   left: "text-left",
   right: "text-right",
   center: "text-center",
-};
+}
 
 export function SheetGrid<T>({
   columns,
@@ -48,154 +48,189 @@ export function SheetGrid<T>({
   empty,
   className,
 }: {
-  columns: SheetColumn<T>[];
-  rows: T[];
-  rowKey: (row: T, i: number) => string;
+  columns: SheetColumn<T>[]
+  rows: T[]
+  rowKey: (row: T, i: number) => string
   /** 행별 <tr> 클래스(zebra/강조 등). */
-  rowClassName?: (row: T, i: number) => string | undefined;
+  rowClassName?: (row: T, i: number) => string | undefined
   /** 행 0개일 때 표시(colSpan 전체). */
-  empty?: React.ReactNode;
+  empty?: React.ReactNode
   /** 스크롤 컨테이너(루트) 추가 클래스. */
-  className?: string;
+  className?: string
 }) {
-  const gridRef = React.useRef<HTMLDivElement>(null);
+  const gridRef = React.useRef<HTMLDivElement>(null)
 
   // 주행 가능한 열 인덱스(색인/버튼 열 제외). 좌우 이동은 이 목록을 점프한다.
   const navCols = React.useMemo(
     () => columns.map((_, i) => i).filter((i) => columns[i]!.focusable !== false),
     [columns],
-  );
+  )
 
   const focusCell = React.useCallback((r: number, c: number) => {
-    const td = gridRef.current?.querySelector<HTMLElement>(`[data-cell="${r}:${c}"]`);
-    if (!td) return;
-    const inner = td.querySelector<HTMLElement>("input,textarea,button,select");
-    const el = inner ?? td;
-    el.focus();
-    if (el instanceof HTMLInputElement && el.type !== "checkbox") el.select();
-  }, []);
+    const td = gridRef.current?.querySelector<HTMLElement>(`[data-cell="${r}:${c}"]`)
+    if (!td) return
+    const inner = td.querySelector<HTMLElement>("input,textarea,button,select")
+    const el = inner ?? td
+    el.focus()
+    if (el instanceof HTMLInputElement && el.type !== "checkbox") el.select()
+  }, [])
 
   // ── 범위 선택(드래그 / Shift+클릭 / Shift+화살표) ──────────────────────────
-  const [sel, setSel] = React.useState<{ anchor: { r: number; c: number }; focus: { r: number; c: number } } | null>(null);
-  const [dragging, setDragging] = React.useState(false);
-  const dragRef = React.useRef<{ x: number; y: number; active: boolean } | null>(null);
+  const [sel, setSel] = React.useState<{
+    anchor: { r: number; c: number }
+    focus: { r: number; c: number }
+  } | null>(null)
+  const [dragging, setDragging] = React.useState(false)
+  const dragRef = React.useRef<{ x: number; y: number; active: boolean } | null>(null)
 
   const selRect = (s: NonNullable<typeof sel>) => ({
-    r0: Math.min(s.anchor.r, s.focus.r), r1: Math.max(s.anchor.r, s.focus.r),
-    c0: Math.min(s.anchor.c, s.focus.c), c1: Math.max(s.anchor.c, s.focus.c),
-  });
+    r0: Math.min(s.anchor.r, s.focus.r),
+    r1: Math.max(s.anchor.r, s.focus.r),
+    c0: Math.min(s.anchor.c, s.focus.c),
+    c1: Math.max(s.anchor.c, s.focus.c),
+  })
   const inSelRange = (r: number, c: number) => {
-    if (!sel) return false;
-    const { r0, r1, c0, c1 } = selRect(sel);
-    if (r0 === r1 && c0 === c1) return false; // 단일 셀은 focus 링으로 충분
-    return r >= r0 && r <= r1 && c >= c0 && c <= c1;
-  };
+    if (!sel) return false
+    const { r0, r1, c0, c1 } = selRect(sel)
+    if (r0 === r1 && c0 === c1) return false // 단일 셀은 focus 링으로 충분
+    return r >= r0 && r <= r1 && c >= c0 && c <= c1
+  }
   const cellFromEvent = (t: EventTarget | null): { r: number; c: number } | null => {
-    const el = (t as HTMLElement | null)?.closest?.("[data-cell]") as HTMLElement | null;
-    if (!el) return null;
-    const [r, c] = el.dataset.cell!.split(":").map(Number);
-    return { r: r!, c: c! };
-  };
+    const el = (t as HTMLElement | null)?.closest?.("[data-cell]") as HTMLElement | null
+    if (!el) return null
+    const [r, c] = el.dataset.cell!.split(":").map(Number)
+    return { r: r!, c: c! }
+  }
   const onGridMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    const cell = cellFromEvent(e.target);
-    if (!cell) return;
-    setSel((prev) => (e.shiftKey && prev ? { anchor: prev.anchor, focus: cell } : { anchor: cell, focus: cell }));
-    if (!e.shiftKey) dragRef.current = { x: e.clientX, y: e.clientY, active: false };
-  };
+    if (e.button !== 0) return
+    const cell = cellFromEvent(e.target)
+    if (!cell) return
+    setSel((prev) =>
+      e.shiftKey && prev ? { anchor: prev.anchor, focus: cell } : { anchor: cell, focus: cell },
+    )
+    if (!e.shiftKey) dragRef.current = { x: e.clientX, y: e.clientY, active: false }
+  }
   const onGridMouseOver = (e: React.MouseEvent) => {
-    const d = dragRef.current;
-    if (!d || e.buttons !== 1) return;
-    if (!d.active && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return; // 임계 미만은 클릭
-    const cell = cellFromEvent(e.target);
-    if (!cell) return;
+    const d = dragRef.current
+    if (!d || e.buttons !== 1) return
+    if (!d.active && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return // 임계 미만은 클릭
+    const cell = cellFromEvent(e.target)
+    if (!cell) return
     if (!d.active) {
-      d.active = true;
-      setDragging(true);
-      (document.activeElement as HTMLElement | null)?.blur?.();
-      window.getSelection()?.removeAllRanges();
+      d.active = true
+      setDragging(true)
+      ;(document.activeElement as HTMLElement | null)?.blur?.()
+      window.getSelection()?.removeAllRanges()
     }
-    setSel((prev) => (prev ? { anchor: prev.anchor, focus: cell } : { anchor: cell, focus: cell }));
-  };
+    setSel((prev) => (prev ? { anchor: prev.anchor, focus: cell } : { anchor: cell, focus: cell }))
+  }
   React.useEffect(() => {
-    const up = () => { dragRef.current = null; setDragging(false); };
-    document.addEventListener("mouseup", up);
-    return () => document.removeEventListener("mouseup", up);
-  }, []);
+    const up = () => {
+      dragRef.current = null
+      setDragging(false)
+    }
+    document.addEventListener("mouseup", up)
+    return () => document.removeEventListener("mouseup", up)
+  }, [])
 
   const onCopy = (e: React.ClipboardEvent) => {
-    if (!sel) return;
-    const { r0, r1, c0, c1 } = selRect(sel);
-    if (r0 === r1 && c0 === c1) return; // 단일 셀 → 네이티브 복사
-    const lines: string[] = [];
+    if (!sel) return
+    const { r0, r1, c0, c1 } = selRect(sel)
+    if (r0 === r1 && c0 === c1) return // 단일 셀 → 네이티브 복사
+    const lines: string[] = []
     for (let r = r0; r <= r1; r++) {
-      const out: string[] = [];
+      const out: string[] = []
       for (let c = c0; c <= c1; c++) {
-        const col = columns[c]; const row = rows[r];
-        out.push(col && row ? (col.copyText?.(row) ?? "") : "");
+        const col = columns[c]
+        const row = rows[r]
+        out.push(col && row ? (col.copyText?.(row) ?? "") : "")
       }
-      lines.push(out.join("\t"));
+      lines.push(out.join("\t"))
     }
-    e.clipboardData.setData("text/plain", lines.join("\n"));
-    e.preventDefault();
-  };
+    e.clipboardData.setData("text/plain", lines.join("\n"))
+    e.preventDefault()
+  }
 
   function onKeyDown(e: React.KeyboardEvent) {
-    if (e.nativeEvent.isComposing) return; // IME 조합 중 통과
-    const target = e.target as HTMLElement;
-    if (target instanceof HTMLSelectElement) return; // select 는 네이티브 키 유지
-    const cellEl = target.closest<HTMLElement>("[data-cell]");
-    if (!cellEl) return;
-    const [r, c] = cellEl.dataset.cell!.split(":").map(Number) as [number, number];
+    if (e.nativeEvent.isComposing) return // IME 조합 중 통과
+    const target = e.target as HTMLElement
+    if (target instanceof HTMLSelectElement) return // select 는 네이티브 키 유지
+    const cellEl = target.closest<HTMLElement>("[data-cell]")
+    if (!cellEl) return
+    const [r, c] = cellEl.dataset.cell!.split(":").map(Number) as [number, number]
     const field =
       target instanceof HTMLTextAreaElement ||
-      (target instanceof HTMLInputElement && (target.type === "text" || target.type === "number" || target.type === ""))
+      (target instanceof HTMLInputElement &&
+        (target.type === "text" || target.type === "number" || target.type === ""))
         ? (target as HTMLInputElement | HTMLTextAreaElement)
-        : null;
-    const start = field ? field.selectionStart : null;
-    const end = field ? field.selectionEnd : null;
-    const len = field ? field.value.length : 0;
+        : null
+    const start = field ? field.selectionStart : null
+    const end = field ? field.selectionEnd : null
+    const len = field ? field.value.length : 0
     const single = (nr: number, nc: number) => {
-      focusCell(nr, nc);
-      setSel({ anchor: { r: nr, c: nc }, focus: { r: nr, c: nc } });
-    };
+      focusCell(nr, nc)
+      setSel({ anchor: { r: nr, c: nc }, focus: { r: nr, c: nc } })
+    }
 
     // Shift+화살표: 범위 확장(anchor 고정).
-    if (e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight")) {
-      e.preventDefault();
-      const cur = sel ?? { anchor: { r, c }, focus: { r, c } };
-      let fr = cur.focus.r;
-      let fc = cur.focus.c;
-      if (e.key === "ArrowDown") fr = Math.min(rows.length - 1, fr + 1);
-      else if (e.key === "ArrowUp") fr = Math.max(0, fr - 1);
+    if (
+      e.shiftKey &&
+      (e.key === "ArrowDown" ||
+        e.key === "ArrowUp" ||
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowRight")
+    ) {
+      e.preventDefault()
+      const cur = sel ?? { anchor: { r, c }, focus: { r, c } }
+      let fr = cur.focus.r
+      let fc = cur.focus.c
+      if (e.key === "ArrowDown") fr = Math.min(rows.length - 1, fr + 1)
+      else if (e.key === "ArrowUp") fr = Math.max(0, fr - 1)
       else {
-        const idx = navCols.indexOf(fc);
-        if (e.key === "ArrowLeft" && idx > 0) fc = navCols[idx - 1]!;
-        else if (e.key === "ArrowRight" && idx >= 0 && idx < navCols.length - 1) fc = navCols[idx + 1]!;
+        const idx = navCols.indexOf(fc)
+        if (e.key === "ArrowLeft" && idx > 0) fc = navCols[idx - 1]!
+        else if (e.key === "ArrowRight" && idx >= 0 && idx < navCols.length - 1)
+          fc = navCols[idx + 1]!
       }
-      setSel({ anchor: cur.anchor, focus: { r: fr, c: fc } });
-      focusCell(fr, fc);
-      return;
+      setSel({ anchor: cur.anchor, focus: { r: fr, c: fc } })
+      focusCell(fr, fc)
+      return
     }
 
     if (e.key === "Enter" || e.key === "ArrowDown") {
-      if (e.key === "Enter" && target instanceof HTMLButtonElement) return; // 버튼 Enter 는 네이티브
-      if (e.key === "Enter" && target instanceof HTMLTextAreaElement && (e.altKey || e.shiftKey)) return; // 셀 안 개행
-      if (r < rows.length - 1) { e.preventDefault(); single(r + 1, c); }
+      if (e.key === "Enter" && target instanceof HTMLButtonElement) return // 버튼 Enter 는 네이티브
+      if (e.key === "Enter" && target instanceof HTMLTextAreaElement && (e.altKey || e.shiftKey))
+        return // 셀 안 개행
+      if (r < rows.length - 1) {
+        e.preventDefault()
+        single(r + 1, c)
+      }
     } else if (e.key === "ArrowUp") {
-      if (r > 0) { e.preventDefault(); single(r - 1, c); }
+      if (r > 0) {
+        e.preventDefault()
+        single(r - 1, c)
+      }
     } else if (e.key === "ArrowLeft") {
       if (!field || (start === 0 && end === 0)) {
-        const idx = navCols.indexOf(c);
-        if (idx > 0) { e.preventDefault(); single(r, navCols[idx - 1]!); }
+        const idx = navCols.indexOf(c)
+        if (idx > 0) {
+          e.preventDefault()
+          single(r, navCols[idx - 1]!)
+        }
       }
     } else if (e.key === "ArrowRight") {
       if (!field || (start === len && end === len)) {
-        const idx = navCols.indexOf(c);
-        if (idx >= 0 && idx < navCols.length - 1) { e.preventDefault(); single(r, navCols[idx + 1]!); }
+        const idx = navCols.indexOf(c)
+        if (idx >= 0 && idx < navCols.length - 1) {
+          e.preventDefault()
+          single(r, navCols[idx + 1]!)
+        }
       }
     } else if (e.key === "Escape") {
-      if (sel) { const { r0, r1, c0, c1 } = selRect(sel); if (r0 !== r1 || c0 !== c1) setSel({ anchor: sel.focus, focus: sel.focus }); }
+      if (sel) {
+        const { r0, r1, c0, c1 } = selRect(sel)
+        if (r0 !== r1 || c0 !== c1) setSel({ anchor: sel.focus, focus: sel.focus })
+      }
     }
   }
 
@@ -207,7 +242,7 @@ export function SheetGrid<T>({
           kind === "head" ? "z-20 bg-background" : "bg-card",
           col.sticky === "left" ? "border-r" : "border-l",
         )
-      : undefined;
+      : undefined
 
   return (
     <div
@@ -241,7 +276,7 @@ export function SheetGrid<T>({
           {rows.map((row, r) => (
             <tr key={rowKey(row, r)} className={rowClassName?.(row, r)}>
               {columns.map((col, c) => {
-                const focusable = col.focusable !== false;
+                const focusable = col.focusable !== false
                 return (
                   <td
                     key={col.key}
@@ -259,13 +294,16 @@ export function SheetGrid<T>({
                   >
                     {col.cell(row, { r, c })}
                   </td>
-                );
+                )
               })}
             </tr>
           ))}
           {rows.length === 0 && empty != null && (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-6 text-center text-sm text-muted-foreground">
+              <td
+                colSpan={columns.length}
+                className="px-4 py-6 text-center text-sm text-muted-foreground"
+              >
                 {empty}
               </td>
             </tr>
@@ -273,5 +311,5 @@ export function SheetGrid<T>({
         </tbody>
       </table>
     </div>
-  );
+  )
 }

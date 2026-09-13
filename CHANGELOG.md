@@ -8,6 +8,48 @@
 
 ---
 
+## [2.18-draft] - 2026-09-13
+
+**Prettier 와 ESLint 를 표준으로 넣는다.** 그 전에는 포매터도 린터도 없었고, `.agents/STACK.md` 는 "타입 검사로 커버하는 범위라면 굳이 추가하지 않는다" 고 적고 있었다. **그 근거가 틀렸다** — 타입 검사가 못 잡는 버그가 이 스캐폴드의 로그인 action 에 실제로 있었다.
+
+### 고침
+
+- **`apps/web/app/routes/login.tsx` 의 `[object File]` 버그.** `String(form.get("email") ?? "")` 는 `FormData#get` 이 `File` 을 반환하면 `[object File]` 을 그대로 저장·전송한다. `String()` 은 어떤 값이든 받으므로 **타입 검사가 잡지 못한다.** `~/shared/lib/form-data` 의 `formString(fd, key)` 헬퍼로 정리하고 단위 테스트 4건을 붙였다.
+- **이건 이 저장소만의 버그가 아니다.** 파생 프로젝트(Smart Planner)에서 같은 패턴이 **43곳까지 번진 뒤에야** ESLint `no-base-to-string` 으로 발견됐고, 그 43곳의 출발점이 여기서 복사해 간 로그인 action 이다. 스캐폴드의 버그는 파생 프로젝트 수만큼 복제된다.
+
+### 추가
+
+- **Prettier** — `printWidth 100`, `semi: false`, `endOfLine: "auto"`. 세 값 다 실측 근거가 있다(세미콜론으로 끝나는 줄 163/2,702, 큰따옴표 import 163 vs 2, `core.autocrlf=true` 라 `.ts`/`.tsx` 작업 트리가 CRLF). `pnpm format` / `pnpm format:check`.
+- **`.prettierignore` — `*.md`·`docs/`·`.userdocs/` 제외.** 이 저장소는 **문서가 본체**다(`.agents/` 22종 + `wiki/` 46면 + 루트 문서 5종). prettier 는 한글 표의 폭을 글자 수로 세어 오히려 어긋나게 하고, 표 한 줄만 고쳐도 전체가 재정렬된다. `docs/exec-brief/*.dc.html` 은 손으로 만든 발표 슬라이드 원본이다. 기준은 **"소스가 아닌 것은 포맷하지 않는다"**.
+- **ESLint 9 flat config** (`eslint.config.mjs`) — `@eslint/js` recommended + `typescript-eslint` recommended(타입 인지 아님) + `react-hooks` 의 `rules-of-hooks`/`exhaustive-deps` 두 규칙 + `no-base-to-string` 하나 + `no-unused-vars` 의 `argsIgnorePattern: "^_"`. `pnpm lint` / `pnpm lint:fix`.
+- **`eslint-config-prettier`** 를 배열 마지막에 넣었다. 실제로 끄는 건 `no-unexpected-multiline` 하나뿐이고(358개 중 켠 규칙과의 교집합 1개), **이유는 "충돌이 심해서"가 아니라 보험**이다 — 나중에 포맷 규칙 프리셋이 들어와도 조용히 막아 준다. 무딘 도구라 그 358개 중 하나를 의도적으로 켜려면 **이것 뒤에** 다시 켜야 한다는 주의도 `.agents/STACK.md` 에 적었다.
+- **`.github/workflows/pr-checks.yml`** — PR·`main` push 에서 포맷 검사 → 타입 검사 → 린트 → 테스트 → 빌드 → 훅 자체 점검. **이 저장소의 PR 필수 검사는 지금까지 0개였다**(`tag-version.yml` 은 태그만 붙인다). 설정만 있고 게이트가 없으면 규칙이 아니라 권고다. `.nvmrc`(24) 추가.
+- **`.git-blame-ignore-revs`** — 대량 재포맷 커밋을 blame 에서 제외한다. 재포맷 커밋은 설정 커밋과 **분리한다**(이 파일이 재포맷 커밋만 가리켜야 설정 이력까지 가려지지 않는다).
+
+### 바뀐 것
+
+- **21개 파일 재포맷**(`apps/web/app/**` 20개 + `scripts/agent-guard.cjs`), 동작 변경 없음 — typecheck·lint·test 13건·build·훅 자체 점검 전부 통과.
+- **`.agents/STACK.md` 7장 전면 개정** — ESLint/Prettier 를 "프로젝트에서 도입한 경우에만" 에서 표준으로 올리고, **값과 그 값으로 정한 근거**를 함께 적었다. 규칙을 늘릴 때 recommended 세트를 통째로 펼치지 말고 **지적 건수를 먼저 재라**는 방법도 함께.
+- `.agents/code/CODE_STYLE.md` — "포맷터 설정이 있으면 그것을, 없으면 주변 파일에 맞춘다(설정 파일이 없다)" → "손으로 맞추지 않는다. `pnpm format` 이 정리한다".
+- `AGENTS.md` 7장 · `.agents/code/TESTING.md` · `.agents/WORKFLOW.md` · `.agents/DEPLOYMENT.md` — 검증 명령을 `format:check → typecheck → lint → test → build` 로 통일. **"`lint` 는 없으므로 도입한 경우에만" 이라는 단서를 지웠다** — 이제 있다.
+- `README.md`(문서 지도·디렉토리 구조) · `QUICKSTART.md`(복사 목록)에 설정 파일 등재.
+- **`/wiki-add-source` 3면에 원본 기록의 frontmatter 형식을 명시.** `wiki/README.md`·`wiki/CLAUDE.md` 는 "모든 페이지에 `type`/`updated`/`tags`" 라고 했는데 명령은 `원본`/`넣은날`/`목적` 만 적으라고 지시해, `wiki/sources/` 24개가 명령을 따르고 README 를 어긴 것처럼 보였다. **명령이 맞다** — 원본은 넣은 뒤 고치지 않으므로 `updated` 가 의미를 갖지 않는다(`_templates/` 에 `source` 템플릿만 없는 것이 방증). README 에 예외 절을 만들고 명령 3면(`.claude`·`.codex`·`.github`)에 `type: source` 를 명시했다. 2026-09-13 `/wiki-check` 에서 발견.
+- **임원 덱의 위키 페이지 수 46 → 47** — 위키에 정리본 하나(`formatting-and-linting.md`)를 더한 결과다. `Components`·`Maturity` 두 장과 `build-pptx.mjs` 를 고치고 pptx 를 다시 생성했다(9장·수치 47 확인). **세어서 적은 수는 저장소가 자라면 틀어진다** — 페이지 하나에 두 장이 어긋났고, 그 주의를 `docs/exec-brief/README.md` 머리에 적었다. 덱 본문 서술은 여전히 `2.16-draft` 기준이라(포맷·린트 표준이 아직 없다) 기준 버전 표기는 올리지 않았다.
+
+### 일부러 하지 않은 것
+
+- **타입 인지 규칙 세트(`recommendedTypeChecked`) 전체.** 파생 프로젝트 실측에서 352건 중 `no-floating-promises` 26건·`no-misused-promises` 11건이 거의 전부 React Router v7 의 `fetcher.submit(...)` 정상 사용법이었고 `no-unsafe-argument` 116건은 잡음이었다. 진짜 버그가 그 안에 묻힌다 — 그래서 `no-base-to-string` 만 개별로 켰다.
+- **`react-hooks` recommended 통째로 펼치기.** 플러그인 v7 recommended 에는 React Compiler 계열 규칙이 섞여 있고, 그건 린트 수정이 아니라 리팩터링이다.
+- **`scripts/` 를 lint 대상에 넣기.** `pnpm lint` 범위는 `apps/web/app` 이다. `agent-guard.cjs` 는 CommonJS 노드 스크립트라 별도 구성이 필요하고, 그 자체 점검은 `--selftest` 가 한다(CI 에 스텝으로 넣었다).
+
+### 판단 기록
+
+**"지금 0건인데 왜 린터를 넣나"** 가 처음 권고였고, 그게 틀렸다. 0건은 **지금 쌓인 빚**을 잰 값이고, 린터의 값은 **앞으로 생길 빚을 막는 것**이다. 이 저장소는 파생 프로젝트의 출발점이라 정확히 그 값이 본체다. 증거는 파생 프로젝트 자신이다 — 도입 시점에 `rules-of-hooks`·`exhaustive-deps` 가 **0건이었다.** 처음부터 켜져 있었다면 4.7만 줄에서 352건을 재고 오탐을 걸러내는 작업 자체가 없었다.
+
+**템플릿이 물려줄 것은 값이 아니라 방법이다.** `printWidth 100` 이나 "어떤 규칙을 켜는가" 는 이 코드베이스 실측에 근거한 값이고, 복사해 간 프로젝트는 다른 코드베이스가 된다. 그래서 `.agents/STACK.md` 에는 값과 **그 값을 어떻게 정했는지**를 함께 적었다.
+
+---
+
 ## [2.17-draft] - 2026-09-13
 
 **위키 명령 4개가 Claude 면에만 있었다.** 훅은 세 도구 모두에서 위키 기록을 요구하는데, 그걸 수행할 명령은 한 도구에만 있었다 — 요구와 수단이 어긋나 있었다.

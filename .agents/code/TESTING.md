@@ -28,11 +28,15 @@
 ## 2. Standard Commands
 
 ```bash
-pnpm lint
+pnpm format:check
 pnpm typecheck
+pnpm lint
 pnpm test
 pnpm build
 ```
+
+이 다섯은 이 스캐폴드에 실제로 있고, CI(`.github/workflows/pr-checks.yml`)가 같은 순서로 돌린다.
+`pnpm lint` 는 타입 정보를 쓰는 규칙이 하나 있어 수 초~20초 걸리는 것이 정상이다.
 
 Cloudflare Worker:
 

@@ -41,7 +41,13 @@ export const seedMembers: Member[] = [
   { id: "USR-002", name: "이도현", email: "manager@woomi.dev", role: "manager", status: "active" },
   { id: "USR-003", name: "박서준", email: "member@woomi.dev", role: "member", status: "active" },
   { id: "USR-004", name: "최유나", email: "yuna@woomi.dev", role: "member", status: "invited" },
-  { id: "USR-005", name: "정민재", email: "minjae@woomi.dev", role: "manager", status: "suspended" },
+  {
+    id: "USR-005",
+    name: "정민재",
+    email: "minjae@woomi.dev",
+    role: "manager",
+    status: "suspended",
+  },
   { id: "USR-006", name: "한지우", email: "jiwoo@woomi.dev", role: "member", status: "invited" },
 ]
 

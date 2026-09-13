@@ -1,0 +1,8 @@
+# 대량 재포맷 커밋 — git blame 에서 제외한다.
+# 로컬에 적용하려면: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub 은 이 파일을 자동으로 읽는다.)
+#
+# 재포맷 커밋은 설정 커밋과 분리한다. 이 파일이 재포맷 커밋만 가리켜야
+# 설정 변경 이력까지 함께 가려지지 않는다.
+
+352a97c02b1e015f6fb9c57bc16cfff66ed06f3d  # style: prettier 로 전체 재포맷 (2.18-draft)
