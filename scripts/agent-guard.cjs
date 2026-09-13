@@ -186,7 +186,7 @@ function selftest() {
   nc(["scripts/agent-guard.cjs"], true)
   nc(["package.json"], true)
   nc(["AGENTS.md", "CHANGELOG.md"], false) // 이미 갱신했으면 침묵
-  nc([".userdocs/메모.md"], false) // 설계 기록은 대상 아님
+  nc(["docs/exec-brief/README.md"], false) // 사람용 문서는 대상 아님
   nc(["apps/web/build/index.js"], false) // 빌드 산출물
   nc(["node_modules/x/index.js"], false)
   nc([], false)

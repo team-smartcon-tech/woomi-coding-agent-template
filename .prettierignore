@@ -11,9 +11,8 @@ pnpm-lock.yaml
 *.md
 
 # 사람이 손으로 만든 산출물은 원문 그대로 둔다. docs/exec-brief/ 의 *.dc.html 은 발표 슬라이드
-# 원본이라 포맷하면 원본과 대조할 수 없게 되고, .userdocs/ 는 설계 기록이다.
+# 원본이라 포맷하면 원본과 대조할 수 없게 된다.
 docs/
-.userdocs/
 
 # 옵시디언 볼트 설정(기계가 쓰고 사람이 안 읽는다)
 .obsidian/

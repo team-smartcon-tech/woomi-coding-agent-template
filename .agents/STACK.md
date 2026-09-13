@@ -116,7 +116,7 @@ strict mode는 타입을 복잡하게 만들라는 뜻이 아니다. 제품 코�
 - **`endOfLine: "auto"`** — `core.autocrlf=true` 환경이고 `.ts`/`.tsx` 는 `.gitattributes` 의 `eol=lf` 대상이 아니라 작업 트리가 CRLF 다. 기본값 `lf` 로 두면 실행할 때마다 git 이 "LF will be replaced by CRLF" 경고를 쏟아낸다.
 - 따옴표는 설정하지 않았다 — 기본값(큰따옴표)이 이미 관행과 같다(import 163 vs 2).
 
-**포맷하지 않는 것 — 소스가 아닌 것.** `.prettierignore` 로 `*.md`, `docs/`, `.userdocs/` 를 뺀다. 이 저장소는 **문서가 본체**다(`AGENTS.md`·`.agents/` 22종·`wiki/` 46면). prettier 는 표 셀을 정렬할 때 폭을 글자 수로 세어 한글 표를 오히려 어긋나게 하고, 표 한 줄만 고쳐도 전체가 재정렬돼 문서 diff 가 매번 부풀어 오른다. `docs/exec-brief/` 의 `*.dc.html` 은 손으로 만든 발표 슬라이드 원본이라 포맷하면 원본과 대조할 수 없게 된다.
+**포맷하지 않는 것 — 소스가 아닌 것.** `.prettierignore` 로 `*.md` 와 `docs/` 를 뺀다. 이 저장소는 **문서가 본체**다(`AGENTS.md`·`.agents/` 22종·`wiki/` 46면). prettier 는 표 셀을 정렬할 때 폭을 글자 수로 세어 한글 표를 오히려 어긋나게 하고, 표 한 줄만 고쳐도 전체가 재정렬돼 문서 diff 가 매번 부풀어 오른다. `docs/exec-brief/` 의 `*.dc.html` 은 손으로 만든 발표 슬라이드 원본이라 포맷하면 원본과 대조할 수 없게 된다.
 
 **대량 재포맷은 설정 커밋과 분리한다.** `.git-blame-ignore-revs` 가 재포맷 커밋만 가리켜야 설정 변경 이력까지 함께 가려지지 않는다. 로컬 적용은 `git config blame.ignoreRevsFile .git-blame-ignore-revs` 한 번(GitHub 은 자동으로 읽는다).
 
