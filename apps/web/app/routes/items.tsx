@@ -43,7 +43,10 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
 const BULK_STATUSES: ItemStatus[] = ["active", "pending", "archived"]
 
 // 전체 선택 헤더 체크박스: 일부만 선택되면 indeterminate 로 표시한다(지침: UX_RULES.md §14).
-function SelectAllCheckbox({ indeterminate, ...props }: CheckboxProps & { indeterminate: boolean }) {
+function SelectAllCheckbox({
+  indeterminate,
+  ...props
+}: CheckboxProps & { indeterminate: boolean }) {
   const ref = useRef<HTMLInputElement>(null)
   useEffect(() => {
     if (ref.current) ref.current.indeterminate = indeterminate
@@ -243,8 +246,7 @@ export default function ItemsRoute() {
           description="새 항목을 추가해 시작하세요."
           action={
             <Button>
-              <Plus />
-              새 항목
+              <Plus />새 항목
             </Button>
           }
         />
@@ -253,10 +255,7 @@ export default function ItemsRoute() {
 
     if (filtered.length === 0) {
       return (
-        <EmptyState
-          title="검색 결과가 없습니다."
-          description="검색어나 필터를 변경해 보세요."
-        />
+        <EmptyState title="검색 결과가 없습니다." description="검색어나 필터를 변경해 보세요." />
       )
     }
 
@@ -279,8 +278,7 @@ export default function ItemsRoute() {
         actions={
           // 여러 항목 일괄 등록(CSV/여러 행 추가)도 같은 화면에서 제공한다 — 지침: UX_RULES.md §14
           <Button>
-            <Plus />
-            새 항목
+            <Plus />새 항목
           </Button>
         }
       />
@@ -339,7 +337,9 @@ export default function ItemsRoute() {
         {/* 일괄 작업 툴바: 선택이 있을 때만 노출 (지침: UX_RULES.md §14) */}
         {demo === "normal" && selectedVisible.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2">
-            <span className="text-sm font-medium text-foreground">{selectedVisible.length}개 선택됨</span>
+            <span className="text-sm font-medium text-foreground">
+              {selectedVisible.length}개 선택됨
+            </span>
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <Select
                 value={bulkStatus}
@@ -367,7 +367,9 @@ export default function ItemsRoute() {
         )}
 
         {/* 실행 전 대상 건수 확인 */}
-        {demo === "normal" && confirm && selectedVisible.length > 0 &&
+        {demo === "normal" &&
+          confirm &&
+          selectedVisible.length > 0 &&
           (confirm.kind === "delete" ? (
             <ConfirmPanel
               className="mt-3"
@@ -380,7 +382,8 @@ export default function ItemsRoute() {
           ) : (
             <div className="mt-3 rounded-lg border border-border bg-muted/40 p-4">
               <p className="text-sm font-medium text-foreground">
-                {selectedVisible.length}개 항목의 상태를 &lsquo;{ITEM_STATUS_LABEL[bulkStatus]}&rsquo;(으)로 변경할까요?
+                {selectedVisible.length}개 항목의 상태를 &lsquo;{ITEM_STATUS_LABEL[bulkStatus]}
+                &rsquo;(으)로 변경할까요?
               </p>
               <p className="mt-1 text-sm text-muted-foreground">적용 전 대상 건수를 확인하세요.</p>
               <div className="mt-3 flex items-center gap-2">

@@ -70,8 +70,8 @@ export function LoginForm({ demoAccounts }: { demoAccounts: DemoAccount[] }) {
           </p>
         ))}
         <p className="pt-1">
-          로그인 후 <span className="font-medium text-foreground">구성원</span> 메뉴에서 계정을 추가·수정할
-          수 있습니다. 실제 인증은 백엔드 API로 교체하세요.
+          로그인 후 <span className="font-medium text-foreground">구성원</span> 메뉴에서 계정을
+          추가·수정할 수 있습니다. 실제 인증은 백엔드 API로 교체하세요.
         </p>
       </div>
     </div>

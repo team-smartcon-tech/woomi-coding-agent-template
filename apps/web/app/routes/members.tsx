@@ -57,7 +57,9 @@ export default function MembersRoute() {
                 </TD>
                 <TD className="text-muted-foreground">{member.email}</TD>
                 <TD>
-                  <Badge tone={MEMBER_ROLE_TONE[member.role]}>{MEMBER_ROLE_LABEL[member.role]}</Badge>
+                  <Badge tone={MEMBER_ROLE_TONE[member.role]}>
+                    {MEMBER_ROLE_LABEL[member.role]}
+                  </Badge>
                 </TD>
                 <TD>
                   <Badge tone={MEMBER_STATUS_TONE[member.status]}>
@@ -81,16 +83,16 @@ export default function MembersRoute() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>
-            위 목록의 계정으로 로그인할 수 있습니다. 실제 서비스에서는 이 화면에서 계정 추가, 비밀번호
-            재설정, 역할·권한 변경, 정지/해제를 처리합니다.
+            위 목록의 계정으로 로그인할 수 있습니다. 실제 서비스에서는 이 화면에서 계정 추가,
+            비밀번호 재설정, 역할·권한 변경, 정지/해제를 처리합니다.
           </p>
           <p>
             데모 관리자 계정: <span className="font-mono text-foreground">admin@woomi.dev</span> /{" "}
             <span className="font-mono text-foreground">admin1234</span>
           </p>
           <p>
-            지금은 데모 시드(<span className="font-mono">entities/member</span>)를 사용합니다. 실제로는
-            백엔드 API와 DB로 교체하세요.
+            지금은 데모 시드(<span className="font-mono">entities/member</span>)를 사용합니다.
+            실제로는 백엔드 API와 DB로 교체하세요.
           </p>
         </CardContent>
       </Card>

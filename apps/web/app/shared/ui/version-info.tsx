@@ -73,7 +73,9 @@ export function VersionInfo({ version, collapsed }: { version?: string; collapse
           >
             <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-5 py-4">
               <div>
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground">시스템 버전</p>
+                <p className="text-xs font-semibold tracking-wide text-muted-foreground">
+                  시스템 버전
+                </p>
                 <h2 className="mt-0.5 text-xl font-bold tabular-nums tracking-tight">v{version}</h2>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="닫기">

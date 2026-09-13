@@ -22,7 +22,12 @@ async function fetchDashboard() {
       { label: "전체 항목", value: "1,284", delta: "지난주 대비 +4.2%", trend: "up" },
       { label: "대기 중", value: "37", delta: "어제 대비 -3건", trend: "down" },
       { label: "활성 구성원", value: "52", delta: "변동 없음", trend: "flat" },
-      { label: "이번 달 처리액", value: formatCurrency(84200000), delta: "목표의 68%", trend: "up" },
+      {
+        label: "이번 달 처리액",
+        value: formatCurrency(84200000),
+        delta: "목표의 68%",
+        trend: "up",
+      },
     ],
   }
 }
