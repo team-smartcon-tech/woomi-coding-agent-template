@@ -1,12 +1,12 @@
 ---
 type: rule
-updated: 2026-09-13
+updated: 2026-09-15
 tags: [area/위키]
 ---
 
 # 팀 위키
 
-이 폴더 구조 자체. 저장소의 규칙과 팀이 배운 것을 정리해 쌓아 두고, 사람(Obsidian)과 AI(Claude Code)가 같은 파일을 읽고 쓰는 구조다.
+이 폴더 구조 자체. 저장소의 규칙과 팀이 배운 것을 정리해 쌓아 두고, 사람(Obsidian)과 AI(Claude Code·Codex)가 같은 파일을 읽고 쓰는 구조다.
 
 ## 세 칸
 
@@ -22,6 +22,8 @@ tags: [area/위키]
 - **점검(`/wiki-check`)** — 출처 없는 문장, 끊긴 링크, 원본에 없는 내용을 찾는다.
 
 네 명령은 **세 도구 면에 모두 있다** — `.claude/commands/`·`.codex/prompts/`·`.github/prompts/`. 2026-09-13(2.17-draft)에 Codex·Copilot 면으로 이식했다. 그전 6주 동안은 Claude 면에만 있었는데, `commit-wiki` 훅은 세 도구 모두에서 위키 기록을 요구하고 있었다 — **요구는 세 면인데 수단이 한 면뿐이었다.** 명령을 한 면에만 추가하면 이 어긋남이 조용히 생기고, 지금은 그것을 잡아 주는 검사가 없다.
+
+Codex는 `CODEX.md`의 읽는 순서에 따라 `wiki/index.md`와 작업에 직접 관련된 `rules/`·`systems/`·`patterns/`만 먼저 확인한다. 작은 문구·스타일 변경처럼 관련 지식이 도움이 되지 않는 작업은 생략할 수 있다. 완료 보고에는 `Wiki: checked`, `updated`, 또는 `not needed`와 근거를 남긴다. 실제 코드·설정과 `AGENTS.md`·`.agents/*`가 위키보다 우선하며, 차이는 위키 드리프트로 기록한다. [원본 · CODEX.md](../sources/codex-md.md)
 
 ## 매번 찾기와 무엇이 다른가
 
@@ -56,3 +58,4 @@ tags: [area/위키]
 - [위키 규칙 · wiki/CLAUDE.md](../CLAUDE.md) — 폴더 구조, 「지킬 것」, "왜 모으는지 먼저 묻는다", 정리본 형식
 - 「네 동작」 끝 문단(세 면 이식)의 출처는 저장소 자체다 — `.claude/commands/`·`.codex/prompts/`·`.github/prompts/` 실제 파일 목록과 [`CHANGELOG.md`](../../CHANGELOG.md) `2.17-draft`. 드리프트가 시작된 커밋은 `70e75a8`(2.11-draft, 2026-08-06)
 - 「이 프로젝트에서 능동적으로 쓴다」의 출처는 그 절 안에 적었다 — [원본 · AGENTS.md](../sources/agents-md.md) §1
+- Codex의 선별 탐색·완료 보고 규칙은 [원본 · CODEX.md](../sources/codex-md.md)다.

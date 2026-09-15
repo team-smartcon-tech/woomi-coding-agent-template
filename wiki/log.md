@@ -1,4 +1,17 @@
 ---
+
+## 2026-09-15 · 정하기·만들기 · Agent Engineering Kit 운영 규칙과 Codex 위키 연결
+
+- 왜 남기나: Agent Engineering Kit를 그대로 덮어쓰지 않고, 현재 `AGENTS.md` 중심 규칙을 유지한 채 설계·결정·실행 계획 기록과 안전한 위임 기준만 보완하려고. Codex도 Claude Code와 같은 `wiki/`를 실제 작업 흐름에서 찾아 쓰게 하려고.
+- 정한 것과 이유: 규칙은 `AGENTS.md`·`.agents/*`, 설계·결정·계획의 실행 기록은 `docs/ai/`, 탐색과 재사용 지식은 `wiki/`가 맡는다. 같은 내용을 세 곳에 복사하면 드리프트가 생기므로 역할을 나눴다.
+- Codex: 관련 위키만 선별 탐색하고, 실제 코드·설정·원본 규칙이 위키보다 우선한다. 새 기능·API·리뷰·커밋 프롬프트와 완료 보고에 위키 확인/갱신 판단을 연결했다.
+- 갱신한 정리본: [작업 흐름](rules/workflow.md), [팀 위키](rules/team-wiki.md). 새 출처: [CODEX.md](sources/codex-md.md).
+
+## 2026-09-15 · 정하기 · 최상위 모델도 낮은 추론으로 시작
+
+- 정한 것과 이유: 모델의 역량·가격과 추론 effort를 같은 티어로 묶지 않는다. 최상위 모델도 하네스가 지원하면 `low` effort로 시작하고, 실제 불확실성·실패 비용이 커질 때만 effort를 올린다. 긴 컨텍스트나 도구 역량 때문에 최상위 모델을 쓰는 경우에도 불필요한 추론 토큰·대기 시간을 줄이기 위해서다.
+- 확인: Claude Fable 5.1은 Claude Code에서 기본 High지만 Low·Medium effort 설정도 지원한다. 실제 선택 가능 모델과 사용량 한도는 도구의 현재 상태를 확인한다.
+- 갱신한 정리본: [작업 흐름](rules/workflow.md).
 type: log
 updated: 2026-09-14
 tags: [wiki/log]
