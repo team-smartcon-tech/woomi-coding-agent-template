@@ -8,7 +8,7 @@ tags: [wiki/index]
 
 이 위키에 무엇이 있는지의 목록. 자료를 넣을 때마다 갱신됩니다. 처음이면 [여는 법과 네 가지 명령](README.md)부터 읽고, 언제 무엇을 왜 넣었는지는 [기록](log.md)에 있습니다.
 
-- 원본 24건 — 저장소 규칙 문서 23건 + 저장소 밖 자료 1건
+- 원본 25건 — 저장소 규칙 문서 24건 + 저장소 밖 자료 1건
 - 규칙 정리본 23개 (`rules/`)
 - 시스템 0 · 패턴 0 — `systems/`·`patterns/` 는 프로젝트에서 실제로 생겼을 때 만든다([README](README.md) "안에 든 것")
 
@@ -60,6 +60,7 @@ tags: [wiki/index]
 대부분 저장소 규칙 문서를 가리키는 출처 기록이다. 진짜 원본은 각 파일이 가리키는 `.agents/*`·`AGENTS.md`에 있고 거기서만 고친다. 저장소 밖 자료는 목록에서 `(외부)`로 표시했다.
 
 - [AGENTS.md](sources/agents-md.md)
+- [CODEX.md](sources/codex-md.md)
 - [.agents/VIBE_CODING_GUIDE.md](sources/vibe-coding-guide.md)
 - [.agents/WORKFLOW.md](sources/workflow.md)
 - [.agents/ARCHITECTURE.md](sources/architecture.md)

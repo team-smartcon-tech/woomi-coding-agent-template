@@ -13,12 +13,17 @@ Codex는 작업 시작 전 아래 순서로 확인한다.
 1. [`AGENTS.md`](./AGENTS.md)
 2. `AGENTS.md`의 `Task Routing` 표에서 작업 유형 확인
 3. 필요한 `.agents/*` 문서만 확인
-4. 실제 코드와 설정 파일 확인
-5. 해당 작업에 맞는 `.codex/prompts/` 또는 `.codex/skills/`
+4. `wiki/`가 있으면 `wiki/index.md`를 보고, 작업과 직접 관련된 `wiki/rules/`·`wiki/systems/`·`wiki/patterns/` 페이지만 확인
+5. 실제 코드와 설정 파일 확인
+6. 해당 작업에 맞는 `.codex/prompts/` 또는 `.codex/skills/`
 
 표준 제공 문서는 템플릿이다. 기존 프로젝트에 적용할 때는 실제 코드와 설정을 먼저 확인하고 프로젝트에 맞게 수정한다.
 
 `WORKFLOW.md`는 큰 기능, PR/push, 리뷰, 배포, DB/API 계약 변경처럼 절차가 중요한 작업에서 읽는다.
+
+위키는 탐색과 재사용을 돕는 보조 지식이다. 저장소 규칙이나 현재 동작이 위키와 다르면 실제 코드·설정, 가까운 `AGENTS.md`, `AGENTS.md`, `.agents/*` 순서의 원본이 우선하며, 위키는 갱신 또는 드리프트 점검 대상으로 표시한다. 작은 문구·스타일 수정에는 관련 위키가 없거나 도움되지 않으면 탐색을 생략해도 된다.
+
+작업 완료 보고에는 `Wiki: checked`, `updated`, 또는 `not needed` 중 하나와 근거를 짧게 남긴다. 의미 있는 결정, 재사용 가능한 해결책, 출처가 분명한 자료가 생겼을 때만 기존 `/wiki-log-today` 또는 `/wiki-add-source`를 사용하거나 기록을 제안한다.
 
 ---
 
