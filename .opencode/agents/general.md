@@ -3,7 +3,7 @@ description: Woomi 프로젝트의 기본 에이전트. AGENTS.md와 .agents/ �
 mode: primary
 model: anthropic/claude-sonnet-4-6
 permission:
-  edit: deny
+  edit: allow
   bash:
     git *: allow
     pnpm *: allow

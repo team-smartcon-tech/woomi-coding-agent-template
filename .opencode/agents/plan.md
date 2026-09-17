@@ -3,7 +3,7 @@ description: 작업 계획, 리뷰 및 품질 보증 전담 에이전트
 mode: subagent
 model: anthropic/claude-sonnet-4-6
 permission:
-  edit: deny
+  edit: allow
   bash: ask
 ---
 

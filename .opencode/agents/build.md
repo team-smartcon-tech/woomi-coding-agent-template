@@ -3,7 +3,7 @@ description: 빌드, 배포 및 인프라 작업 전담 에이전트
 mode: subagent
 model: anthropic/claude-sonnet-4-6
 permission:
-  edit: deny
+  edit: allow
   bash:
     pnpm *: allow
     wrangler *: allow
