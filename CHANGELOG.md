@@ -8,6 +8,17 @@
 
 ---
 
+## [2.27-draft] - 2026-09-17
+
+### 추가
+
+- opencode 지원을 위한 설정 추가: `opencode.json`, `.opencode/agents/`, `.opencode/skills/`, `.opencode/commands/`
+- `opencode.json`에 `general`, `build`, `plan` 에이전트 정의 및 `component-generator`, `db-migration` 스킬 등록
+- `.agents/` 문서 참조와 외부 스킬(`~/.claude/skills/`, `~/.agents/skills/`)을 `skills.paths`로 통합
+- `AGENTS.md` 디렉터리 기준에 `.opencode/` 추가 및 도구별 파일 표에 opencode 항목 추가
+
+---
+
 ## [2.26-draft] - 2026-09-15
 
 ### 변경
