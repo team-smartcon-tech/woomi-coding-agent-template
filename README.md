@@ -1,9 +1,9 @@
 # Woomi 코딩 에이전트 템플릿
 
-**AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
+**AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·opencode·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.26-draft`
-- 최종 수정일: 2026-09-15
+- 표준 버전: `2.27-draft`
+- 최종 수정일: 2026-09-17
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
@@ -29,7 +29,7 @@ AI는 아는 게 많지만 **이 프로젝트의 사정**은 모릅니다. 그�
 | 받는 것 | 쉽게 말하면 |
 |---|---|
 | `AGENTS.md`, `.agents/` 문서 | AI가 읽는 **프로젝트 사용설명서**. 폴더 구조, 화면 규칙, 데이터 규칙이 적혀 있습니다 |
-| `.claude/`, `.codex/`, `.github/` | 도구별 **자주 쓰는 명령 모음**. "새 화면 만들어줘"를 명령 한 번으로 |
+| `.claude/`, `.codex/`, `.opencode/`, `.github/` | 도구별 **자주 쓰는 명령 모음**. "새 화면 만들어줘"를 명령 한 번으로 |
 | `.githooks/` | **안전장치**. 비밀키가 실수로 올라가거나 `main`에 바로 푸시되는 걸 막습니다 |
 | `apps/web` | 바로 실행되는 **관리자 화면 뼈대**. 로그인·목록·상세·설정 화면이 이미 들어 있습니다 |
 | `QUICKSTART.md` | 복사-붙여넣기용 **시작 프롬프트 2종** |
@@ -173,7 +173,7 @@ pnpm dev        # http://localhost:5173
 "깨끗하게 되돌려줘" 같은 말은 작업물을 영구 삭제할 수 있습니다(`git reset --hard`). AI가 이런 걸 하려 하면 막도록 되어 있고, 당신도 함부로 요청하지 마세요.
 
 **Q. 쓸 수 있는 명령이 뭐가 있나요?**
-Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리) 4개, 지식 위키용 `/wiki-add-source`·`/wiki-ask`·`/wiki-log-today`·`/wiki-check` 4개, 그리고 자연어로 말하면 작동하는 스킬 2개(공통 부품 만들기, DB 구조 변경)입니다. Codex는 `.codex/prompts/`, Copilot은 `.github/prompts/`에 같은 워크플로우가 있습니다 — `/onboard` 하나만 Claude Code 전용이고 나머지 8개는 세 도구 모두에 있습니다. **`/deploy`, `/test` 같은 다른 명령은 없으니 AI가 지어내면 의심하세요.**
+Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(새 화면), `/new-api`(새 서버 기능), `/review-pr`(코드 검토), `/commit`(커밋 정리) 4개, 지식 위키용 `/wiki-add-source`·`/wiki-ask`·`/wiki-log-today`·`/wiki-check` 4개, 그리고 자연어로 말하면 작동하는 스킬 2개(공통 부품 만들기, DB 구조 변경)입니다. Codex는 `.codex/prompts/`, Copilot은 `.github/prompts/`에 같은 워크플로우가 있고, opencode는 `.opencode/commands/`에 있습니다 — `/onboard` 하나만 Claude Code 전용이고 나머지 8개는 세 도구 모두에 있습니다. **`/deploy`, `/test` 같은 다른 명령은 없으니 AI가 지어내면 의심하세요.**
 
 ---
 
@@ -187,7 +187,7 @@ Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(�
 | [`.agents/VIBE_CODING_GUIDE.md`](./.agents/VIBE_CODING_GUIDE.md) | 비개발자용 10분 운영 가이드 |
 | [`apps/web/README.md`](./apps/web/README.md) | 관리자 화면 뼈대의 화면 지도와 수정 방법 |
 | `AGENTS.md` | **모든 AI가 가장 먼저 읽는 공통 규칙** (1차 소스) |
-| `CLAUDE.md` / `CODEX.md` | Claude Code / Codex 전용 보충 규칙 |
+| `CLAUDE.md` / `CODEX.md` / `opencode.json` | Claude Code / Codex / opencode 전용 보충 규칙 |
 | `.agents/ARCHITECTURE.md` | 표준 구조와 레이어 경계 |
 | `.agents/STACK.md` | 표준 기술스택 |
 | `.agents/WORKFLOW.md` | 작업·PR·push·리뷰 흐름 |
@@ -228,6 +228,7 @@ Claude Code 기준 처음 시작할 때 쓰는 `/onboard` 1개, `/new-feature`(�
 
 - Claude Code: `CLAUDE.md`, `.claude/commands/`, `.claude/skills/`
 - Codex: `CODEX.md`, `.codex/prompts/`, `.codex/skills/`
+- opencode: `opencode.json`, `.opencode/commands/`, `.opencode/skills/`
 - GitHub Copilot: `.github/prompts/`, `.github/instructions/`
 
 ### 하네스 계층

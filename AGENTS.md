@@ -4,8 +4,8 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.26-draft`
-- 최종 수정일: 2026-09-15
+- 표준 버전: `2.27-draft`
+- 최종 수정일: 2026-09-17
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
 
@@ -121,6 +121,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 ├── .agents/              # 에이전트 공통 규칙과 컨텍스트
 ├── .claude/              # Claude Code commands/skills/settings
 ├── .codex/               # Codex prompts/skills/hooks
+├── .opencode/            # opencode agents/skills/commands/config
 ├── .github/              # Copilot prompts/instructions, workflows/tag-version.yml
 ├── .githooks/            # 로컬 git hook
 ├── docs/                 # 사람용 문서          — exec-brief/ · ai/(설계·결정·실행 계획)
@@ -143,6 +144,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 |---|---|---|---|
 | Claude Code | `CLAUDE.md` | `.claude/commands/` | `.claude/skills/` |
 | Codex | `CODEX.md` | `.codex/prompts/` | `.codex/skills/` |
+| opencode | `opencode.json` | `.opencode/commands/` | `.opencode/skills/` |
 | GitHub Copilot | `.github/copilot-instructions.md` | `.github/prompts/` | `.github/instructions/` |
 
 도구별 문서에는 공통 규칙을 숨기지 않는다. 공통 규칙은 `AGENTS.md` 또는 `.agents/*`에 반영한다.
