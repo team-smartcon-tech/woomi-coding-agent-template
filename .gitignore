@@ -34,3 +34,15 @@ Thumbs.db
 # 저장소 루트를 Obsidian 볼트로 연 흔적(기계별 설정). 위키 볼트는 wiki/ 이고
 # wiki/.obsidian/graph.json 은 그래프 뷰 설정이라 추적한다.
 /.obsidian/
+
+# 에이전트 도구가 기계·세션별로 만드는 로컬 산출물. 공유할 내용이 없어 추적하지 않는다.
+# graft: 코드 그래프 캐시 (`graft build`로 재생성). `.ignore`는 이 캐시를 ripgrep에만 다시 열어주는 설정.
+/graft/
+/.ignore
+
+# omc(oh-my-claudecode): state/·logs/·plans/·reports/·specs/·artifacts/·wiki/ 등 세션 산출물 전부.
+# 디렉터리가 아니라 내용물을 무시해서, 나중에 공유할 파일이 생기면 `!.omc/<파일>`로 되살릴 수 있다.
+.omc/*
+
+# Claude Code가 만드는 로컬 워크트리. `.git/info/exclude`에만 있어 클론에는 전달되지 않았다.
+.claude/worktrees/
