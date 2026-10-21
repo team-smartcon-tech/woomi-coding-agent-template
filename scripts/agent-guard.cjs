@@ -71,6 +71,9 @@ function blockedBash(input, branch) {
   if (push !== null && !/(?:^|\s)(?:-n|--dry-run)(?:\s|$)/.test(push)) {
     if (/(?:^|\s)--no-verify(?:\s|$)/.test(push)) return "안전 훅을 건너뛰는 푸시"
     if (/(?:^|\s)(?:--all|--mirror)(?:\s|$)/.test(push)) return "모든 ref 를 한 번에 푸시"
+    // 6장은 대상과 무관하게 강제 푸시를 금지한다. `-uf` 같은 묶음 형태도 `-f` 다.
+    if (/(?:^|\s)(?:--force(?:-with-lease(?:=\S*)?)?|-[a-z]*f[a-z]*)(?:\s|$)/i.test(push))
+      return "강제 푸시"
 
     // 플래그를 걷어내고 남은 토큰은 [remote, refspec...] 이다.
     const refs = push
@@ -78,6 +81,9 @@ function blockedBash(input, branch) {
       .split(/\s+/)
       .filter((t) => t && !t.startsWith("-"))
       .slice(1)
+    // refspec 앞의 `+` 도 강제 갱신이다(`--force` 를 ref 하나에만 건 것).
+    if (refs.some((r) => r.startsWith("+") && !PROTECTED.test(r.slice(1).split(":").pop())))
+      return "강제 푸시"
     // 앞의 `+` 는 강제 갱신 표시라 떼고 본다 — `+main` 도 main 대상 푸시다.
     const dst = refs.map((r) => r.replace(/^\+/, "").split(":").pop())
     if (dst.some((d) => PROTECTED.test(d))) return "main 브랜치 직접 푸시"
@@ -164,6 +170,15 @@ function selftest() {
   block('git commit --no-verify -m "x"', "feature/x")
   block('git commit -nm "x"', "feature/x")
   block("git push --no-verify origin feature/x", "feature/x")
+  // 강제 푸시 — 6장은 대상과 무관하게 `--force` 를 금지한다. 예전에는 main 대상만 막았다.
+  block("git push --force origin feature/x", "feature/x")
+  block("git push -f origin feature/x", "feature/x")
+  block("git push -uf origin feature/x", "feature/x")
+  block("git push --force-with-lease origin feature/x", "feature/x")
+  block("git push --force-with-lease=feature/x origin feature/x", "feature/x")
+  block("git push origin +feature/x", "feature/x")
+  pass("git push -u origin feature/x", "feature/x")
+  pass("git push --follow-tags origin feature/x", "feature/x")
   pass('git commit -m "fix -n flag handling"', "feature/x")
   pass('git commit -am "x"', "feature/x")
 
@@ -258,7 +273,9 @@ if (mode === "--selftest") {
       process.stdout.write(
         JSON.stringify({
           systemMessage:
-            "REMINDER: 변경사항이 있습니다. CHANGELOG.md에 항목을 추가하고 AGENTS.md/README.md의 표준 버전·최종 수정일을 갱신하세요. (AGENTS.md 10장)",
+            // 이 스크립트는 템플릿에서 분기한 프로젝트에도 그대로 복사된다. 분기한 쪽은 표준 버전이
+            // 아니라 제품 버전(CHANGELOG 최상단)을 올린다(10장) — 한쪽만 지시하면 다른 쪽에서 틀린다.
+            "REMINDER: 변경사항이 있습니다. CHANGELOG.md에 항목을 추가하세요. 템플릿 저장소면 AGENTS.md/README.md의 표준 버전·최종 수정일을, 템플릿에서 분기한 프로젝트면 제품 버전(CHANGELOG 최상단)을 갱신합니다. (AGENTS.md 10장)",
         }),
       )
     }

@@ -8,6 +8,20 @@
 
 ---
 
+## [2.29-draft] - 2026-10-21
+
+### 수정
+
+- `scripts/agent-guard.cjs` 가 **피처 브랜치 강제 푸시**(`--force`, `-f`, `-uf` 같은 묶음, `--force-with-lease[=…]`, `+<ref>`)를 통과시켰다. 6장은 대상과 무관하게 `--force` 를 금지하는데 판정은 main 대상만 보고 있었다. 이제 막는다. selftest 에 강제 형태 6건과 통과해야 하는 `-u`·`--follow-tags` 2건을 더했다. `.agents/WORKFLOW.md` 11.2 와 [작업 흐름](wiki/rules/workflow.md) 정리본에 "실행은 사용자가 직접, 이미 올라간 커밋은 새 커밋으로" 를 적었다.
+- 세션 종료 시 CHANGELOG 리마인더가 템플릿에서 분기한 프로젝트에도 "표준 버전·README 갱신" 만 지시해 10장의 분기 규칙(제품 버전은 CHANGELOG 최상단)과 어긋났다. 두 경우를 함께 적는 문구로 바꿨다.
+
+### 변경
+
+- `.gitignore` 에 에이전트 도구의 기계·세션별 산출물을 등록했다: `/graft/`, `/.ignore`, `.omc/*`, `.claude/worktrees/`(기존 `feature/jogukh` 의 커밋을 가져옴). 이 파일들 때문에 로컬 `pnpm format:check` 가 실패하던 것도 함께 사라진다(Prettier 는 `.gitignore` 를 따른다).
+- GitHub Actions 를 Node 24 런타임 판으로 올렸다: `actions/checkout@v5`, `actions/setup-node@v5`, `pnpm/action-setup@v5`(v4 는 Node 20 이라 러너가 지원 종료 경고를 냈다). Node 24 로 처음 넘어간 메이저를 골라 변화 폭을 줄였다.
+
+---
+
 ## [2.28-draft] - 2026-10-21
 
 ### 제거
