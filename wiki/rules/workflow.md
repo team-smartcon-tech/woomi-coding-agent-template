@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-09-15
+updated: 2026-10-21
 tags: [area/프로세스, area/검증]
 ---
 
