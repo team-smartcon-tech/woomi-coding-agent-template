@@ -8,6 +8,20 @@
 
 ---
 
+## [2.28-draft] - 2026-10-21
+
+### 제거
+
+- opencode 지원(2.27-draft)을 걷어냈다: `opencode.json`, `.opencode/`(agents·commands·skills), `.gitignore` 의 opencode 생성물 항목, `AGENTS.md`·`README.md` 의 opencode 언급. 팀이 opencode 를 쓰지 않기로 했고, 들어 있던 설정에 결함이 있었다.
+  - `.opencode/commands`·`skills` 가 작성자 PC 의 절대경로(`/Volumes/...`)를 가리키는 심볼릭 링크라 다른 PC 에서 열리지 않았다.
+  - 권한 규칙이 `"*": "ask"` 를 맨 뒤에 두었는데 opencode 는 마지막으로 맞는 규칙이 이긴다. 그래서 `allow` 와 `git config core.hooksPath` `deny` 가 모두 `ask` 로 덮여 의도대로 동작하지 않았다.
+
+### 수정
+
+- `scripts/agent-guard.cjs` 가 앞에 `+`(강제 갱신)가 붙은 refspec(`+main`, `+refs/heads/main`, main 위에서의 `+HEAD`)을 main 대상으로 보지 못해 통과시키던 것을 막았다. git 훅 `.githooks/pre-push` 는 대상 ref 로 막지만, 훅이 꺼진 PC 에서는 에이전트 쪽 차단이 유일했다. selftest 에 이 세 사례와, 원래도 막히던 `+HEAD:main`(콜론 뒤만 보므로)을 회귀 사례로 더했다.
+
+---
+
 ## [2.27-draft] - 2026-09-17
 
 ### 추가
