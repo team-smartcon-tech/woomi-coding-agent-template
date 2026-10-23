@@ -8,6 +8,14 @@
 
 ---
 
+## [2.31-draft] - 2026-10-23
+
+### 수정
+
+- 2.30-draft 에서 넣은 `db-checks` 가 첫 실행부터 실패했다(`Unable to locate executable file: pnpm`). `actions/setup-node@v5` 는 `package.json` 의 `packageManager` 를 보고 pnpm 캐시를 기본으로 켜는데, 이 잡은 node 스크립트만 돌려 pnpm 을 설치하지 않는다. `package-manager-cache: false` 로 껐다. 수정 커밋이 PR #39 머지 뒤에 올라가 main 에 빠졌고, 그래서 main 의 `db-checks` 가 빨간 상태였다.
+
+---
+
 ## [2.30-draft] - 2026-10-23
 
 ### 추가
