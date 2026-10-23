@@ -8,6 +8,30 @@
 
 ---
 
+## [2.30-draft] - 2026-10-23
+
+### 추가
+
+- **DB-ERD 지침 — `docs/DB-ERD/`.** 파생 프로젝트 Smart Planner 에서 쓰던 규칙을 일반화해 들여왔다. 거기서는 스키마 파일만 읽다가 FK 타입 불일치(`text` ↔ `uuid`)와 엉뚱한 부모에 붙이는 실수가 나왔고, 사람이 그린 ERD 는 갱신을 빠뜨려도 아무것도 실패하지 않아 원격 FK 와 대조하자 선 모양이 틀린 관계가 둘 나왔다.
+  - `README.md` — 원천 순위(마이그레이션 > `DB_SCHEMA.md` > `DOMAIN_MODEL.md`), 갱신 방법(적용 전 테이블은 계획 문서, 적용 후 현재 ERD 로 이동), **DB 를 바꾸기 전 ERD 검토 체크리스트 10항목**, 표기 약속(실선 = FK 있음, 점선 = 코드로만 연결, 부모 쪽 `||`/`|o` = FK not null/nullable). 체크리스트 본문은 여기에만 둔다.
+  - `현재-DB-ERD.md` — 빈 서식. 예시는 `text` 블록이라 자동 대조가 읽지 않는다.
+  - 파생 프로젝트 고유 예시(특정 테이블 PK 타입, 작성자 컬럼에 FK 를 걸지 않는 결정)는 걷어냈다. 작성자 컬럼 FK 여부는 "프로젝트에서 한 번 정해 `DOMAIN_MODEL.md` 에 적는다" 로 바꿨다.
+- **`scripts/erd-check.mjs` + `.github/workflows/db-checks.yml`.** 격리 DB(`supabase start`)에 마이그레이션을 처음부터 적용한 뒤, 「현재 ERD + 미적용 계획 문서」 의 실선 관계와 FK 목록을 (부모, 자식, nullable) 단위로 개수까지 대조한다. `supabase/migrations/*.sql` 이 없으면 자체 점검(`--selftest` 10건)만 돌고 통과한다 — 프로젝트가 DB 를 붙이면 따로 켜지 않아도 돈다. 접속 주소는 `config.toml` 포트에 묶이지 않도록 `supabase status -o env` 에서 읽는다. 빈 FK 목록(통과)과 그림에 없는 FK 1개(실패)로 동작을 확인했다. 원격 적용 상태·삭제 동작·엔티티 컬럼은 대조 밖이다.
+
+### 변경
+
+- 규칙 연결: `AGENTS.md` 2장 Task Routing 의 DB schema·migration 행에 `docs/DB-ERD/README.md`(작업 전 ERD 대조, 필수)를 맨 앞에 두었다. 4장 디렉터리 트리에 `docs/DB-ERD/` 와 워크플로 목록을 맞췄다.
+- `.agents/data/MIGRATION.md` — 1장 규칙에 "변경 전 ERD 대조, 변경 후 ERD 갱신", 5장 Pre-Flight 에 `ERD review (docs/DB-ERD):` 칸과 근거 문단. `.agents/data/DB_SCHEMA.md` 4장 Review Checklist 에 ERD 항목.
+- `db-migration` 스킬 3벌(`.claude`·`.codex`·`.github/instructions`)이 ERD 를 첫 번째로 가리키고, 작업 후 ERD 검토 결과(문제 없음 포함)를 보고하게 했다. Copilot instruction 의 `applyTo` 에 `**/docs/DB-ERD/**` 추가.
+- 위키 정리본 [마이그레이션](wiki/rules/migration.md) 에 「만들기 전에 ERD 와 대조한다」.
+
+### 수정
+
+- README·QUICKSTART 의 GitHub ruleset 안내가 **모든 저장소에서 켜진다고 전제**했다. GitHub Free 플랜 조직의 private 저장소는 ruleset·브랜치 보호 API 가 `403` 이다(파생 프로젝트 실측, 2026-09-05). 이 템플릿 저장소는 public 이라 실제로 켜져 있다. private 저장소에서는 장치가 없고 CI 는 알림뿐이므로 머지 전 `gh pr checks` 로 확인하라는 단서를 붙였다.
+- `wiki/log.md` 머리말 안에 09-15 두 건·10-21 한 건이 끼어 들어가 YAML 머리말이 깨져 있었다. 지우지 않고 시간순 끝자리로 옮겼다.
+
+---
+
 ## [2.29-draft] - 2026-10-21
 
 ### 수정
