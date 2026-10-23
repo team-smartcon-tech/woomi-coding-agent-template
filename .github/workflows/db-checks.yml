@@ -1,0 +1,101 @@
+name: db-checks
+
+# 격리 DB 에서 마이그레이션을 처음부터 재현하고, docs/DB-ERD/ 그림이 실제 FK 와 같은지 대조한다.
+# 파생 프로젝트 Smart Planner 의 같은 이름 워크플로를 일반화해 들여왔다(2.30-draft).
+#
+# ## 마이그레이션이 없으면 통과로 끝난다
+# 이 템플릿에는 supabase/ 가 없다. supabase/migrations/*.sql 이 생기기 전까지는 ERD 검사의
+# 자체 점검만 돌리고 나머지 단계는 건너뛴다 — 프로젝트가 DB 를 붙이는 순간 따로 켜지 않아도 돈다.
+#
+# ## 왜 CI 인가
+# 로컬에 Docker 가 없으면 `supabase start`/`db reset` 을 못 돌려, 원격에 적용해 본 뒤에야 SQL 이
+# 처음 실행된다. GitHub 러너에는 Docker 가 있으므로 여기서 먼저 돌린다.
+#
+# ## paths 필터를 두지 않는 이유
+# 이 검사를 필수 상태 검사로 걸면, 필터 때문에 실행되지 않은 PR 은 영원히 pending 으로 남아
+# 병합이 막힌다. supabase/ 를 건드리지 않은 PR 도 그냥 돌린다.
+#
+# ## 검사하는 것과 하지 않는 것
+# 검사: 마이그레이션이 **처음부터 깨끗이 적용되는가**, ERD 실선 관계가 실제 FK 와 같은가.
+# 검사 안 함: 원격 DB 의 적용 상태(CI 에 원격 접속 정보를 두지 않는다), 스키마가 업무상 옳은가.
+# 계약 대조 SQL 같은 프로젝트별 검사는 이 잡에 단계를 더해 붙인다.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # 임의 브랜치에서 수동 실행. 검사가 실제로 위반을 잡는지 일부러 어겨서 확인할 때 쓴다 —
+  # 통과만 하는 검사는 형식 강화일 뿐이다.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-checks-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      # 파서·대조 규칙 자체 검사. DB 없이 돌므로 마이그레이션이 없어도 항상 돌린다.
+      - name: ERD 대조 자체 점검
+        run: node scripts/erd-check.mjs --selftest
+
+      - name: 마이그레이션 유무 확인
+        id: detect
+        run: |
+          if ls supabase/migrations/*.sql >/dev/null 2>&1; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::supabase/migrations/*.sql 이 없어 격리 DB 검사를 건너뜁니다."
+          fi
+
+      - uses: supabase/setup-cli@v1
+        if: steps.detect.outputs.has == 'true'
+        with:
+          version: latest
+
+      # studio·imgproxy·edge-runtime 등은 스키마 검사에 필요 없다 — 기동 시간을 줄인다.
+      # 첫 기동에서 migrations/ 가 순서대로 적용된다. 하나라도 실패하면 여기서 멈춘다.
+      - name: 격리 DB 기동 + 마이그레이션 재현
+        if: steps.detect.outputs.has == 'true'
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector
+
+      - name: 적용된 마이그레이션 목록
+        if: steps.detect.outputs.has == 'true'
+        run: supabase migration list --local
+
+      # 접속 주소는 supabase/config.toml 의 [db] port 에 따라 달라지므로 CLI 에서 읽는다.
+      - name: 격리 DB 접속 주소
+        if: steps.detect.outputs.has == 'true'
+        run: |
+          db_url=$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')
+          echo "DB_URL=${db_url:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}" >> "$GITHUB_ENV"
+
+      # ERD 실선 관계 ↔ 이 격리 DB 의 FK. 미적용 마이그레이션의 테이블도 여기 있으므로
+      # 그것은 계획 문서에 그려져 있어야 맞는다(docs/DB-ERD/README.md 「갱신하는 방법」 1).
+      - name: ERD 관계선 ↔ 외래 키 대조
+        if: steps.detect.outputs.has == 'true'
+        run: |
+          if [ ! -d docs/DB-ERD ]; then
+            echo "::error::docs/DB-ERD/ 가 없습니다. 마이그레이션이 있으면 ERD 를 둡니다(AGENTS.md 2장)."
+            exit 1
+          fi
+          psql "$DB_URL" -At -F '|' -c "$(node scripts/erd-check.mjs --query)" > "$RUNNER_TEMP/fks.txt"
+          node scripts/erd-check.mjs "$RUNNER_TEMP/fks.txt"
+
+      - name: 실패 시 DB 상태
+        if: failure() && steps.detect.outputs.has == 'true'
+        run: supabase status || true

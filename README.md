@@ -2,8 +2,8 @@
 
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.29-draft`
-- 최종 수정일: 2026-10-21
+- 표준 버전: `2.30-draft`
+- 최종 수정일: 2026-10-23
 - 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
@@ -82,6 +82,8 @@ chmod +x .githooks/*
 
 세 도구(Claude Code·Codex·Copilot)에 똑같이 적용되는 **유일한 우회 불가 장치**입니다.
 
+> **private 저장소라면 먼저 켜지는지 확인하세요.** GitHub Free 플랜 조직의 **private** 저장소에서는 ruleset 과 브랜치 보호를 쓸 수 없습니다(설정 화면에서 막히고 API 는 `403 Upgrade to GitHub Pro or make this repository public`). 확인: `gh api repos/<조직>/<저장소>/rulesets`. 이 경우 위 장치는 **존재하지 않고**, PR 검사(`pr-checks`·`db-checks`)는 빨간 채로도 머지됩니다 — 검사는 알려줄 뿐이니 **머지 전에 `gh pr checks <번호>` 로 직접 확인**하세요. 실제로 막으려면 조직을 Team 플랜으로 올리거나 저장소를 공개해야 합니다.
+
 ### 3단계 — AI에게 맡기기
 
 **Claude Code를 쓴다면 여기서 끝입니다.** 1단계로 준비한 폴더를 열고 첫 대화에 이렇게만 입력하세요.
@@ -134,7 +136,7 @@ pnpm dev        # http://localhost:5173
 | ✅ 막아줍니다 | `main` 브랜치에 바로 푸시하는 것 (PR을 거치도록). 태그 푸시는 통과합니다 |
 | ⚠️ **못 막습니다** | 커밋에 담기지 않은 경로 — 채팅창에 붙여넣은 값, `wrangler.jsonc`의 `vars`, 이미 커밋 이력에 들어간 값 |
 | ⚠️ **못 막습니다** | 위 형태에 해당하지 않는 비밀번호·접속 문자열 — 사람이 직접 봐야 합니다 |
-| ⚠️ **못 막습니다** | 2단계를 건너뛴 경우 — 내 컴퓨터에서는 위 셋 다 작동하지 않습니다 (GitHub ruleset을 켜 두면 `main` 푸시만은 서버에서 막힙니다) |
+| ⚠️ **못 막습니다** | 2단계를 건너뛴 경우 — 내 컴퓨터에서는 위 셋 다 작동하지 않습니다 (GitHub ruleset을 켜 두면 `main` 푸시만은 서버에서 막힙니다 — Free 플랜 조직의 private 저장소는 ruleset 을 켤 수 없습니다) |
 
 그래서 **비밀값(API 키, 비밀번호)은 채팅창이나 코드에 붙여넣지 마세요.** `.env` 파일에만 넣고, 그 파일이 커밋에 안 섞였는지는 사람이 직접 확인해야 합니다.
 

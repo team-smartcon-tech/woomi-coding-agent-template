@@ -48,6 +48,8 @@ GitHub 저장소 → **Settings → Branches → Add branch ruleset** → 대상
 
 이것이 Claude Code·Codex·Copilot 세 도구에 똑같이 적용되는 **유일한 우회 불가 장치**입니다.
 
+> **private 저장소라면 먼저 켜지는지 확인하세요.** GitHub Free 플랜 조직의 **private** 저장소에서는 ruleset 과 브랜치 보호를 쓸 수 없습니다(설정 화면에서 막히고 API 는 `403 Upgrade to GitHub Pro or make this repository public`). 확인: `gh api repos/<조직>/<저장소>/rulesets`. 이 경우 위 장치는 **존재하지 않고**, PR 검사(`pr-checks`·`db-checks`)는 빨간 채로도 머지됩니다 — 검사는 알려줄 뿐이니 **머지 전에 `gh pr checks <번호>` 로 직접 확인**하세요. 실제로 막으려면 조직을 Team 플랜으로 올리거나 저장소를 공개해야 합니다.
+
 **4) 도구 선택**
 어떤 도구로 쓰든(Claude Code / Codex CLI / GitHub Copilot) 공통 1차 소스는 `AGENTS.md`라 동일하게 작동합니다. 단 **GitHub Copilot에는 위험 동작을 막는 자동 훅이 없으므로**, Copilot을 쓴다면 위 2번(`.githooks`)을 반드시 먼저 켜세요. Copilot에서는 `.githooks`가 사실상 유일한 자동 안전망입니다.
 

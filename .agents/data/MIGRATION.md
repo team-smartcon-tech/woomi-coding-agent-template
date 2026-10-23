@@ -12,7 +12,7 @@ DB 변경이 생기기 전까지 프로젝트별 migration log는 비워둘 수 
 - destructive migration은 백업/복구 계획을 먼저 적는다.
 - RLS 변경은 권한 매트릭스와 함께 검토한다.
 - RPC/function 추가 시 호출하는 repository와 API 문서를 함께 갱신한다.
-- schema 변경 후 `.agents/data/DB_SCHEMA.md`와 관련 API 계약을 갱신한다.
+- schema 변경 전에 `docs/DB-ERD/` 관계도와 대조하고, 변경 후 `.agents/data/DB_SCHEMA.md`·관련 API 계약·ERD 를 갱신한다(5장).
 - migration 파일은 수동으로 이름을 지어 만들지 않는다. Supabase CLI의 `supabase migration new <name>`를 우선 사용한다.
 - migration은 한 번 적용된 뒤 수정하지 않는다. 잘못된 migration은 새 migration으로 보정한다.
 - migration은 가능한 작고 되돌릴 수 있게 나눈다.
@@ -193,7 +193,19 @@ Lock risk:
 Rollback plan:
 Test data:
 Docs updated:
+ERD review (docs/DB-ERD):
 ```
+
+**ERD 대조가 먼저다.** 테이블·컬럼·제약·뷰를 만들거나 바꾸기 전에 `docs/DB-ERD/` 의 관계도와
+대조하고, 결과를 마이그레이션 헤더나 PR 본문에 한 줄 남긴다. 문제가 없어도 "확인했고 문제 없음"
+을 적는다. 무엇을 보는지(참조 타입·삭제 동작·붙일 부모·nullable FK·식별과 중복·작성자 컬럼·
+컬럼 삭제 시 뷰와 코드 select·RLS)는 `docs/DB-ERD/README.md` 「DB 를 바꾸기 전에 ERD 로
+검토한다」가 소유한다 — 여기 복사하지 않는다. 스키마 파일만 읽어서는 FK 타입 불일치
+(`text` ↔ `uuid`)나 엉뚱한 부모에 붙이는 실수가 잘 안 보인다.
+
+같은 PR 에서 ERD 를 갱신한다. 새 FK 를 만들고 그림을 안 고치거나 선 모양(실선 = FK, 점선 = 코드
+연결)을 잘못 고르면 `db-checks` 워크플로의 「ERD 관계선 ↔ 외래 키 대조」가 실패한다. 적용 전
+테이블은 현재 ERD 가 아니라 계획 문서에 그린다(README 「갱신하는 방법」).
 
 ---
 

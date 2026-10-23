@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-10-23
 tags: [area/데이터]
 ---
 
@@ -14,6 +14,17 @@ DB schema·RPC·RLS·seed·데이터 보정의 변경 절차. Supabase PostgreSQ
 - Supabase MCP가 연결돼 있으면 변경 전에 실제 스키마를 조회해 `DB_SCHEMA.md`와 대조한다. 문서와 실제가 다르면 **문서를 실제 DB에 맞춘 뒤** migration을 설계한다. 단 MCP는 조회 전용이고, 생성·적용은 항상 Supabase CLI로 한다 — [도구 사용 기준](tooling.md).
 - 한 번 적용된 migration은 수정하지 않고 새 migration으로 보정한다.
 - 가능한 작고 되돌릴 수 있게 분할하고, schema 변경과 data backfill은 분리한다.
+
+## 만들기 전에 ERD 와 대조한다 (2.30-draft 부터 필수)
+
+테이블·컬럼·제약·뷰를 만들거나 바꾸기 전에 `docs/DB-ERD/` 의 관계도와 대조하고, **결과를 마이그레이션 헤더나 PR 본문에 한 줄 남긴다.** 문제가 없어도 "확인했고 문제 없음" 을 적는다. Pre-Flight 체크리스트에도 `ERD review (docs/DB-ERD):` 칸이 있다.
+
+이유는 스키마 파일만 읽어서는 **FK 타입 불일치(`text` ↔ `uuid`)나 엉뚱한 부모에 붙이는 실수**가 잘 안 보이기 때문이다(파생 프로젝트에서 실제로 나왔다). 무엇을 보는지는 `docs/DB-ERD/README.md` 「DB 를 바꾸기 전에 ERD 로 검토한다」가 소유한다 — 원본도 여기도 복사하지 않는다.
+
+ERD 갱신은 PR 이 검사한다 — `supabase/migrations/` 에 SQL 이 생기면 `db-checks` 워크플로가 격리 DB 의 FK 와 그림의 실선 관계를 대조한다(`scripts/erd-check.mjs`). 그래서 마이그레이션 PR 에서 챙길 것이 둘 있다.
+
+- **적용 전 테이블은 계획 문서에 그린다** — 격리 DB 는 미적용 마이그레이션까지 적용하므로, 현재 ERD 에도 계획 문서에도 없으면 "FK 가 있는데 실선이 없다" 로 실패한다.
+- **적용 뒤 현재 ERD 로 옮겼으면 계획 문서 머리말 `상태:` 를 `적용됨` 으로 고친다** — 안 고치면 같은 관계가 두 번 세어져 실패한다.
 
 ## 표준 흐름 8단계
 
@@ -55,3 +66,4 @@ simple rollback / forward fix / manual recovery / not safely reversible(데이�
 ## 출처
 
 - [원본 · .agents/data/MIGRATION.md](../sources/migration.md)
+- `docs/DB-ERD/README.md` — ERD 검토 체크리스트·표기 약속·갱신 방법의 원본

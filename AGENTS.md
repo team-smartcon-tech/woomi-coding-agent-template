@@ -4,8 +4,8 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.29-draft`
-- 최종 수정일: 2026-10-21
+- 표준 버전: `2.30-draft`
+- 최종 수정일: 2026-10-23
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
 
@@ -68,8 +68,8 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 | 새 화면/UI | `.agents/ui/DESIGN.md`, `.agents/ui/UX_RULES.md`, `.agents/ui/COMPONENTS.md` | `.agents/code/CODE_STYLE.md`, `.agents/ARCHITECTURE.md` |
 | 프론트엔드 기능 | `.agents/ARCHITECTURE.md`, `.agents/code/PROJECT_STRUCTURE.md`, `.agents/code/CODE_STYLE.md` | `.agents/code/API.md`, `.agents/WORKFLOW.md` |
 | API/백엔드 | `.agents/code/API.md`, `.agents/code/ERROR_HANDLING.md`, `.agents/ARCHITECTURE.md` | `.agents/data/API_CONTRACT.md`, 기존 route/service/repository |
-| DB schema/RLS/index | `.agents/data/DB_SCHEMA.md`, `.agents/data/MIGRATION.md` | `.agents/data/DOMAIN_MODEL.md`, `.agents/code/API.md` |
-| migration/backfill | `.agents/data/MIGRATION.md`, `.agents/data/DB_SCHEMA.md` | `.agents/DEPLOYMENT.md`, `.agents/WORKFLOW.md` |
+| DB schema/RLS/index | `docs/DB-ERD/README.md`(작업 전 ERD 대조, 필수), `.agents/data/DB_SCHEMA.md`, `.agents/data/MIGRATION.md` | `.agents/data/DOMAIN_MODEL.md`, `.agents/code/API.md` |
+| migration/backfill | `docs/DB-ERD/README.md`(작업 전 ERD 대조, 필수), `.agents/data/MIGRATION.md`, `.agents/data/DB_SCHEMA.md` | `.agents/DEPLOYMENT.md`, `.agents/WORKFLOW.md` |
 | 배포/secret/binding | `.agents/DEPLOYMENT.md` | `wrangler.jsonc`·`.github/workflows/*`(있는 경우), `.agents/WORKFLOW.md` |
 | MCP/외부 도구 연동 | `.agents/TOOLING.md` | `CLAUDE.md`, `CODEX.md`, `.github/*`, 도구별 설정 파일 |
 | PR/push/commit | `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, tool command/prompt |
@@ -121,9 +121,9 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 ├── .agents/              # 에이전트 공통 규칙과 컨텍스트
 ├── .claude/              # Claude Code commands/skills/settings
 ├── .codex/               # Codex prompts/skills/hooks
-├── .github/              # Copilot prompts/instructions, workflows/tag-version.yml
+├── .github/              # Copilot prompts/instructions, workflows/(pr-checks·db-checks·tag-version)
 ├── .githooks/            # 로컬 git hook
-├── docs/                 # 사람용 문서          — exec-brief/ · ai/(설계·결정·실행 계획)
+├── docs/                 # 사람용 문서          — exec-brief/ · ai/(설계·결정·실행 계획) · DB-ERD/(테이블 관계도)
 ├── wiki/                 # 팀 지식 위키 (rules·sources / systems·patterns 는 생기면 / Obsidian 볼트 겸용)
 ├── scripts/              # 반복 자동화
 ├── supabase/             # migration, seed 설정 — 필요할 때 생성, 아직 없음
