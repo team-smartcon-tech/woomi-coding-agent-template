@@ -44,9 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # v5 는 package.json 의 packageManager 를 보고 pnpm 캐시를 기본으로 켠다. 이 잡은 pnpm 을
+      # 설치하지 않으므로(node 스크립트만 돈다) 끄지 않으면 "Unable to locate executable file: pnpm" 으로 실패한다.
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
 
       # 파서·대조 규칙 자체 검사. DB 없이 돌므로 마이그레이션이 없어도 항상 돌린다.
       - name: ERD 대조 자체 점검

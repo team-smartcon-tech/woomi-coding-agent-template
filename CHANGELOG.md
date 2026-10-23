@@ -16,7 +16,7 @@
   - `README.md` — 원천 순위(마이그레이션 > `DB_SCHEMA.md` > `DOMAIN_MODEL.md`), 갱신 방법(적용 전 테이블은 계획 문서, 적용 후 현재 ERD 로 이동), **DB 를 바꾸기 전 ERD 검토 체크리스트 10항목**, 표기 약속(실선 = FK 있음, 점선 = 코드로만 연결, 부모 쪽 `||`/`|o` = FK not null/nullable). 체크리스트 본문은 여기에만 둔다.
   - `현재-DB-ERD.md` — 빈 서식. 예시는 `text` 블록이라 자동 대조가 읽지 않는다.
   - 파생 프로젝트 고유 예시(특정 테이블 PK 타입, 작성자 컬럼에 FK 를 걸지 않는 결정)는 걷어냈다. 작성자 컬럼 FK 여부는 "프로젝트에서 한 번 정해 `DOMAIN_MODEL.md` 에 적는다" 로 바꿨다.
-- **`scripts/erd-check.mjs` + `.github/workflows/db-checks.yml`.** 격리 DB(`supabase start`)에 마이그레이션을 처음부터 적용한 뒤, 「현재 ERD + 미적용 계획 문서」 의 실선 관계와 FK 목록을 (부모, 자식, nullable) 단위로 개수까지 대조한다. `supabase/migrations/*.sql` 이 없으면 자체 점검(`--selftest` 10건)만 돌고 통과한다 — 프로젝트가 DB 를 붙이면 따로 켜지 않아도 돈다. 접속 주소는 `config.toml` 포트에 묶이지 않도록 `supabase status -o env` 에서 읽는다. 빈 FK 목록(통과)과 그림에 없는 FK 1개(실패)로 동작을 확인했다. 원격 적용 상태·삭제 동작·엔티티 컬럼은 대조 밖이다.
+- **`scripts/erd-check.mjs` + `.github/workflows/db-checks.yml`.** 격리 DB(`supabase start`)에 마이그레이션을 처음부터 적용한 뒤, 「현재 ERD + 미적용 계획 문서」 의 실선 관계와 FK 목록을 (부모, 자식, nullable) 단위로 개수까지 대조한다. `supabase/migrations/*.sql` 이 없으면 자체 점검(`--selftest` 10건)만 돌고 통과한다 — 프로젝트가 DB 를 붙이면 따로 켜지 않아도 돈다. 접속 주소는 `config.toml` 포트에 묶이지 않도록 `supabase status -o env` 에서 읽는다. 빈 FK 목록(통과)과 그림에 없는 FK 1개(실패)로 동작을 확인했다. `setup-node@v5` 는 `packageManager` 를 보고 pnpm 캐시를 기본으로 켜므로, pnpm 을 설치하지 않는 이 잡에서는 `package-manager-cache: false` 로 끈다(첫 CI 에서 실패해 잡았다). 원격 적용 상태·삭제 동작·엔티티 컬럼은 대조 밖이다.
 
 ### 변경
 
