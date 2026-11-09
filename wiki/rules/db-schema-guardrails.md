@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-11-09
 tags: [area/데이터]
 ---
 
@@ -37,6 +37,7 @@ AI가 index를 자동 생성하지 않는다. query pattern·table size·write f
 
 ## 함께 보기
 
+- [트랜잭션과 RPC](transactions.md)
 - [마이그레이션](migration.md)
 - [API 계약과 도메인 모델](api-contract.md)
 - [절대 금지·필수 규칙](non-negotiable-rules.md)

@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-09-13
+updated: 2026-11-09
 tags: [wiki/index]
 ---
 
@@ -8,8 +8,8 @@ tags: [wiki/index]
 
 이 위키에 무엇이 있는지의 목록. 자료를 넣을 때마다 갱신됩니다. 처음이면 [여는 법과 네 가지 명령](README.md)부터 읽고, 언제 무엇을 왜 넣었는지는 [기록](log.md)에 있습니다.
 
-- 원본 25건 — 저장소 규칙 문서 24건 + 저장소 밖 자료 1건
-- 규칙 정리본 23개 (`rules/`)
+- 원본 26건 — 저장소 규칙 문서 25건 + 저장소 밖 자료 1건
+- 규칙 정리본 24개 (`rules/`)
 - 시스템 0 · 패턴 0 — `systems/`·`patterns/` 는 프로젝트에서 실제로 생겼을 때 만든다([README](README.md) "안에 든 것")
 
 ## 규칙 — `.agents/*` 정리본
@@ -43,6 +43,7 @@ tags: [wiki/index]
 
 - [DB 스키마 가드레일](rules/db-schema-guardrails.md) — 네이밍·타입·constraint·RLS·index 규칙
 - [마이그레이션](rules/migration.md) — 변경 절차·안전 패턴·rollback
+- [트랜잭션과 RPC](rules/transactions.md) — 여러 쓰기를 RPC로 묶는 기준(T1~T4), 예외(E1~E6)와 `TX-EXCEPTION` 기록, 동시성 패턴
 - [API 계약과 도메인 모델](rules/api-contract.md) — 진행 중 채워 가는 두 문서
 
 ### UI
@@ -74,6 +75,7 @@ tags: [wiki/index]
 - [.agents/code/TESTING.md](sources/testing.md)
 - [.agents/data/DB_SCHEMA.md](sources/db-schema.md)
 - [.agents/data/MIGRATION.md](sources/migration.md)
+- [.agents/data/TRANSACTION.md](sources/transaction.md)
 - [.agents/data/API_CONTRACT.md](sources/api-contract.md)
 - [.agents/data/DOMAIN_MODEL.md](sources/domain-model.md)
 - [.agents/ui/DESIGN.md](sources/design.md)

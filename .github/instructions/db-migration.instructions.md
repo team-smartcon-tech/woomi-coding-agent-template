@@ -11,7 +11,8 @@ applyTo: "**/migrations/**,**/.agents/data/**,**/docs/DB-ERD/**"
 2. `.agents/data/MIGRATION.md`
 3. `.agents/data/DB_SCHEMA.md`
 4. `.agents/data/API_CONTRACT.md`
-5. 관련 repository/service/API 구현
+5. RPC/function 추가·변경 시 `.agents/data/TRANSACTION.md` 7장 템플릿
+6. 관련 repository/service/API 구현
 
 핵심 금지:
 

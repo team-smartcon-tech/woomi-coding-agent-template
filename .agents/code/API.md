@@ -67,7 +67,7 @@ service에서 할 일:
 - 상태 전이
 - 여러 repository 조합
 - AppError throw
-- RPC/transaction 필요 여부 판단
+- RPC/transaction 필요 여부 판단 (`.agents/data/TRANSACTION.md` 기준)
 
 service에서 하지 않을 일:
 
@@ -94,7 +94,7 @@ repository에서 하지 않을 일:
 - 권한 정책 결정
 - 사용자 메시지 결정
 
-복잡한 join, upsert, 원자성이 필요한 작업은 PostgreSQL function/RPC를 검토한다.
+복잡한 join은 PostgreSQL function/view를 검토한다. 여러 테이블 쓰기, 읽고 판단 후 쓰기, 집계값 갱신처럼 원자성이 필요한 작업은 `.agents/data/TRANSACTION.md`에 따라 RPC를 기본으로 하고, 예외를 적용하면 `TX-EXCEPTION`을 기록한다.
 
 ---
 

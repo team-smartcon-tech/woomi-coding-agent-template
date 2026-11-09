@@ -268,3 +268,14 @@ tags: [wiki/log]
   - 이 기록 파일의 머리말 안에 09-15 두 건과 10-21 한 건이 끼어 들어가 YAML 머리말이 깨져 있었다. 지우지 않고 시간순 끝자리로 옮겼다 — 맨 위에 덧붙이는 습관이 "덧붙이기만 한다" 와 섞이면 이렇게 된다. **새 항목은 파일 끝에 붙인다.**
 - 갱신한 정리본: [마이그레이션](rules/migration.md).
 - 남은 것: 파생 프로젝트의 계약 대조 SQL(모든 테이블에 결정 ID·RLS, 제약이 실제로 거부하는가), Supabase CLI 비대화형 적용 절차, `schema/`·`migrations/` 분리와 `.hold.sql` 보류는 범위가 커서 다음 PR 로 나눴다.
+
+## 2026-11-09 · 넣기 · 트랜잭션 경계와 RPC 기준 (2.30 → 2.31-draft)
+
+- 계기: "이 템플릿으로 짠 프로젝트 DB 를 보면 다 트랜잭션이 안 잡혀 있다." 원인을 보니 Supabase JS 호출 하나가 트랜잭션 하나라 service 의 연속 쓰기가 부분 커밋되고, 규칙은 API·CODE_STYLE 에 "RPC 를 **검토한다**" 한 줄뿐이라 판단 기준·예시·리뷰 장치가 없었다. WORKFLOW 5장의 "Supabase JS 체인으로 트랜잭션 흉내내기 금지" 도 어디까지가 흉내인지 정의가 없었다.
+- 정한 것과 이유:
+  - **기본값은 보수적으로, 예외는 명시적으로.** T1~T4(다중 테이블 쓰기·읽고 판단 후 쓰기·집계 갱신·부분 반영 시 불일치)면 RPC 가 기본이다. 다만 상황마다 유동적인 부분이라 E1~E6 예외를 두고, 쓰면 `TX-EXCEPTION`(Reason·On failure·Recovery)을 남기게 했다. 예외를 막지 않고 **근거 없는 예외만** 막는다.
+  - "실패 시 남는 상태" 를 못 적으면 예외가 아니다 — 이게 예외 남용을 거르는 기준이다.
+  - 과잉 적용도 막았다: 단일 쓰기, 배열 한 번 insert/upsert, 조건부 단일 SQL 문은 RPC 불필요.
+  - RPC 템플릿의 `security definer` 는 DB_SCHEMA 3.5 에 맞춰 private schema 로 제한했다.
+- 리뷰 장치: `review-pr` 3벌에 "TX-EXCEPTION 없는 연속 쓰기는 Must fix" 단계를 넣었다.
+- 갱신한 정리본: [트랜잭션과 RPC](rules/transactions.md)(새로), [API 계층 규칙](rules/api-layers.md), [DB 스키마 가드레일](rules/db-schema-guardrails.md), [작업 흐름](rules/workflow.md). 새 출처: [.agents/data/TRANSACTION.md](sources/transaction.md).

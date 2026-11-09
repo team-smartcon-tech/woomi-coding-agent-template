@@ -210,6 +210,8 @@ JSONB reason:
 Migration file:
 Rollback impact:
 ERD reviewed and updated (docs/DB-ERD):
+Multi-write paths use RPC or TX-EXCEPTION (TRANSACTION.md):
+Concurrency rule (conditional update / unique / lock):
 ```
 
 관계 쪽 검토(참조 타입·삭제 동작·붙일 부모·nullable FK·식별과 중복)는 `docs/DB-ERD/README.md`

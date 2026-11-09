@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-11-09
 tags: [area/아키텍처, area/api]
 ---
 
@@ -12,7 +12,7 @@ tags: [area/아키텍처, area/api]
 
 - **route** — path/query/body 파싱, auth context 읽기, Zod 검증, service 호출, 표준 response 반환. 금지: Supabase `.from()` 직접 호출, storage 직접 접근, 긴 권한/상태 전이 구현, raw DB error 반환.
 - **service** — 도메인 규칙, 권한 판단, 상태 전이, 여러 repository 조합, AppError throw. 금지: `c.json()` 반환, HTTP status 결정, request body 재파싱, UI 문구 조립.
-- **repository** — Supabase query, PostgreSQL RPC, R2/storage 접근, DB row 변환. 금지: route/service import, HTTP response 생성, 권한 정책 결정. 복잡한 join/upsert/원자성 작업은 PostgreSQL function/RPC를 검토한다.
+- **repository** — Supabase query, PostgreSQL RPC, R2/storage 접근, DB row 변환. 금지: route/service import, HTTP response 생성, 권한 정책 결정. 복잡한 join은 PostgreSQL function/view를 검토하고, 원자성이 필요한 쓰기는 RPC가 기본이다 — [트랜잭션과 RPC](transactions.md).
 
 ## 검증과 응답 계약
 
@@ -29,6 +29,7 @@ endpoint/요청·응답/error code/권한/DB 영향이 바뀌면 [API 계약과 
 
 ## 함께 보기
 
+- [트랜잭션과 RPC](transactions.md)
 - [계층 아키텍처](layered-architecture.md)
 - [에러 처리](error-handling.md)
 - [API 계약과 도메인 모델](api-contract.md)
