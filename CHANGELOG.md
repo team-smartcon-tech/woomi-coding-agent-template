@@ -8,6 +8,26 @@
 
 ---
 
+## [2.31-draft] - 2026-11-09
+
+### 추가
+
+- **트랜잭션 경계와 RPC 기준 — `.agents/data/TRANSACTION.md`.** Supabase JS 호출은 하나하나가 별도 트랜잭션이라 service 의 연속 쓰기가 부분 커밋되는데, 기존 규칙은 "RPC 를 검토한다" 한 줄뿐이었다. 이 템플릿으로 만든 프로젝트 DB 에 트랜잭션 경계가 거의 없다는 관찰에서 출발했다.
+  - 보수적 기본값: 다중 테이블 쓰기(T1)·읽고 판단 후 쓰기(T2)·집계값 갱신(T3)·부분 반영 시 불일치(T4)면 RPC 가 기본이다. 단일 쓰기·배열 한 번 insert/upsert·조건부 단일 SQL 문은 RPC 불필요(과잉 적용 방지).
+  - 명시적 예외(E1~E6): 외부 시스템, 멱등 재실행, 비동기 분리, backfill, 승인된 프로토타입, 프로젝트 특수 사정. 적용하면 `TX-EXCEPTION` 주석(Reason / On failure / Recovery)을 코드와 PR 에 남긴다. 실패 시 남는 상태를 적을 수 없으면 예외로 인정하지 않는다.
+  - 동시성 패턴(조건부 update, unique + on conflict, `for update`, advisory lock, 잠금 순서), 외부 시스템이 섞일 때의 순서(파일 먼저 · pending 상태값 · outbox), RPC 표준 SQL 템플릿(`security invoker`, `search_path = ''`, 멱등성 키, 예외 삼키기 금지), 리뷰 체크리스트.
+- 위키: 출처 [`wiki/sources/transaction.md`](wiki/sources/transaction.md), 정리본 [트랜잭션과 RPC](wiki/rules/transactions.md).
+
+### 변경
+
+- `.agents/code/API.md`·`.agents/code/CODE_STYLE.md` 의 원자성 문구를 "검토한다" 에서 TRANSACTION.md 기준으로 강화했다. `.agents/WORKFLOW.md` 5장의 "Supabase JS 체인으로 트랜잭션 흉내내기" 금지를 `TX-EXCEPTION` 없는 연속 쓰기로 정의했다.
+- `.agents/data/DB_SCHEMA.md` 4장 Review Checklist 에 다중 쓰기 트랜잭션 경계·동시성 항목.
+- `AGENTS.md` 2장 Task Routing(API/백엔드, DB schema)과 3장 문서 지도에 TRANSACTION.md.
+- `review-pr` 3벌에 트랜잭션 확인 단계 — `TX-EXCEPTION` 없는 연속 쓰기는 Must fix. `new-api` 3벌·`db-migration` 스킬 3벌이 TRANSACTION.md 를 가리킨다.
+- 위키 정리본 [API 계층 규칙](wiki/rules/api-layers.md)·[DB 스키마 가드레일](wiki/rules/db-schema-guardrails.md)·[작업 흐름](wiki/rules/workflow.md)에 연결, `index.md`·`log.md` 갱신.
+
+---
+
 ## [2.30-draft] - 2026-10-23
 
 ### 추가

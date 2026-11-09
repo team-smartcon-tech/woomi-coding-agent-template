@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-10-21
+updated: 2026-11-09
 tags: [area/프로세스, area/검증]
 ---
 
@@ -56,7 +56,7 @@ commit은 Conventional Commits(`<type>: <한국어 요약>`, 제목 72자 이내
 |---|---|
 | 새 도메인 | [계층 아키텍처](layered-architecture.md), [API 계약과 도메인 모델](api-contract.md) |
 | 새 API | [API 계약과 도메인 모델](api-contract.md) |
-| DB schema·RPC·RLS 변경 | [DB 스키마 가드레일](db-schema-guardrails.md), [마이그레이션](migration.md) |
+| DB schema·RPC·RLS 변경 | [DB 스키마 가드레일](db-schema-guardrails.md), [마이그레이션](migration.md), [트랜잭션과 RPC](transactions.md) |
 | 스택 변경 | [기술 스택](stack.md) |
 | 배포·secret 변경 | [배포](deployment.md) |
 | 반복 실수 발견 / 좋은 패턴 정착 | [좋은 예시와 금지 예시](examples.md)와 관련 규칙 문서 |
@@ -73,6 +73,7 @@ commit은 Conventional Commits(`<type>: <한국어 요약>`, 제목 72자 이내
 
 ## 함께 보기
 
+- [트랜잭션과 RPC](transactions.md)
 - [포맷과 린트 기준](formatting-and-linting.md)
 
 - [진입 규칙](agents-entry.md)

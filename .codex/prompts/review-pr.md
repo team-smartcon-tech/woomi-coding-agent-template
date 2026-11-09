@@ -9,4 +9,5 @@ description: 현재 브랜치의 PR diff를 리뷰한다
 3. `.agents/ARCHITECTURE.md`의 레이어 책임 위반이 없는지 검토.
 4. `.agents/code/CODE_STYLE.md` 기준으로 네이밍·구조 위반 체크.
 5. 테스트 커버리지, 에러 처리, 중복 구현 여부를 확인.
-6. 리뷰 결과를 "Must fix / Nit / Question" 세 구간으로 요약하고 마지막에 `Wiki: checked`, `updated`, 또는 `not needed`와 근거를 남김.
+6. DB 쓰기 경로가 있으면 `.agents/data/TRANSACTION.md` 8장 체크리스트로 트랜잭션 경계와 동시성을 확인. RPC 없이 연속 쓰기를 하면서 `TX-EXCEPTION` 기록이 없으면 Must fix.
+7. 리뷰 결과를 "Must fix / Nit / Question" 세 구간으로 요약하고 마지막에 `Wiki: checked`, `updated`, 또는 `not needed`와 근거를 남김.

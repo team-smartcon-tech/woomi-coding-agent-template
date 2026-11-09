@@ -115,7 +115,7 @@ repository는 route/service를 import하지 않는다.
 - 테이블명/RPC명은 중앙 상수로 관리한다.
 - service role key는 Worker/server runtime에서만 사용한다.
 - 프론트엔드에 service role key를 노출하지 않는다.
-- 원자성이 필요한 작업은 PostgreSQL function/RPC 또는 명시적 보상 트랜잭션을 검토한다.
+- 원자성이 필요한 작업은 `.agents/data/TRANSACTION.md` 기준(T1~T4)에 따라 PostgreSQL function/RPC를 기본으로 한다. RPC를 피하는 경우 예외 코드(E1~E6)와 실패 시 상태/복구 방법을 `TX-EXCEPTION` 주석으로 남긴다.
 
 ---
 

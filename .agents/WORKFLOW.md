@@ -124,14 +124,14 @@ UI 변경 후 확인:
 3. 비즈니스 규칙은 `*.service.ts`에 둔다.
 4. DB/RPC/storage 접근은 `*.repository.ts`에 둔다.
 5. 공통 auth, env, db, response, error, middleware는 `platform/`을 사용한다.
-6. 원자성이 필요한 작업은 PostgreSQL function/RPC 또는 명시적 보상 트랜잭션을 사용한다.
+6. 원자성이 필요한 작업은 `.agents/data/TRANSACTION.md` 기준(T1~T4)에 따라 PostgreSQL function/RPC를 사용한다. 외부 시스템이 섞이는 등 예외(E1~E6)에 해당하면 보상 처리나 outbox를 쓰고 `TX-EXCEPTION`을 기록한다.
 
 금지:
 
 - route에서 Supabase 직접 접근
 - repository에서 service 또는 route import
 - service에서 HTTP response 객체 생성
-- Supabase JS 체인으로 트랜잭션 흉내내기
+- Supabase JS 체인으로 트랜잭션 흉내내기 (`TX-EXCEPTION` 기록 없는 연속 쓰기)
 - raw database error를 사용자에게 그대로 반환
 
 API 변경 후 확인:
