@@ -148,13 +148,14 @@
 
 출처: `.superpowers/sdd/2026-11-26-cloudflare-worker-scaffold/task-1~4-report.md`(구현자 보고). 아래 "확인함"은 그 보고가 실행한 명령과 결과를 근거로 한 것이다.
 
-확인함:
+확인함(아래 항목은 구현 중 각 단계 시점의 확인. 마지막 항목만 최종 HEAD 재실행):
 
-- `.dev.vars` 없이 `pnpm dev` → 로그인 302, 대시보드 200, 사이드바 버전이 CHANGELOG 최상단과 일치, 변경 이력 응답. `.dev.vars` 의 `SESSION_SECRET` 을 A→B 로 바꿔 재기동하면 옛 쿠키가 `/login` 으로 리다이렉트된다.
+- `.dev.vars` 없이 `pnpm dev` → 로그인 302, 대시보드 200, 사이드바 버전이 (당시) CHANGELOG 최상단 2.32-draft 와 일치, 변경 이력 응답. `.dev.vars` 의 `SESSION_SECRET` 을 A→B 로 바꿔 재기동하면 옛 쿠키가 `/login` 으로 리다이렉트된다.
 - 운영 빌드(`pnpm build && pnpm start`): `.dev.vars` 없이 `/login` 500(`MissingSecretError`)·`/api/health` 503, 본문에 `SESSION_SECRET` 문자열 없음. 있으면 로그인 302·`/` 200. 개발 서버의 `/api/health` 는 200 `{"status":"ok","env":"development"}`. 환경 선택 없이 만든 빌드도 운영 규칙을 받는다(최상위가 production).
 - `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`deploy:dry`(번들 업로드, `env.APP_ENV "production"`)·`env:check`·`assets:check`(41개 파일)·`assets-check`/`env-check`/`secret-scan`/`agent-guard` 각 `--selftest`.
 - 그 동작이 없었으면 결과가 달라지는 입력으로 확인한 것: `wrangler.jsonc` `vars` 에 `SESSION_SECRET` → `env-check` 실패(되돌림). `public/package.json` 을 넣은 빌드 → `assets:check` 가 `[forbidden-file]` 로 실패. `assets-check` 의 `check` 를 비워 `--selftest` 가 실패하는 것(RED). `.dev.vars` 를 둔 채 `pnpm typecheck` 해도 `worker-configuration.d.ts` 가 바뀌지 않는다(`--env-file types.env`) — 수정 전에는 `SESSION_SECRET` 이 `Env` 에 들어갔다.
 - 두 워크플로 YAML 문법(`yaml-lint`). `actionlint` 는 없어서 건너뜀.
+- **2.33-draft HEAD 에서 재실행(2026-11-26, 로컬 Windows)**: `format:check`·`typecheck`·`lint`·`test`(26)·`build`·`assets:check`(41개 파일)·`deploy:dry`·`env:check` 모두 종료 0, `git diff --exit-code -- apps/web/worker-configuration.d.ts` 0.
 
 확인하지 못함(미검증):
 

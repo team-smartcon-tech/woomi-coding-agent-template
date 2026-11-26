@@ -191,7 +191,7 @@ build
 | `apps/web/.dev.vars.example` | 로컬 secret 의 이름 목록. 실제 `apps/web/.dev.vars` 는 `.gitignore` 가 막는다 |
 | `apps/web/types.env` | `wrangler types` 가 `.dev.vars` 의 secret 이름을 `Env` 에 넣지 않게 하는 빈 파일(`--env-file`). 값을 넣지 않는다 |
 | `apps/web/worker-configuration.d.ts` | `pnpm cf-typegen` 산출물을 커밋한 것. `wrangler.jsonc` 를 고치면 다시 만든다 — `pr-checks` 가 어긋남을 잡는다 |
-| `apps/web/public/.assetsignore` | 정적 자산과 같이 올라가면 안 되는 것 — `wrangler.jsonc`, `package.json`, `*.md`, `.dev.vars*` |
+| `apps/web/public/.assetsignore` | 정적 자산과 같이 올라가면 안 되는 것 — `*.md`, `package.json`, `wrangler.json*`, `.dev.vars*`, `scripts/` |
 | `apps/web/public/_headers` | 정적 자산 캐시 정책과 기본 보안 헤더. CSP 는 프로젝트가 정한다 |
 | `apps/web/app/routes/api.health.ts` | `GET /api/health`. 필수 secret 이 갖춰졌으면 `200 {"status":"ok","env":…}`, 아니면 `503 {"status":"not_ready"}`. `Cache-Control: no-store`. 변수 이름·값·버전을 응답에 넣지 않는다(로그인 없이 읽힌다). 이유는 Worker 로그에만 남는다 |
 | `scripts/assets-check.mjs` | `pnpm assets:check`. 빌드 결과 `apps/web/build/client` 에 금지 파일이 있거나 CHANGELOG 최상단 헤딩 줄이 새면 실패한다. CHANGELOG 에서 헤딩을 못 찾아도 실패한다. 서버 번들은 보지 않는다 |

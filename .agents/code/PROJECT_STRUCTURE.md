@@ -13,7 +13,7 @@
 ```txt
 .
 ├── apps/
-│   ├── web/                      # React Router v7 Framework Mode frontend
+│   ├── web/                      # React Router Framework Mode(8.x) frontend
 │   └── worker/                   # Hono + Cloudflare Worker backend
 ├── packages/
 │   ├── shared/                   # browser/server safe types, constants, schemas, pure utils
@@ -42,7 +42,7 @@
 
 ## 2. Frontend Structure
 
-React Router v7 Framework Mode를 기준으로 한다.
+React Router Framework Mode(스캐폴드는 8.x)를 기준으로 한다.
 
 ```txt
 apps/web/

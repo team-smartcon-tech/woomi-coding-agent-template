@@ -21,7 +21,7 @@ tags: [area/아키텍처]
 
 ## 프론트엔드
 
-React Router v7 Framework Mode + Feature-Sliced Design 계열 구조. 앱 루트는 `apps/web/app`이고 `root.tsx`, `routes.ts`, `routes/`, `features/`, `entities/`, `shared/`로 구성된다.
+React Router Framework Mode(스캐폴드는 8.x) + Feature-Sliced Design 계열 구조. 앱 루트는 `apps/web/app`이고 `root.tsx`, `routes.ts`, `routes/`, `features/`, `entities/`, `shared/`로 구성된다.
 
 의존성 방향은 `root/routes → features → entities → shared` 한 방향이다. 금지 흐름: `shared → features`, `entities → features`, `features → routes`, `routes → Supabase 직접 접근`. `shared/`에는 업무 지식이 들어가면 안 된다.
 

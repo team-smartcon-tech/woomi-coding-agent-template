@@ -6,7 +6,7 @@ tags: [area/아키텍처, area/조건부]
 
 # NestJS 프로젝트 규칙
 
-**조건부 규칙.** NestJS를 쓰는 프로젝트에서만 적용되고, 이 저장소의 표준 스택(React Router v7 + Hono/Workers — [기술 스택](stack.md))에는 적용되지 않는다. 이 스캐폴드에는 `apps/web` 하나만 있어 Worker 앱 자체가 없다. 조건을 만족하면 다른 코드 문서보다 이 규칙을 우선한다.
+**조건부 규칙.** NestJS를 쓰는 프로젝트에서만 적용되고, 이 저장소의 표준 스택(React Router + Hono/Workers — [기술 스택](stack.md))에는 적용되지 않는다. 이 스캐폴드에는 `apps/web` 하나만 있어 Worker 앱 자체가 없다. 조건을 만족하면 다른 코드 문서보다 이 규칙을 우선한다.
 
 ## 언제 적용되나
 
@@ -40,7 +40,7 @@ NestJS를 Worker에서 돌리거나 Supabase/Drizzle을 함께 다루면 조건�
 
 ## 왜 별도 문서인가
 
-이 규칙은 스택이 다른 프로젝트에만 적용된다. 조건을 확인하지 않고 적용하면 이 저장소 표준(React Router v7 + Hono + Supabase — [기술 스택](stack.md))과 충돌한다. 반대로 NestJS 프로젝트에서 이 규칙을 안 읽으면 Worker 런타임에서 빌드가 깨진다.
+이 규칙은 스택이 다른 프로젝트에만 적용된다. 조건을 확인하지 않고 적용하면 이 저장소 표준(React Router + Hono + Supabase — [기술 스택](stack.md))과 충돌한다. 반대로 NestJS 프로젝트에서 이 규칙을 안 읽으면 Worker 런타임에서 빌드가 깨진다.
 
 ## 함께 보기
 

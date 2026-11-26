@@ -80,7 +80,7 @@
 
 ## 4. 프론트엔드 작업 흐름
 
-프론트엔드 작업은 React Router v7 Framework Mode와 FSD 계열 구조를 기준으로 한다.
+프론트엔드 작업은 React Router Framework Mode(스캐폴드는 8.x)와 FSD 계열 구조를 기준으로 한다.
 
 작업 순서:
 

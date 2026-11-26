@@ -4,7 +4,7 @@
 
 - 표준 버전: `2.33-draft`
 - 최종 수정일: 2026-11-26
-- 기본 대상: React Router v7 + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
+- 기본 대상: React Router(스캐폴드는 8.x) + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 
 ---
 

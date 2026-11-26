@@ -62,7 +62,7 @@ pnpm cf-typegen  # wrangler.jsonc 를 고친 뒤 worker-configuration.d.ts 재�
 
 ## 로그인 / 인증
 
-쿠키 세션 기반의 데모 인증이 미리 구성되어 있다. React Router v7의 loader/action으로 동작한다.
+쿠키 세션 기반의 데모 인증이 미리 구성되어 있다. React Router 8의 loader/action으로 동작한다.
 
 - 로그인: `/login`의 `action`이 입력을 Zod로 검증하고 데모 자격증명(`features/auth/model/credentials.server.ts`)과 대조한 뒤, 성공하면 서명된 쿠키 세션(`features/auth/model/session.server.ts`)을 만들고 원래 가려던 경로로 이동한다.
 - 가드: 인증이 필요한 route loader에서 `requireUser(request)`를 호출한다. 미인증이면 로그인으로 리다이렉트된다.

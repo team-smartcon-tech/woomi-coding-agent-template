@@ -29,7 +29,7 @@
 ### 변경
 
 - **런타임: Node(`react-router-serve`) → Cloudflare Worker(`@cloudflare/vite-plugin`, `wrangler`).** `@react-router/node`·`@react-router/serve` 를 뺐다.
-- **의존성 메이저 상승: `react-router`·`@react-router/dev` 7.x → 8.5, `vite` 6 → 8, `react`·`react-dom` 19.0 → 19.3, `isbot` 5.1 → 5.1.36.** 이유: Cloudflare 공식 React Router 템플릿(C3)이 정하는 버전 하한을 따랐다. 하한 밑으로 두면 Cloudflare 플러그인과의 조합을 보증받지 못한다. 이 상승으로 **Node 22.22 이상이 필요하다**(React Router 8 요구. `.nvmrc` 는 24. 22.13 에서는 경고만 나오고 동작·빌드·테스트는 통과했다). `STACK.md` 는 아직 "React Router v7" 로 적혀 있다.
+- **의존성 메이저 상승: `react-router`·`@react-router/dev` 7.x → 8.5, `vite` 6 → 8, `react`·`react-dom` 19.0 → 19.3, `isbot` 5.1 → 5.1.36.** 이유: Cloudflare 공식 React Router 템플릿(C3)이 정하는 버전 하한을 따랐다. 하한 밑으로 두면 Cloudflare 플러그인과의 조합을 보증받지 못한다. 이 상승으로 **Node 22.22 이상이 필요하다**(React Router 8 요구. `.nvmrc` 는 24. 22.13 에서는 경고만 나오고 동작·빌드·테스트는 통과했다).
 - **환경변수** — 로컬 값 파일 `.env`/`apps/web/.env.example` → `apps/web/.dev.vars`/`.dev.vars.example`. 운영 판정을 `NODE_ENV` 에서 `wrangler.jsonc` 의 공개 값 `APP_ENV`(`development`·`preview`·`production`)로 바꿨다. 서버 환경변수는 `env.server.ts` 한 곳에서만 읽는다(`getEnv()`·`getSessionSecret()`, `cloudflare:workers` 의 `env`). ESLint 가 `process.env` 와 `cloudflare:workers` 의 `env` import 를 그 밖에서 막는다.
 - **`SESSION_SECRET`(32자 이상) 없음의 결과** — `production`·`preview` 에서는 세션 요청 500, `/api/health` 503(Worker 에는 "기동 실패" 가 없다). `development` 는 격리 단위마다 임시 무작위 값. `APP_ENV` 는 닫힌 쪽이 기본이라 환경 선택을 빠뜨린 배포는 운영 규칙을 받는다.
 - **`pnpm start`** 는 `vite preview`(빌드 결과를 로컬 workerd 로 실행)다. 운영 규칙이라 `SESSION_SECRET` 이 필요하다. `pnpm dev`(5173)는 `.dev.vars` 없이 뜬다 — `vite.config.ts` 가 개발 서버에서 `CLOUDFLARE_ENV=development` 를 고른다.
@@ -44,9 +44,12 @@
 
 ### 확인한 것
 
-- `.dev.vars` 없이 `pnpm dev` → 로그인(302)·대시보드 200·사이드바 버전 `2.32-draft`·변경 이력 응답. `.dev.vars` 의 `SESSION_SECRET` 을 바꿔 다시 띄우면 기존 세션이 풀린다.
+아래 앞의 항목은 구현 중 각 단계 시점의 확인이다. 마지막 항목만 최종 HEAD 에서 다시 돌렸다.
+
+- `.dev.vars` 없이 `pnpm dev` → 로그인(302)·대시보드 200·사이드바 버전 `2.32-draft`(당시)·변경 이력 응답. `.dev.vars` 의 `SESSION_SECRET` 을 바꿔 다시 띄우면 기존 세션이 풀린다.
 - 운영 빌드(`pnpm build && pnpm start`): `SESSION_SECRET` 없이 `/login` 500·`/api/health` 503(응답에 `SESSION_SECRET` 문자열 없음), 있으면 로그인 302·`/` 200. 개발 서버 `/api/health` 200.
 - `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`deploy:dry`·`env:check`·`assets:check`·각 `--selftest`. `wrangler.jsonc` 의 `vars` 에 `SESSION_SECRET` 을 넣으면 `env-check` 가 실패한다. `apps/web/public/package.json` 을 넣으면 `assets:check` 가 실패한다. `.dev.vars` 를 둔 채 `pnpm typecheck` 해도 `worker-configuration.d.ts` 가 바뀌지 않는다.
+- **2.33-draft HEAD 에서 재실행(2026-11-26)**: `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`assets:check`(41개 파일)·`deploy:dry`·`env:check` 가 모두 종료 0, `git diff --exit-code -- apps/web/worker-configuration.d.ts` 도 0. 로컬(Windows)에서 돌린 결과이며 GitHub 러너 결과가 아니다.
 
 ### 확인하지 못한 것
 
@@ -77,7 +80,6 @@
 ### 남은 것
 
 - 계정이 있는 저장소에서 첫 배포를 돌려 위 "확인하지 못한 것" 을 채운다.
-- `STACK.md` 의 "React Router v7" 표기를 8 로 맞출지 결정한다.
 - 업그레이드 3·4번: Gitleaks·기준선, Squawk·`supabase db lint`, 정책 코드화·공급망·CODEOWNERS(원본 3단계).
 
 ---
