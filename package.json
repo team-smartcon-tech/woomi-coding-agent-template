@@ -17,7 +17,8 @@
     "format:check": "prettier --check .",
     "secret:scan": "node scripts/secret-scan.mjs",
     "env:check": "node scripts/env-check.mjs",
-    "db:lint": "node scripts/db-lint.mjs"
+    "db:lint": "node scripts/db-lint.mjs",
+    "assets:check": "node scripts/assets-check.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

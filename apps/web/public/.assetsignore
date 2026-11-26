@@ -1,0 +1,5 @@
+*.md
+package.json
+wrangler.json*
+.dev.vars*
+scripts/
