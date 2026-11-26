@@ -21,10 +21,11 @@
  */
 
 import { readFileSync, readdirSync, statSync } from "node:fs"
-import { join, relative } from "node:path"
-import { pathToFileURL } from "node:url"
+import { dirname, join, relative, resolve } from "node:path"
+import { fileURLToPath, pathToFileURL } from "node:url"
 
-const FORBIDDEN = /(?:^|\/)(?:wrangler\.jsonc?|package\.json|\.dev\.vars(?:\.[\w-]+)*|[^/]+\.md)$/i
+const FORBIDDEN =
+  /(?:^|\/)(?:wrangler\.json[^/]*|package\.json|\.dev\.vars(?:\.[\w-]+)*|[^/]+\.md)$/i
 const TEXT = /\.(?:js|mjs|cjs|css|html|json|txt|map|svg|xml|webmanifest)$/i
 
 /** files: {path, text}[] (text 는 텍스트 파일만, 아니면 빈 문자열). 위반 설명 배열을 돌려준다. */
@@ -55,6 +56,10 @@ async function selftest() {
   assert.deepStrictEqual(rules([f("assets/app-1.js", "x"), f("woomi.png"), f("favicon.ico")]), [])
   assert.deepStrictEqual(rules([f("package.json", "{}")]), ["forbidden-file"])
   assert.deepStrictEqual(rules([f(".dev.vars")]), ["forbidden-file"])
+  assert.deepStrictEqual(rules([f("wrangler.json5"), f(".dev.vars.production")]), [
+    "forbidden-file",
+    "forbidden-file",
+  ])
   assert.deepStrictEqual(rules([f("wrangler.json"), f("docs/README.md")]), [
     "forbidden-file",
     "forbidden-file",
@@ -69,10 +74,23 @@ async function selftest() {
 if (process.argv[2] === "--selftest") await selftest()
 else if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const i = process.argv.indexOf("--dir")
-  const dir = i > -1 ? process.argv[i + 1] : "apps/web/build/client"
-  const heading = readFileSync("CHANGELOG.md", "utf8")
-    .split(/\r?\n/)
-    .find((l) => l.startsWith("## ["))
+  // 저장소 루트는 스크립트 위치 기준 — 어디서 실행해도 같은 CHANGELOG 와 기본 폴더를 본다.
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+  const dir = i > -1 ? process.argv[i + 1] : join(root, "apps/web/build/client")
+  const changelog = join(root, "CHANGELOG.md")
+  let heading
+  try {
+    heading = readFileSync(changelog, "utf8")
+      .split(/\r?\n/)
+      .find((l) => l.startsWith("## ["))
+  } catch {}
+  // 헤딩을 못 찾으면 changelog-leak 검사가 조용히 꺼지므로 통과시키지 않는다.
+  if (!heading) {
+    console.error(
+      `ERROR: ${changelog} 에서 최상단 "## [" 헤딩을 찾지 못했다. 검사를 할 수 없습니다.`,
+    )
+    process.exit(1)
+  }
   let paths
   try {
     paths = walk(dir)
