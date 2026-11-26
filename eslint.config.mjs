@@ -97,7 +97,7 @@ export default [
           object: "process",
           property: "env",
           message:
-            "process.env 를 직접 읽지 않는다. ~/shared/config/env.server 의 env 를 쓴다(.agents/DEPLOYMENT.md 4장).",
+            "process.env 를 직접 읽지 않는다. ~/shared/config/env.server 의 getEnv() 를 쓴다(.agents/DEPLOYMENT.md 4장).",
         },
       ],
     },

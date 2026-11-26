@@ -111,6 +111,7 @@ build
 - dev/staging은 `env.dev`, `env.staging`에 명시한다.
 - dev/staging이 production 리소스를 바라보지 않게 한다.
 - dev build가 production `.env`를 박지 않도록 build command를 환경별로 분리한다.
+- Cloudflare Vite 플러그인을 쓰는 Worker 는 환경을 **빌드할 때** `CLOUDFLARE_ENV` 로 고른다. `deploy`·`versions upload` 는 빌드가 만든 출력 설정을 읽으므로 `--env` 를 넘기지 않는다(`.github/workflows/deploy.yml` 이 이 방식이다). 이 스캐폴드는 최상위가 운영이고 `env.preview`·`env.development` 가 덮는다.
 - service binding은 환경별 대상 Worker를 분리한다.
 
 예:
@@ -143,7 +144,7 @@ build
 | public build env | `VITE_PUBLIC_*` | `.env.development`, `.env.production`, CI vars |
 | Worker vars | 모델명, feature flag, public URL | `wrangler.jsonc` `vars` |
 | Worker secrets | service role key, JWT secret, API key | Cloudflare Worker Secrets |
-| local sample | 필요한 key 목록 | `.env.example`, Worker 는 `.dev.vars.example` |
+| local sample | 필요한 key 목록 | Node 서버는 `.env.example`, Worker(이 스캐폴드)는 `apps/web/.dev.vars.example` |
 | Worker local secrets | 로컬 실행용 값 | `.dev.vars` (커밋 금지) |
 
 금지:
@@ -160,26 +161,44 @@ build
 
 ### 4.1 환경변수는 한 곳에서 읽는다
 
-서버 코드는 환경변수를 한 모듈에서 Zod 로 읽고, 없거나 형식이 틀리면 **기동할 때** 멈춘다. 스캐폴드의 기준 구현은 `apps/web/app/shared/config/env.server.ts` 다. Worker 는 요청마다 `c.env` 가 들어오므로 같은 스키마를 첫 미들웨어에서 한 번 검증한다.
+서버 코드는 환경변수를 한 모듈에서 Zod 로 읽는다. 스캐폴드의 기준 구현은 `apps/web/app/shared/config/env.server.ts`(`getEnv()`·`getSessionSecret()`, Worker 의 `cloudflare:workers` `env` 를 읽는다)이고 순수 판정 로직은 `env.schema.ts` 에 있다. 이 모듈 밖에서 `process.env` 와 `cloudflare:workers` 의 `env` 를 읽으면 ESLint 가 막는다.
+
+**Worker 에는 "기동 실패" 가 없다.** 값이 없다고 배포가 멈추지 않으므로, 필수 secret(`SESSION_SECRET`, 32자 이상)이 없는 상태는 **그 값을 처음 쓰는 요청**에서 드러난다.
+
+| `APP_ENV` | `SESSION_SECRET` 없음 |
+|---|---|
+| `production`·`preview` | 세션을 쓰는 요청 500, `GET /api/health` 503 |
+| `development` | 격리 단위(isolate)마다 임시 무작위 값 — 로컬 개발이 `.dev.vars` 없이 뜬다 |
+
+`APP_ENV` 는 `wrangler.jsonc` 의 공개 값이다(최상위 `production`). 환경 선택을 빠뜨린 배포가 운영 규칙(secret 필수)을 받도록 닫힌 쪽이 기본이다. Worker 에서 `NODE_ENV` 는 빌드 시 치환값이라 배포 환경을 구분하지 못하므로 쓰지 않는다.
 
 변수를 추가할 때 고치는 곳은 셋이다.
 
-1. 스키마(`env.server.ts` 또는 Worker 의 env 스키마)
-2. 예시 파일(`.env.example` / `.dev.vars.example`) — 이름과 한 줄 설명만, 값은 비운다
-3. 배포 환경의 secret (`wrangler secret put …`) — 사용자 승인 후
+1. 스키마(`env.schema.ts` 와 `env.server.ts`)
+2. 예시 파일(`apps/web/.dev.vars.example`) — 이름과 한 줄 설명만, 값은 비운다
+3. 배포 환경의 secret (`wrangler secret put …`) — 사용자 승인 후, **Worker 마다**(운영·프리뷰)
 
-1·2 가 어긋나면 `pnpm env:check`(`scripts/env-check.mjs`)가 PR 에서 실패한다. **3 은 기계가 확인하지 못한다.** 그래서 6장 배포 전 확인에 "새 변수의 secret 등록"을 적는다.
+1·2 가 어긋나면 `pnpm env:check`(`scripts/env-check.mjs`)가 PR 에서 실패한다. **3 은 기계가 확인하지 못한다.** 다만 `SESSION_SECRET` 은 배포 직후 health 가 503 으로 드러낸다(8.3). 새 변수의 secret 등록은 6장 배포 전 확인에 적는다.
 
-### 4.2 Worker 저장소가 갖출 파일
+### 4.2 스캐폴드의 실제 파일
 
-Worker 를 붙이는 프로젝트는 아래를 함께 둔다. 이 템플릿의 스캐폴드에는 아직 Worker 가 없어 파일을 넣어 두지 않았다.
+`apps/web` 이 Worker 하나로 실행·빌드된다. 아래 파일이 실제로 있다.
 
 | 파일 | 내용 |
 |---|---|
-| `wrangler.jsonc` | 바인딩과 공개 값만. token·secret 을 적지 않는다 |
-| `.dev.vars.example` | 로컬 secret 의 이름 목록. `.dev.vars` 는 `.gitignore` 가 막는다 |
-| `.assetsignore` | 정적 자산과 같이 올라가면 안 되는 것 — `wrangler.jsonc`, `package.json`, `scripts/`, `*.md`, `.dev.vars*` |
-| `GET /api/health` | 배포 직후 확인용. DB·secret 값을 응답에 넣지 않는다 |
+| `apps/web/wrangler.jsonc` | Worker `woomi-web`. 최상위 `vars.APP_ENV="production"`, `env.preview`(**별도 Worker `woomi-web-preview`**, `APP_ENV="preview"`), `env.development`(로컬 전용). 바인딩과 공개 값만 — token·secret 을 적지 않는다 |
+| `apps/web/workers/app.ts` | Worker 진입점. React Router 요청 처리기만 부르고 **로드 컨텍스트를 넘기지 않는다**(React Router 8 의 Cloudflare 공식 템플릿 그대로). loader 에서 `ctx.waitUntil` 이나 바인딩이 필요해지면 이 파일을 고친다 |
+| `apps/web/.dev.vars.example` | 로컬 secret 의 이름 목록. 실제 `apps/web/.dev.vars` 는 `.gitignore` 가 막는다 |
+| `apps/web/types.env` | `wrangler types` 가 `.dev.vars` 의 secret 이름을 `Env` 에 넣지 않게 하는 빈 파일(`--env-file`). 값을 넣지 않는다 |
+| `apps/web/worker-configuration.d.ts` | `pnpm cf-typegen` 산출물을 커밋한 것. `wrangler.jsonc` 를 고치면 다시 만든다 — `pr-checks` 가 어긋남을 잡는다 |
+| `apps/web/public/.assetsignore` | 정적 자산과 같이 올라가면 안 되는 것 — `wrangler.jsonc`, `package.json`, `*.md`, `.dev.vars*` |
+| `apps/web/public/_headers` | 정적 자산 캐시 정책과 기본 보안 헤더. CSP 는 프로젝트가 정한다 |
+| `apps/web/app/routes/api.health.ts` | `GET /api/health`. 필수 secret 이 갖춰졌으면 `200 {"status":"ok","env":…}`, 아니면 `503 {"status":"not_ready"}`. `Cache-Control: no-store`. 변수 이름·값·버전을 응답에 넣지 않는다(로그인 없이 읽힌다). 이유는 Worker 로그에만 남는다 |
+| `scripts/assets-check.mjs` | `pnpm assets:check`. 빌드 결과 `apps/web/build/client` 에 금지 파일이 있거나 CHANGELOG 최상단 헤딩 줄이 새면 실패한다. CHANGELOG 에서 헤딩을 못 찾아도 실패한다. 서버 번들은 보지 않는다 |
+
+로컬 명령(루트에서): `pnpm dev`(5173, `.dev.vars` 없이 뜬다) · `pnpm build` · `pnpm start`(`vite preview` — 빌드 결과를 로컬 workerd 로 실행, **운영 규칙이라 `SESSION_SECRET` 이 필요하다**) · `pnpm deploy:dry`(계정 없이 번들·설정 검증) · `pnpm cf-typegen` · `pnpm assets:check`. Node 는 **22.22 이상**(React Router 8 요구, `.nvmrc` 는 24).
+
+**`.dev.vars` 가 있는 채로 만든 `build/` 는 배포·공유하지 않는다.** `vite preview` 를 위해 플러그인이 빌드할 때 `.dev.vars` 를 `build/server/.dev.vars` 로 복사한다 — secret 이 빌드 결과에 굳는다(그래서 빌드 *뒤에* `.dev.vars` 를 만들면 `pnpm start` 가 계속 500 이다). CI 빌드에는 `.dev.vars` 가 없다. 로컬에서 배포용 빌드를 만들어야 하면 `.dev.vars` 를 치우고 다시 빌드한다.
 
 ### 4.3 secret 이 저장소에 올라갔을 때
 
@@ -191,19 +210,35 @@ Worker 를 붙이는 프로젝트는 아래를 함께 둔다. 이 템플릿의 �
 
 검사 자리: 로컬 `.githooks/pre-commit` 과 CI `pr-checks` 가 같은 `scripts/secret-scan.mjs` 를 돈다. 이 검사는 알려진 형태만 보고, 키가 살아 있는지는 확인하지 않는다. public 저장소는 GitHub Secret Scanning·Push Protection 을 저장소 설정에서 켠다. private 저장소는 플랜에 따라 쓸 수 없으므로 CI 검사가 유일한 서버 쪽 장치다.
 
-secret 등록 예:
+### 4.4 첫 배포 순서
+
+Worker 를 처음 배포하는 저장소는 이 순서를 따른다. 에이전트는 `wrangler deploy`·`wrangler secret put` 을 실행하지 않는다(`AGENTS.md` 6장) — 사용자가 승인하거나 직접 한다.
+
+1. **배포한다** — `deploy.yml`(8.3)이나 사용자가 승인한 `wrangler deploy`. 운영 Worker `woomi-web` 과 프리뷰 Worker `woomi-web-preview` 가 각각 생긴다. 이 시점 health 는 503 이고 `deploy.yml` 의 health 단계가 "secret 미등록" 으로 **실패한다 — 정상 경로다.**
+2. **각 Worker 에 secret 을 올린다**(사용자 승인). 값은 32자 이상 무작위 문자열이고, **운영과 프리뷰는 서로 다른 값**이다.
+3. **health 를 다시 확인한다** — 200 `{"status":"ok",…}` 이어야 한다. `deploy.yml` 을 다시 돌려도 된다.
 
 ```bash
-wrangler secret put SUPABASE_SERVICE_ROLE_KEY
-wrangler secret put JWT_SECRET
-wrangler secret put OPENAI_API_KEY
-
-wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env dev
-wrangler secret put JWT_SECRET --env dev
-wrangler secret put OPENAI_API_KEY --env dev
+cd apps/web
+wrangler secret put SESSION_SECRET                 # 운영 Worker (woomi-web)
+wrangler secret put SESSION_SECRET --env preview   # 프리뷰 Worker (woomi-web-preview)
 ```
 
-Worker는 1회 이상 배포된 뒤에 secret 등록이 필요한 경우가 있다. 이 조건은 프로젝트 README 또는 본 문서에 적는다.
+프리뷰가 별도 Worker 인 이유: 운영 Worker 의 버전으로 올리면 PR 코드가 운영 `SESSION_SECRET` 을 쓰게 된다. 4장의 "production secret 을 dev/staging 에 재사용 금지" 를 어기는 구조라, 프리뷰는 자기 secret 을 따로 가진다.
+
+위 순서와 `--env preview` 가 가리키는 Worker 이름은 실제 Cloudflare 계정에서 실행해 확인하지 **못했다**. 처음 실행한 사람이 결과를 이 절에 반영한다.
+
+### 4.5 프리뷰에 Cloudflare Access 걸기
+
+프리뷰 주소(`pr-<번호>-woomi-web-preview.<계정>.workers.dev` 꼴)는 URL 만 알면 열린다. 로그인 데모 계정이 화면에 적혀 있으므로, 실제 데이터를 붙이는 프로젝트는 프리뷰를 Access 로 잠근다. 저장소에서는 설정할 수 없는 **대시보드 작업**이다.
+
+1. Cloudflare 대시보드 → Workers & Pages → `woomi-web-preview` → Settings → Domains & Routes 에서 `workers.dev` 와 Preview URLs 의 Cloudflare Access 를 켠다(또는 Zero Trust → Access → Applications 에서 같은 호스트를 자체 호스팅 앱으로 등록).
+2. 허용 정책을 정한다(회사 이메일 도메인 등).
+3. 브라우저로 프리뷰 URL 을 열어 로그인 요구가 뜨는지 확인한다.
+
+**알려진 충돌:** Access 가 걸린 프리뷰에는 `deploy.yml` 의 health 단계(`curl`)도 로그인 없이 못 들어간다 → 200 이 아닌 응답으로 PR 이 실패한다. Access 를 걸 때 Service Token 을 두거나 health 단계를 조정해야 한다. 이 템플릿은 어느 쪽도 넣지 않았다.
+
+Access 화면의 이름과 위치는 바뀔 수 있고, 이 절은 실제 계정에서 따라 해 보지 못했다.
 
 ---
 
@@ -269,17 +304,17 @@ pnpm test
 pnpm build
 ```
 
-Cloudflare Worker dry-run:
+Cloudflare Worker dry-run(이 스캐폴드는 `pnpm deploy:dry` 를 제공한다. 계정 정보 없이 번들·설정만 검증하며 실제 배포는 하지 않는다):
 
 ```bash
-pnpm --filter <worker-package> run deploy:dry
+pnpm deploy:dry
+pnpm --filter <worker-package> run deploy:dry   # 패키지를 지정할 때
 ```
 
 또는 프로젝트별 명령:
 
 ```bash
 pnpm cf:deploy:dry
-pnpm deploy:dry
 ```
 
 배포를 보류해야 하는 상태:
@@ -318,6 +353,8 @@ pnpm cf:deploy:dev:dry
 ```
 
 명령 이름은 `package.json`과 `README.md`에서 일치해야 한다.
+
+**이 스캐폴드에 있는 것은 `deploy:dry` 뿐이다.** 실제 배포(`wrangler deploy`·`versions upload`)는 `deploy.yml`(8.3)이 하고, 로컬에서는 사용자가 승인한 경우에만 한다. 위 convention 의 나머지(`deploy`·`deploy:dev` 등)는 프로젝트가 필요해 도입할 때 맞춘다.
 
 ---
 
@@ -383,6 +420,25 @@ Cloudflare Git Integration, Workers Builds, Pages Git Deploy를 사용할 수 �
 - 대시보드에만 존재하는 빌드/배포 규칙
 - 검증 없이 `main` push만으로 production 자동 배포
 - GitHub Actions와 Cloudflare 자동 배포를 동시에 켜서 중복 배포가 발생하는 상태
+
+### 8.3 deploy.yml — 이 스캐폴드의 배포 워크플로
+
+`.github/workflows/deploy.yml`. PR(main 대상)과 main push 에서 돈다. `pull_request_target` 은 쓰지 않는다 — 포크의 코드를 저장소 secret 이 있는 권한으로 돌리게 되기 때문이다.
+
+| 이벤트 | 빌드 | 동작 |
+|---|---|---|
+| PR | `CLOUDFLARE_ENV=preview` | 프리뷰 Worker(`woomi-web-preview`)에 `versions upload --preview-alias pr-<번호>`. 운영 트래픽은 옮기지 않는다 |
+| main push | 최상위(production) | 운영 Worker 에 `wrangler deploy` |
+
+두 경우 모두 이어서 `/api/health` 를 호출한다. **503 이면 "secret 미등록" 으로 실패**하고, 200 이 아니면 실패한다.
+
+**Cloudflare 계정 정보가 없으면 건너뛰고 통과한다.** 저장소 secret `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID` 둘 중 하나라도 비어 있으면 잡 요약에 "배포 건너뜀 — Cloudflare 계정 정보 없음" 을 남기고 나머지 단계를 건너뛴다. 계정을 연결하지 않은 파생 저장소와 포크 PR 이 배포 때문에 막히지 않게 하려는 것이다. **건너뜀은 통과가 아니라 미검증이다** — 요약 문구로 구분한다. 토큰은 계정 확인 단계와 `wrangler-action` 의 `with:` 에만 둔다(잡 전체 `env` 에 두면 `pnpm install`·빌드의 의존성 스크립트에 노출된다).
+
+필요한 GitHub secret 은 위 둘이다. 토큰 권한은 필요한 최소로 준다.
+
+`pr-checks` 에도 배포 관련 검사가 있다(계정 불필요): `pnpm deploy:dry`, `pnpm assets:check`, `worker-configuration.d.ts` 어긋남 검사.
+
+`deploy.yml` 은 GitHub 러너에서 **아직 실행해 보지 못했다.** 프리뷰 URL 을 `wrangler-action` 출력에서 뽑는 부분은 실제 출력 형식에 기대고 있어 첫 실행에서 확인해야 한다.
 
 ---
 

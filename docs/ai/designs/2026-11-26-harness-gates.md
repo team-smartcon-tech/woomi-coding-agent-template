@@ -1,8 +1,9 @@
 # 설계: 문서 규칙을 검사로 옮긴다 — 5계층 하네스 자료 대조
 
-상태: 제안
+상태: 확정 (2.32-draft 로 구현·머지, PR #42)
 작성일: 2026-11-26
-관련 작업: `2.32-draft` (CHANGELOG)
+관련 작업: `2.32-draft` (CHANGELOG). 후속: [`2026-11-26-cloudflare-worker-scaffold.md`](2026-11-26-cloudflare-worker-scaffold.md)(2.33-draft)
+원본 연구문서: [`회사 표준 AI 하네스 레퍼런스.md`](../../회사%20표준%20AI%20하네스%20업그레이드%20작업/회사%20표준%20AI%20하네스%20레퍼런스.md) — Gemini 생성 docx 를 Markdown 으로 옮긴 것(docx 는 커밋하지 않는다). 아래 "조사" 절은 이 문서를 받기 전의 본문 미보관 상태에서 쓴 것이라 그대로 둔다.
 
 ## 목표
 
@@ -119,8 +120,27 @@ B 로 시작하고, A 의 도구는 계층마다 "다음에 붙일 것"으로 �
 
 - 실제 Claude Code 세션에서 `permissionDecision: "ask"` 프롬프트, `.claude/rules/` 의 `paths` 로딩, `mcp__.*` 매처 발화
 - Codex 에서 `Read`·`mcp__.*` 매처 발화
-- 바뀐 워크플로(`pr-checks`·`db-checks`)의 GitHub 러너 실행
+- ~~바뀐 워크플로(`pr-checks`·`db-checks`)의 GitHub 러너 실행~~ → **확인했다(2026-11-26, 설계 작성 뒤).** PR #42 의 CI 와 `main` 11-26 11:12(KST) 푸시에서 `pr-checks`·`db-checks` 가 성공했다(`gh run list`: `main` push `db-checks` 45740849892 success, `pr-checks` 45740849887 success). 단 PR 의 첫 `db-checks` 실행(11:03 KST)은 실패했고 `0fca72e`(setup-node 의 pnpm 자동 캐시 끄기)로 고친 뒤 재실행에서 성공했다. 이 확인은 **그 시점의 워크플로**에 대한 것이다 — 2.33-draft 에서 더한 `pr-checks` 단계와 `deploy.yml` 은 아직 러너에서 돌려 보지 못했다.
 - Supabase 프로젝트 23개 중 나머지 11개, 저장소 100여 곳 중 나머지
+
+## 원본 3단계 도입 절차와의 대응
+
+원본 연구문서 「회사 표준 하네스 3단계 도입 절차」 대비 현재 위치(2.33-draft 시점). 원본의 도구를 그대로 들이지 않고 의존성 없는 스크립트로 대체한 곳이 많다 — 그 판단은 위 "결정" 절.
+
+| 원본 단계 | 원본이 요구한 것 | 지금 | 판정 |
+|---|---|---|---|
+| 1단계 즉시 차단 | `AGENTS.md`·`CLAUDE.md`·`.claude/settings.json` 훅(`.env`/`.dev.vars`/`rm` 차단, 감사 로그) | 2.32: `agent-guard` 확장, `.agent-guard.log`, `.claude/rules/` | 대부분 — 감사 로그는 PostToolUse 적재가 아니라 차단·승인요청 기록 |
+| | Gitleaks/Betterleaks 프리커밋·PR 스캔, Push Protection | 2.32: 자체 `secret-scan.mjs`(훅·CI 공용). Gitleaks 와 Push Protection 은 안 붙임 | 부분 — 알려진 형태만 본다 |
+| | Zod/t3-env 경계 검증 | 2.32 `env.server.ts` + `env-check`, 2.33 Worker 용으로 이전(`env.schema.ts`) | 완료 |
+| | `.assetsignore`, `.gitignore` 위생 | 2.33: `public/.assetsignore`, `scripts/assets-check.mjs`. `.gitignore` 는 2.32 | 완료(`.assetsignore` 실효는 배포로 미확인) |
+| 2단계 DB·Cloudflare | Squawk·`supabase db lint`·Splinter 를 PR 게이트로 | 2.32: 자체 `db-lint`(새 마이그레이션만)·`db-audit.sql`. Squawk·`supabase db lint` 는 안 붙임 | 일부 |
+| | main 운영 / PR 프리뷰 분리 | 2.33: `deploy.yml`, 별도 프리뷰 Worker | 구현했으나 러너·계정 미실행 |
+| | 민감 프리뷰 Cloudflare Access | 2.33: `DEPLOYMENT.md` 4.5 대시보드 절차만 | 문서만 |
+| | D1 로컬 우선·논리 백업, Secrets Store BYOK AI Gateway, Rate Limit·DLP | 안 함 — 스캐폴드에 D1·LLM 호출이 없다 | 미착수 |
+| 3단계 정책 코드화 | Conftest(Rego)로 하네스 설정·`wrangler.jsonc`·CODEOWNERS 검증 | 안 함(`env-check` 가 `wrangler.jsonc` 의 secret 이름만 본다) | 미착수 |
+| | OSV-Scanner·Trivy·Renovate 공급망 게이트 | 안 함 | 미착수 |
+| | JSON 기능 목록·`init.sh`·실행 계획 버전 관리·브라우저 E2E | 계획서는 `docs/ai/plans/` 에 버전 관리, 브라우저 검증은 절차 문서 | 일부 |
+| | 정기 TruffleHog 전체 이력 감사, CODEOWNERS·last push approval·up-to-date branches | 안 함(Free 플랜 private 저장소는 CODEOWNERS 강제 불가) | 미착수 |
 
 ## 관련 문서·위키
 

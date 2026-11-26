@@ -115,7 +115,7 @@ const secret = process.env.SESSION_SECRET ?? "dev-secret" // 운영에서 변수
 ### B-10. 값이 든 `.env` 를 커밋하거나 에이전트가 읽게 둔다
 
 - 왜: 커밋된 값은 지워도 이력에 남는다. 에이전트가 읽은 값은 대화·로그·커밋 메시지로 새어 나갈 수 있다. 한 저장소가 `.env.production` 등 3개를 추적하고 있었다(들어 있던 것은 공개용 anon key 였다).
-- 대신: `.env.example` 에 이름만 둔다. 이미 올라간 secret 은 지우는 것으로 끝내지 않고 **폐기·재발급**한다([`DEPLOYMENT.md`](../DEPLOYMENT.md) 4장).
+- 대신: `.env.example`(Worker 는 `apps/web/.dev.vars.example`)에 이름만 둔다. 이미 올라간 secret 은 지우는 것으로 끝내지 않고 **폐기·재발급**한다([`DEPLOYMENT.md`](../DEPLOYMENT.md) 4장).
 - 검사: `scripts/secret-scan.mjs` (pre-commit + CI), `agent-guard` 의 Read·`cat` 차단
 
 ### B-11. 안전장치를 끄고 그대로 둔다

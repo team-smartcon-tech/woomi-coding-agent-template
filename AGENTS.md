@@ -4,7 +4,7 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.32-draft`
+- 표준 버전: `2.33-draft`
 - 최종 수정일: 2026-11-26
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
@@ -71,7 +71,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 | DB schema/RLS/index | `docs/DB-ERD/README.md`(작업 전 ERD 대조, 필수), `.agents/data/DB_SCHEMA.md`, `.agents/data/MIGRATION.md` | `.agents/data/DOMAIN_MODEL.md`, `.agents/data/TRANSACTION.md`, `.agents/code/API.md` |
 | migration/backfill | `docs/DB-ERD/README.md`(작업 전 ERD 대조, 필수), `.agents/data/MIGRATION.md`, `.agents/data/DB_SCHEMA.md` | `.agents/DEPLOYMENT.md`, `.agents/WORKFLOW.md` |
 | 배포/secret/binding | `.agents/DEPLOYMENT.md` | `wrangler.jsonc`·`.github/workflows/*`(있는 경우), `.agents/WORKFLOW.md` |
-| 환경변수 추가/변경 | `.agents/DEPLOYMENT.md` 4장 | `env.server.ts`, `.env.example`·`.dev.vars.example`, `pnpm env:check` |
+| 환경변수 추가/변경 | `.agents/DEPLOYMENT.md` 4장 | `env.server.ts`·`env.schema.ts`, `apps/web/.dev.vars.example`, `pnpm env:check` |
 | MCP/외부 도구 연동 | `.agents/TOOLING.md` | `CLAUDE.md`, `CODEX.md`, `.github/*`, 도구별 설정 파일 |
 | PR/push/commit | `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, tool command/prompt |
 | 테스트 작성/실행 | `.agents/code/TESTING.md` | 대상 코드, `AGENTS.md` 7장 Quality Gates |
@@ -125,7 +125,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 ├── .agents/              # 에이전트 공통 규칙과 컨텍스트
 ├── .claude/              # Claude Code commands/skills/settings
 ├── .codex/               # Codex prompts/skills/hooks
-├── .github/              # Copilot prompts/instructions, workflows/(pr-checks·db-checks·tag-version)
+├── .github/              # Copilot prompts/instructions, workflows/(pr-checks·db-checks·deploy·tag-version)
 ├── .githooks/            # 로컬 git hook
 ├── docs/                 # 사람용 문서          — exec-brief/ · ai/(설계·결정·실행 계획) · DB-ERD/(테이블 관계도)
 ├── wiki/                 # 팀 지식 위키 (rules·sources / systems·patterns 는 생기면 / Obsidian 볼트 겸용)
@@ -200,19 +200,22 @@ pnpm test
 pnpm build
 pnpm secret:scan   # 시크릿·값 파일
 pnpm env:check     # 코드가 읽는 환경변수 ↔ 예시 파일 ↔ wrangler 설정
+pnpm assets:check  # 빌드 뒤 — 정적 자산에 금지 파일·CHANGELOG 헤딩이 새지 않았는지
+pnpm deploy:dry    # 계정 없이 Worker 번들·설정 검증 (실제 배포는 하지 않는다)
 pnpm db:lint       # supabase/migrations/ 가 있을 때 — RLS·정책·함수·데이터 손실
 ```
 
-이 스캐폴드는 위 여덟을 **모두 제공한다**(앞의 다섯은 2.18-draft, 뒤의 셋은 2.32-draft 부터). CI([`.github/workflows/pr-checks.yml`](./.github/workflows/pr-checks.yml))가 PR 과 `main` push 에서 같은 순서로 돌린다 — 설정만 있고 게이트가 없으면 규칙이 아니라 권고다.
+이 스캐폴드는 위 열 가지를 **모두 제공한다**(앞의 다섯은 2.18-draft, `secret:scan`·`env:check`·`db:lint` 는 2.32-draft, `assets:check`·`deploy:dry` 는 2.33-draft 부터). CI([`.github/workflows/pr-checks.yml`](./.github/workflows/pr-checks.yml))가 PR 과 `main` push 에서 같은 순서로 돌린다 — 설정만 있고 게이트가 없으면 규칙이 아니라 권고다.
 
-포맷·린트의 범위와 그 범위로 정한 근거는 [`.agents/STACK.md`](./.agents/STACK.md) 7장. 아래 `deploy:dry`는 없으므로 프로젝트에서 도입한 경우에만 실행한다. 없는 명령을 실행해 실패를 확인하지 않는다.
+포맷·린트의 범위와 그 범위로 정한 근거는 [`.agents/STACK.md`](./.agents/STACK.md) 7장. `deploy:dry` 는 `apps/web` 이 Cloudflare Worker 인 이 스캐폴드(2.33-draft 부터)에만 있다. 프로젝트에 없는 명령을 실행해 실패를 확인하지 않는다.
 
 **메뉴·탭·화면의 기능을 추가·변경했으면 위 명령으로 끝내지 않는다.** 이 명령들은 "화면에서 실제로 눌러 보면 되는가"를 증명하지 않는다 — PR 전에 [`docs/브라우저-검증-절차.md`](./docs/브라우저-검증-절차.md) 로 브라우저에서 확인하고, **무엇을 확인하지 못했는지까지** PR 에 적는다. 문구·색·여백만 바꾼 수정과 문서·리팩터는 대상이 아니다.
 
 Cloudflare Worker 배포 전에는 프로젝트별 dry-run 명령을 우선한다.
 
 ```bash
-pnpm --filter <worker-package> run deploy:dry
+pnpm deploy:dry
+pnpm --filter <worker-package> run deploy:dry   # 패키지를 지정할 때
 ```
 
 프로젝트에 없는 명령은 억지로 만들지 않는다. 실행하지 못한 검증은 이유를 보고한다.

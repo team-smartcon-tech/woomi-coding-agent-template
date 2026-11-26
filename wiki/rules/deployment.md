@@ -24,17 +24,28 @@ R2는 production/dev bucket을 분리하고, private 파일은 인증 없이 sig
 
 `git status`/`git fetch`/`git status -sb` → `pnpm lint/typecheck/test/build` → dry-run(`pnpm --filter <worker-package> run deploy:dry`). 미커밋·untracked·ahead/behind·검증 실패·dry-run 실패·production secret 누락·dev가 prod 리소스 참조·문서와 `package.json` 불일치면 배포를 보류한다.
 
-**이 스캐폴드에는 `lint`와 `deploy:dry`가 없다** — 실제로 돌리는 것은 `typecheck`·`test`·`build`뿐이고, 없는 명령을 만들어 채우지 않는다. 건너뛴 검증은 배포 보고에 명시한다 — [테스트와 검증](testing.md), [기술 스택](stack.md).
+이 스캐폴드(2.33-draft 부터)에는 `pnpm deploy:dry`(계정 없이 번들·설정 검증)와 `pnpm assets:check`(정적 자산에 금지 파일·CHANGELOG 헤딩이 새지 않았는지)가 있다. 없는 명령을 만들어 채우지 않는다. 건너뛴 검증은 배포 보고에 명시한다 — [테스트와 검증](testing.md), [기술 스택](stack.md).
 
-배포 명령 컨벤션: `pnpm deploy`(production) / `deploy:dry` / `deploy:dev` / `deploy:dev:dry`. 명령 이름은 `package.json`과 `README.md`에서 일치해야 한다.
+배포 명령 컨벤션: `pnpm deploy`(production) / `deploy:dry` / `deploy:dev` / `deploy:dev:dry`. 명령 이름은 `package.json`과 `README.md`에서 일치해야 한다. 이 스캐폴드에 실제로 있는 것은 `deploy:dry` 뿐이고 배포는 `deploy.yml` 이 한다.
 
 ## Secret
 
 secret 하드코딩, `.env` 실제 값 커밋, 프론트엔드에 service role key 노출, production secret의 dev/staging 재사용 금지. Worker secret은 Cloudflare Worker Secrets(`wrangler secret put ...`, `--env dev` 분리)에 저장한다 — [절대 금지·필수 규칙](non-negotiable-rules.md).
 
-환경변수는 한 모듈에서 Zod 로 읽고 없으면 기동을 멈춘다(스캐폴드 기준: `apps/web/app/shared/config/env.server.ts`). 변수를 추가하면 스키마·예시 파일·배포 secret 세 곳을 고치는데, 앞의 둘은 `pnpm env:check` 가 PR 에서 대조하고 **셋째는 기계가 확인하지 못한다**. secret 계열 이름을 `wrangler` 의 `vars` 에 넣는 것, secret 을 문자열 기본값으로 대체하는 것도 같은 검사가 잡는다(2.32-draft).
+환경변수는 한 모듈에서 Zod 로 읽는다(스캐폴드 기준: `apps/web/app/shared/config/env.server.ts`, 로직은 `env.schema.ts`). **Worker 에는 기동 실패가 없어서** 운영·프리뷰(`APP_ENV`)에서 `SESSION_SECRET` 이 없으면 처음 쓰는 요청이 실패한다 — 세션 500, `GET /api/health` 503. 변수를 추가하면 스키마·예시 파일(`.dev.vars.example`)·배포 secret 세 곳을 고치는데, 앞의 둘은 `pnpm env:check` 가 PR 에서 대조하고 **셋째는 기계가 확인하지 못한다**. secret 계열 이름을 `wrangler` 의 `vars` 에 넣는 것, secret 을 문자열 기본값으로 대체하는 것도 같은 검사가 잡는다(2.32-draft).
 
 secret 이 저장소에 올라갔으면 지우는 커밋으로 끝내지 않는다 — 폐기·재발급이 먼저다. 시크릿 스캔은 로컬 훅과 CI 가 같은 `scripts/secret-scan.mjs` 를 돈다. 훅은 꺼져 있을 수 있어서다(분기 저장소 16곳 중 5곳에 `.githooks/` 가 없었다).
+
+## 스캐폴드의 Worker 배포 (2.33-draft)
+
+`apps/web` 이 Cloudflare Worker 하나다(`wrangler.jsonc`: 운영 `woomi-web`, 프리뷰 `woomi-web-preview`). 규칙의 핵심만 적는다 — 파일 표·첫 배포 순서·Access 절차는 원본 [`DEPLOYMENT.md`](../sources/deployment.md) 4.2·4.4·4.5 에 있다.
+
+- **프리뷰는 별도 Worker 이고 secret 도 따로 둔다.** 운영 Worker 의 버전으로 올리면 PR 코드가 운영 `SESSION_SECRET` 을 쓰게 되어 "production secret 재사용 금지" 를 어긴다.
+- **환경은 빌드 때 `CLOUDFLARE_ENV` 로 고른다.** 최상위 `APP_ENV` 가 `production` 이라 환경을 빠뜨린 배포는 운영 규칙(secret 필수)을 받는다.
+- **첫 배포는 health 503 으로 실패하는 것이 정상 경로다.** 배포 → 각 Worker 에 `wrangler secret put SESSION_SECRET`(승인) → health 200 확인.
+- `deploy.yml` 은 `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID` 가 없으면 "배포 건너뜀" 으로 통과한다 — 통과가 아니라 **미검증**이다.
+- `.dev.vars` 가 있는 채로 만든 `build/` 는 secret 을 품는다. 배포·공유하지 않는다.
+- 확인하지 못한 것: 실제 배포·Access, `deploy.yml` 의 러너 실행, `_headers`·`.assetsignore` 의 Cloudflare 쪽 동작. Access 를 걸면 `deploy.yml` 의 health 단계도 막힌다.
 
 ## CI/CD
 

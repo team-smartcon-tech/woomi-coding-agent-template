@@ -1,6 +1,6 @@
 # 설계: 스캐폴드를 Cloudflare Worker 하나로 배포한다
 
-상태: 확정 (2026-11-26 사용자 승인)
+상태: 확정 (2026-11-26 사용자 승인) · 구현 2.33-draft(미배포 — 아래 "검증 결과")
 작성일: 2026-11-26
 관련 작업: 하네스 업그레이드 2차 — [`2026-11-26-harness-gates.md`](2026-11-26-harness-gates.md)(2.32-draft)의 후속. 원본 연구문서 「회사 표준 AI 하네스 레퍼런스」 5계층·도입 2단계
 
@@ -143,6 +143,35 @@
 - 기존 `format:check`·`typecheck`·`lint`·`test`·`build`·`agent-guard --selftest` 통과.
 
 검증하지 못할 것으로 미리 적어 두는 것: 실제 프리뷰·운영 배포, Cloudflare Access 동작.
+
+### 검증 결과 (2.33-draft 구현 뒤)
+
+출처: `.superpowers/sdd/2026-11-26-cloudflare-worker-scaffold/task-1~4-report.md`(구현자 보고). 아래 "확인함"은 그 보고가 실행한 명령과 결과를 근거로 한 것이다.
+
+확인함:
+
+- `.dev.vars` 없이 `pnpm dev` → 로그인 302, 대시보드 200, 사이드바 버전이 CHANGELOG 최상단과 일치, 변경 이력 응답. `.dev.vars` 의 `SESSION_SECRET` 을 A→B 로 바꿔 재기동하면 옛 쿠키가 `/login` 으로 리다이렉트된다.
+- 운영 빌드(`pnpm build && pnpm start`): `.dev.vars` 없이 `/login` 500(`MissingSecretError`)·`/api/health` 503, 본문에 `SESSION_SECRET` 문자열 없음. 있으면 로그인 302·`/` 200. 개발 서버의 `/api/health` 는 200 `{"status":"ok","env":"development"}`. 환경 선택 없이 만든 빌드도 운영 규칙을 받는다(최상위가 production).
+- `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`deploy:dry`(번들 업로드, `env.APP_ENV "production"`)·`env:check`·`assets:check`(41개 파일)·`assets-check`/`env-check`/`secret-scan`/`agent-guard` 각 `--selftest`.
+- 그 동작이 없었으면 결과가 달라지는 입력으로 확인한 것: `wrangler.jsonc` `vars` 에 `SESSION_SECRET` → `env-check` 실패(되돌림). `public/package.json` 을 넣은 빌드 → `assets:check` 가 `[forbidden-file]` 로 실패. `assets-check` 의 `check` 를 비워 `--selftest` 가 실패하는 것(RED). `.dev.vars` 를 둔 채 `pnpm typecheck` 해도 `worker-configuration.d.ts` 가 바뀌지 않는다(`--env-file types.env`) — 수정 전에는 `SESSION_SECRET` 이 `Env` 에 들어갔다.
+- 두 워크플로 YAML 문법(`yaml-lint`). `actionlint` 는 없어서 건너뜀.
+
+확인하지 못함(미검증):
+
+- **실제 프리뷰·운영 배포, Cloudflare Access.** 계정 정보가 없다.
+- **`deploy.yml` 의 GitHub 러너 실행** — "계정 정보 없음 → 건너뜀" 경로, `wrangler-action` 출력 이름, 프리뷰 URL 추출, health 단계. PR 을 올려 `deploy` 잡이 건너뜀으로 통과하는지 보는 것이 남았다.
+- `pr-checks` 의 새 단계가 Linux 러너에서 통과하는지(특히 `worker-configuration.d.ts` 어긋남 검사 — 로컬은 Windows 라 줄바꿈 차이 가능성, 그리고 `deploy:dry` 가 인증 없이 되는지).
+- `_headers` 의 실제 응답 적용(`vite preview` 가 규칙을 읽는 것까지만), `.assetsignore` 가 업로드에서 파일을 빼는지.
+- `.dev.vars.<환경>`(`-e`)이 타입 생성에 섞이는지.
+
+설계와 달라진 것:
+
+- **React Router 7→8.5, Vite 6→8, React 19.0→19.3 으로 올랐다** — "버전 조합은 C3 템플릿을 따른다" 에 따른 것이고 이유는 CHANGELOG 에 적었다. Node 22.22 이상 필요.
+- 로드 컨텍스트(`AppLoadContext`·`context.cloudflare`)는 만들지 않았다. React Router 8 의 C3 템플릿이 컨텍스트를 넘기지 않고, env 는 `cloudflare:workers` 한 곳에서만 읽는다. `ctx.waitUntil` 이 필요해지면 진입점을 고친다.
+- Vitest 는 `cloudflare()` 플러그인이 시작을 깨서 `process.env.VITEST` 일 때 그 플러그인만 뺀다. `env.schema.ts` 로 순수 로직을 나눠 Node 에서 테스트한다.
+- `pnpm start` 는 `vite preview`. 이 방식은 빌드 때 `.dev.vars` 를 `build/server/.dev.vars` 로 복사하므로 secret 이 든 빌드를 배포·공유하지 않는다.
+- 설계 3절의 `.assetsignore` 위치 가정대로 `public/` 에 두었다. 빌드 결과 `build/client` 에도 복사된다.
+- Access 가 걸린 프리뷰는 `deploy.yml` 의 health 단계도 막는다 — 설계에 없던 충돌이라 `DEPLOYMENT.md` 4.5 에 적었다.
 
 ## 빌더에게 맡기는 것
 
