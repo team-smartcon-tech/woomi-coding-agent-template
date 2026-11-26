@@ -19,7 +19,7 @@
 - **`apps/web/wrangler.jsonc`** — Worker `woomi-web`. 최상위 `vars.APP_ENV="production"`, `env.preview`(**별도 Worker `woomi-web-preview`** — 운영 `SESSION_SECRET` 을 PR 코드가 쓰지 않게 한다), `env.development`(로컬). secret 은 적지 않는다.
 - **`apps/web/workers/app.ts`**(Worker 진입점), `app/entry.server.tsx`, `worker-configuration.d.ts`(`pnpm cf-typegen` 산출물 커밋), `types.env`(타입 생성이 `.dev.vars` 의 secret 이름을 읽지 않게 하는 빈 파일).
 - **`GET /api/health`**(`routes/api.health.ts`) — `200 {"status":"ok","env"}` 또는 `503 {"status":"not_ready"}`, `Cache-Control: no-store`. 변수 이름·값·버전을 응답에 넣지 않는다.
-- **`apps/web/public/_headers`**(캐시·기본 보안 헤더), **`public/.assetsignore`**.
+- **`apps/web/public/_headers`**(정적 자산 응답의 캐시·기본 보안 헤더; SSR 화면 응답은 `app/entry.server.tsx` 가 같은 헤더를 건다), **`public/.assetsignore`**.
 - **`scripts/assets-check.mjs`**(`pnpm assets:check`) — 빌드 결과 `apps/web/build/client` 에 `wrangler.json*`·`package.json`·`.dev.vars*`·`*.md` 가 있거나 CHANGELOG 최상단 헤딩 줄이 새면 실패한다. CHANGELOG 에서 헤딩을 못 찾아도 실패한다(검사가 조용히 꺼지지 않게). 서버 번들은 보지 않는다.
 - **`.github/workflows/deploy.yml`** — PR 은 `CLOUDFLARE_ENV=preview` 로 빌드해 프리뷰 Worker 에 `versions upload --preview-alias pr-<번호>`, `main` push 는 운영 `wrangler deploy`. 이어서 `/api/health` 를 호출해 503 이면 "secret 미등록" 으로 실패한다. **`CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID` 가 없으면 요약에 "배포 건너뜀 — Cloudflare 계정 정보 없음" 을 남기고 통과**한다. `pull_request_target` 은 쓰지 않고, 토큰은 계정 확인 단계와 `wrangler-action` 의 `with:` 에만 둔다.
 - **`pr-checks`** — 정적 자산 검사(자체 점검 포함), 배포 설정 검사(`pnpm deploy:dry`), `worker-configuration.d.ts` 어긋남 검사.
@@ -71,7 +71,7 @@
 | 값이 없으면 모듈을 읽을 때 throw | 운영·프리뷰에서 처음 쓰는 요청이 실패(세션 500, health 503) |
 | — | `pnpm deploy:dry`·`cf-typegen`·`assets:check` 신규 |
 | 하한 명시 없음(`.nvmrc` 24) | Node 22.22 이상(React Router 8 요구) |
-| — | GitHub secret `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID`(없으면 배포 잡은 건너뜀). 배포 뒤 **운영·프리뷰 Worker 각각** `wrangler secret put SESSION_SECRET` |
+| — | GitHub secret `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID`(없으면 배포 잡은 건너뜀). 운영 배포 뒤 **프리뷰 Worker 를 따로 만들고**(PR 경로는 `versions upload` 뿐이라 없는 Worker 에는 실패한다) **두 Worker 각각** `wrangler secret put SESSION_SECRET --name <Worker 이름>` (`--env` 금지: 로컬 빌드 뒤에는 운영 secret 을 덮어쓴다) |
 
 - `.dev.vars` 가 있는 채로 만든 `build/` 는 `build/server/.dev.vars` 를 품는다. 배포·공유하지 않는다(CI 빌드에는 `.dev.vars` 가 없다).
 - 진입점 `workers/app.ts` 는 로드 컨텍스트를 넘기지 않는다(React Router 8 공식 템플릿). loader 에서 `ctx.waitUntil` 이나 바인딩이 필요해지면 그 파일을 고친다.

@@ -46,6 +46,15 @@ export default async function handleRequest(
     await body.allReady
   }
 
+  // Workers 는 _headers 를 정적 자산 응답에만 적용한다. SSR 응답은 여기서 같은 값을 건다(값을 바꾸면 public/_headers 도 같이).
+  for (const [name, value] of Object.entries({
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy-Report-Only": "default-src 'self'",
+  })) {
+    if (!responseHeaders.has(name)) responseHeaders.set(name, value)
+  }
   responseHeaders.set("Content-Type", "text/html")
   return new Response(body, {
     headers: responseHeaders,

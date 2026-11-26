@@ -85,7 +85,7 @@
 | `apps/web/wrangler.jsonc` | `name`, `main`, `compatibility_date`, `compatibility_flags`(`nodejs_compat` 은 필요할 때만), `assets`, `observability`, 최상위 `vars.APP_ENV="production"`, `env.preview`(`APP_ENV=preview`, 별도 Worker `<name>-preview`), `env.development`(`APP_ENV=development`, 로컬 전용). secret 은 적지 않는다. D1·KV·R2 바인딩 자리는 주석 |
 | `apps/web/.dev.vars.example` | `SESSION_SECRET=` 과 만드는 법 한 줄 |
 | `apps/web/public/.assetsignore` 또는 정적 자산 루트의 `.assetsignore` | `wrangler.jsonc`, `package.json`, `*.md`, `.dev.vars*`, `scripts/` — 빌드 결과에서 실제로 빠지는지 확인한다 |
-| `apps/web/public/_headers` | 정적 자산 캐시 정책(해시 파일 장기 캐시)과 기본 보안 헤더(`X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`). CSP 는 Report-Only 로 시작 — 막는 CSP 는 프로젝트가 정한다 |
+| `apps/web/public/_headers` | 정적 자산 캐시 정책(해시 파일 장기 캐시)과 기본 보안 헤더(정적 자산 응답용 — SSR 응답은 `entry.server.tsx` 가 같은 값을 건다; `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`). CSP 는 Report-Only 로 시작 — 막는 CSP 는 프로젝트가 정한다 |
 | `apps/web/app/routes/api.health.ts` | 필수 secret 이 갖춰졌으면 `200 { status: "ok", env: APP_ENV }`, 빠졌으면 `503 { status: "not_ready" }`. 빠진 변수 이름·값·버전은 응답에 넣지 않는다(로그인 없이 읽힌다). 상세는 Worker 로그에만 남긴다 |
 
 ### 4. CI·배포
@@ -94,7 +94,7 @@
 - 새 워크플로 `deploy.yml`:
   - **프리뷰는 운영 Worker 의 버전이 아니라 별도 Worker(`env.preview`)다.** 운영 Worker 의 버전으로 올리면 PR 코드가 운영 `SESSION_SECRET` 을 쓰게 되어 `DEPLOYMENT.md` 4장의 "production secret 을 dev/staging 에 재사용 금지" 를 어긴다. 프리뷰 Worker 는 자기 secret 을 따로 가진다.
   - PR → `preview` 환경으로 빌드해 프리뷰 Worker 에 `wrangler versions upload --preview-alias pr-<번호>`. `main` push → 운영 환경으로 빌드해 `wrangler deploy`. Vite 플러그인은 환경을 **빌드할 때** 고르므로 배포 명령의 `--env` 가 아니라 빌드 단계에서 고른다(빌더가 공식 문서로 확인).
-  - 첫 배포 순서(문서에 적는다): 프리뷰·운영 Worker 를 한 번 배포 → `wrangler secret put SESSION_SECRET`(각 Worker, 사용자 승인) → health 재확인. 그 전까지 health 는 503 이고 배포 잡은 "secret 미등록" 으로 실패한다 — 계정이 있는 저장소에서 secret 을 빠뜨린 것은 실패로 보여야 한다.
+  - 첫 배포 순서(문서에 적는다): 운영 Worker 배포 → 프리뷰 Worker 를 따로 만든다(PR 경로는 `versions upload` 뿐) → `wrangler secret put SESSION_SECRET`(각 Worker, 사용자 승인) → health 재확인. 그 전까지 health 는 503 이고 배포 잡은 "secret 미등록" 으로 실패한다 — 계정이 있는 저장소에서 secret 을 빠뜨린 것은 실패로 보여야 한다.
   - `cloudflare/wrangler-action` 사용. `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID` 가 저장소 secret 에 **없으면 잡을 건너뛰고 요약에 "배포 건너뜀 — 계정 정보 없음" 을 남긴다.** 실패로 만들지 않는다.
   - fork 에서 온 PR 은 secret 이 없으므로 자연히 건너뛴다. `pull_request_target` 은 쓰지 않는다.
   - 배포 후 `/api/health` 를 호출해 200 을 확인한다. 503 이면 "secret 미등록" 으로 실패한다.

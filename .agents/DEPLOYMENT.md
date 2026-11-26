@@ -192,7 +192,7 @@ build
 | `apps/web/types.env` | `wrangler types` 가 `.dev.vars` 의 secret 이름을 `Env` 에 넣지 않게 하는 빈 파일(`--env-file`). 값을 넣지 않는다 |
 | `apps/web/worker-configuration.d.ts` | `pnpm cf-typegen` 산출물을 커밋한 것. `wrangler.jsonc` 를 고치면 다시 만든다 — `pr-checks` 가 어긋남을 잡는다 |
 | `apps/web/public/.assetsignore` | 정적 자산과 같이 올라가면 안 되는 것 — `*.md`, `package.json`, `wrangler.json*`, `.dev.vars*`, `scripts/` |
-| `apps/web/public/_headers` | 정적 자산 캐시 정책과 기본 보안 헤더. CSP 는 프로젝트가 정한다 |
+| `apps/web/public/_headers` | **정적 자산 응답**의 캐시 정책과 기본 보안 헤더. Workers 는 `_headers` 를 Worker 가 만든 응답(SSR 화면)에 적용하지 않으므로, 화면 응답의 같은 헤더는 `apps/web/app/entry.server.tsx` 가 건다(값을 바꾸면 두 곳을 같이). CSP 는 프로젝트가 정한다 |
 | `apps/web/app/routes/api.health.ts` | `GET /api/health`. 필수 secret 이 갖춰졌으면 `200 {"status":"ok","env":…}`, 아니면 `503 {"status":"not_ready"}`. `Cache-Control: no-store`. 변수 이름·값·버전을 응답에 넣지 않는다(로그인 없이 읽힌다). 이유는 Worker 로그에만 남는다 |
 | `scripts/assets-check.mjs` | `pnpm assets:check`. 빌드 결과 `apps/web/build/client` 에 금지 파일이 있거나 CHANGELOG 최상단 헤딩 줄이 새면 실패한다. CHANGELOG 에서 헤딩을 못 찾아도 실패한다. 서버 번들은 보지 않는다 |
 
@@ -214,19 +214,29 @@ build
 
 Worker 를 처음 배포하는 저장소는 이 순서를 따른다. 에이전트는 `wrangler deploy`·`wrangler secret put` 을 실행하지 않는다(`AGENTS.md` 6장) — 사용자가 승인하거나 직접 한다.
 
-1. **배포한다** — `deploy.yml`(8.3)이나 사용자가 승인한 `wrangler deploy`. 운영 Worker `woomi-web` 과 프리뷰 Worker `woomi-web-preview` 가 각각 생긴다. 이 시점 health 는 503 이고 `deploy.yml` 의 health 단계가 "secret 미등록" 으로 **실패한다 — 정상 경로다.**
-2. **각 Worker 에 secret 을 올린다**(사용자 승인). 값은 32자 이상 무작위 문자열이고, **운영과 프리뷰는 서로 다른 값**이다.
-3. **health 를 다시 확인한다** — 200 `{"status":"ok",…}` 이어야 한다. `deploy.yml` 을 다시 돌려도 된다.
+1. **운영 Worker 를 배포한다** — `deploy.yml`(8.3, main 푸시)이나 사용자가 승인한 `wrangler deploy`. 이 시점 health 는 503 이고 `deploy.yml` 의 health 단계가 "secret 미등록" 으로 **실패한다 — 정상 경로다.**
+2. **프리뷰 Worker `woomi-web-preview` 를 만든다**(사용자 승인). PR 경로(`deploy.yml`)는 `wrangler versions upload` 만 하는데, wrangler 는 없는 Worker 에 버전을 올리지 않는다("You cannot upload a new version of a Worker that does not yet exist… run the `deploy` command first"). 그래서 이 단계 전의 첫 PR 프리뷰 업로드는 health 503 이 아니라 **업로드 단계에서 이 오류로 실패한다 — 정상 경로다.** 가장 쉬운 방법은 아래 3번의 프리뷰 secret 등록이다: Worker 가 없으면 wrangler 가 초안 Worker 를 만들겠냐고 묻고(`createDraftWorker`), 사용자가 확인하면 만들어진다. 대안은 사용자가 승인한 프리뷰 빌드 + `wrangler deploy` 다.
+3. **각 Worker 에 secret 을 올린다**(사용자 승인). 값은 32자 이상 무작위 문자열이고, **운영과 프리뷰는 서로 다른 값**이다.
+4. **health 를 다시 확인한다** — 200 `{"status":"ok",…}` 이어야 한다. `deploy.yml` 을 다시 돌려도 된다.
 
 ```bash
 cd apps/web
-wrangler secret put SESSION_SECRET                 # 운영 Worker (woomi-web)
-wrangler secret put SESSION_SECRET --env preview   # 프리뷰 Worker (woomi-web-preview)
+pnpm exec wrangler secret put SESSION_SECRET --name woomi-web           # 운영 Worker
+pnpm exec wrangler secret put SESSION_SECRET --name woomi-web-preview   # 프리뷰 Worker (없으면 초안 생성 확인 프롬프트)
 ```
+
+```powershell
+# 대안: 프리뷰 Worker 를 배포로 만든다(사용자 승인). cmd·PowerShell 은 `VAR=x cmd` 문법이 안 된다.
+$env:CLOUDFLARE_ENV="preview"; pnpm build; pnpm exec wrangler deploy
+```
+
+**secret 은 `--env` 가 아니라 `--name` 으로 Worker 를 지정한다.** 로컬에서 `pnpm build` 를 하면 `apps/web/.wrangler/deploy/config.json` 이 `build/server/wrangler.json`(이름 `woomi-web`, 환경 지정 없음)을 가리키고, wrangler 는 이때 `--env` 를 조용히 무시한다. `secret put` 은 `--name` 이 없으면 그 설정의 이름을 쓰므로 `--env preview` 는 **운영 Worker 의 secret 을 덮어쓴다.** `--name` 과 `--env` 를 같이 쓰지 않는다(이름이 이어붙어 `woomi-web-preview-preview` 가 된다). 근거는 wrangler 4.168.0 소스 읽기이며 실제 실행으로 확인한 것은 아니다.
+
+버전만 올리고 배포하지 않은 Worker(프리뷰는 `versions upload` 만 한다)의 이후 secret 변경은 `wrangler secret put` 이 아니라 `wrangler versions secret put` 으로 한다(최신 버전이 배포 상태가 아니면 `secret put` 이 거부된다).
 
 프리뷰가 별도 Worker 인 이유: 운영 Worker 의 버전으로 올리면 PR 코드가 운영 `SESSION_SECRET` 을 쓰게 된다. 4장의 "production secret 을 dev/staging 에 재사용 금지" 를 어기는 구조라, 프리뷰는 자기 secret 을 따로 가진다.
 
-위 순서와 `--env preview` 가 가리키는 Worker 이름은 실제 Cloudflare 계정에서 실행해 확인하지 **못했다**. 처음 실행한 사람이 결과를 이 절에 반영한다.
+위 순서와 두 Worker 의 실제 생성은 실제 Cloudflare 계정에서 실행해 확인하지 **못했다**. 처음 실행한 사람이 결과를 이 절에 반영한다.
 
 ### 4.5 프리뷰에 Cloudflare Access 걸기
 

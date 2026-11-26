@@ -42,10 +42,11 @@ secret 이 저장소에 올라갔으면 지우는 커밋으로 끝내지 않는�
 
 - **프리뷰는 별도 Worker 이고 secret 도 따로 둔다.** 운영 Worker 의 버전으로 올리면 PR 코드가 운영 `SESSION_SECRET` 을 쓰게 되어 "production secret 재사용 금지" 를 어긴다.
 - **환경은 빌드 때 `CLOUDFLARE_ENV` 로 고른다.** 최상위 `APP_ENV` 가 `production` 이라 환경을 빠뜨린 배포는 운영 규칙(secret 필수)을 받는다.
-- **첫 배포는 health 503 으로 실패하는 것이 정상 경로다.** 배포 → 각 Worker 에 `wrangler secret put SESSION_SECRET`(승인) → health 200 확인.
+- **첫 배포는 실패하는 것이 정상 경로다.** 운영 배포(health 503) → 프리뷰 Worker 생성(PR 경로는 `versions upload` 뿐이라 없는 Worker 에는 업로드 오류로 실패한다. `wrangler secret put … --name woomi-web-preview` 의 초안 생성 확인으로 만든다, 승인) → 각 Worker 에 secret → health 200 확인.
+- **secret 은 `--name woomi-web` / `--name woomi-web-preview` 로 지정한다.** 로컬 빌드 뒤에는 `--env preview` 가 무시되어 운영 secret 을 덮어쓴다. `--name` 과 `--env` 는 같이 쓰지 않는다. 버전만 올린 Worker 는 `wrangler versions secret put` (wrangler 4.168.0 소스 읽기 근거, 실행 확인 아님).
 - `deploy.yml` 은 `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID` 가 없으면 "배포 건너뜀" 으로 통과한다 — 통과가 아니라 **미검증**이다.
 - `.dev.vars` 가 있는 채로 만든 `build/` 는 secret 을 품는다. 배포·공유하지 않는다.
-- 확인하지 못한 것: 실제 배포·Access, `deploy.yml` 의 러너 실행, `_headers`·`.assetsignore` 의 Cloudflare 쪽 동작. Access 를 걸면 `deploy.yml` 의 health 단계도 막힌다.
+- 확인하지 못한 것: 실제 배포·Access, `deploy.yml` 의 러너 실행, `_headers`(정적 자산 응답용 — SSR 화면은 `entry.server.tsx` 가 같은 헤더를 건다)·`.assetsignore` 의 Cloudflare 쪽 동작. Access 를 걸면 `deploy.yml` 의 health 단계도 막힌다.
 
 ## CI/CD
 
