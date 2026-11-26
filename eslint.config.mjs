@@ -106,5 +106,24 @@ export default [
     files: ["**/env.server.ts"],
     rules: { "no-restricted-properties": "off" },
   },
+  {
+    // Worker 바인딩의 env 도 같은 이유로 env.server.ts 한 곳에서만 읽는다.
+    ignores: ["**/env.server.ts", "apps/web/workers/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "cloudflare:workers",
+              importNames: ["env"],
+              message:
+                "`cloudflare:workers` 의 env 를 직접 읽지 않는다. ~/shared/config/env.server 를 쓴다(.agents/DEPLOYMENT.md 4장).",
+            },
+          ],
+        },
+      ],
+    },
+  },
   eslintConfigPrettier,
 ]

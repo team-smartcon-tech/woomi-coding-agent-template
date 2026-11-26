@@ -1,23 +1,33 @@
 import { createCookieSessionStorage, redirect } from "react-router"
 import { findMemberById, type Member } from "~/entities/member/model/member"
-import { env } from "~/shared/config/env.server"
+import { getEnv, getSessionSecret } from "~/shared/config/env.server"
 
-const storage = createCookieSessionStorage({
-  cookie: {
-    name: "woomi_session",
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secrets: [env.SESSION_SECRET],
-    secure: env.isProduction,
-    maxAge: 60 * 60 * 24 * 7,
-  },
-})
+// 환경변수는 요청 시점에야 읽을 수 있어 첫 호출에 만든다. MissingSecretError 는 잡지 않는다 — 500 으로 올라간다.
+let cachedStorage: ReturnType<typeof createStorage> | null = null
+
+function createStorage() {
+  return createCookieSessionStorage({
+    cookie: {
+      name: "woomi_session",
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secrets: [getSessionSecret()],
+      secure: getEnv().isDeployed,
+      maxAge: 60 * 60 * 24 * 7,
+    },
+  })
+}
+
+function getStorage() {
+  cachedStorage ??= createStorage()
+  return cachedStorage
+}
 
 const USER_ID_KEY = "userId"
 
 function getSession(request: Request) {
-  return storage.getSession(request.headers.get("Cookie"))
+  return getStorage().getSession(request.headers.get("Cookie"))
 }
 
 // open redirect 방지: 앱 내부 경로만 허용한다.
@@ -27,10 +37,10 @@ export function safeRedirect(to: unknown, fallback = "/"): string {
 }
 
 export async function createUserSession(userId: string, redirectTo: string) {
-  const session = await storage.getSession()
+  const session = await getStorage().getSession()
   session.set(USER_ID_KEY, userId)
   return redirect(safeRedirect(redirectTo), {
-    headers: { "Set-Cookie": await storage.commitSession(session) },
+    headers: { "Set-Cookie": await getStorage().commitSession(session) },
   })
 }
 
@@ -60,6 +70,6 @@ export async function requireUser(request: Request): Promise<Member> {
 export async function logout(request: Request) {
   const session = await getSession(request)
   return redirect("/login", {
-    headers: { "Set-Cookie": await storage.destroySession(session) },
+    headers: { "Set-Cookie": await getStorage().destroySession(session) },
   })
 }
