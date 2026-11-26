@@ -1,0 +1,8 @@
+# 로컬 실행용 환경변수 예시. 복사해서 쓴다:  cp apps/web/.dev.vars.example apps/web/.dev.vars
+# 실제 값이 든 .dev.vars 는 커밋하지 않는다(.gitignore · pre-commit · CI 가 막는다).
+# 변수를 추가하면 app/shared/config/env.schema.ts 의 스키마와 이 파일을 함께 고친다.
+# 운영·프리뷰의 값은 이 파일이 아니라 `wrangler secret put <이름>` 으로 등록한다.
+
+# 세션 쿠키 서명 키. 32자 이상. 운영·프리뷰에서는 필수이고, 로컬에서는 비워 둬도 된다(실행할 때마다 새로 만든다).
+# 만드는 법:  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+SESSION_SECRET=
