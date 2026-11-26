@@ -2,7 +2,7 @@
 
 **AI에게 "우리 팀 방식"을 미리 알려주는 설명서 묶음입니다.** 새 프로젝트를 시작할 때 이걸 먼저 복사해 두면, Claude Code·Codex·GitHub Copilot이 모두 같은 규칙을 읽고 같은 방향으로 일합니다.
 
-- 표준 버전: `2.33-draft`
+- 표준 버전: `3.0-draft`
 - 최종 수정일: 2026-11-26
 - 기본 대상: React Router(스캐폴드는 8.x) + Hono/Cloudflare Worker + Supabase PostgreSQL 프로젝트
 

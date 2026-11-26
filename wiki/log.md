@@ -299,7 +299,7 @@ tags: [wiki/log]
 - 갱신한 정리본: [좋은 예시와 금지 예시](rules/examples.md), [DB 스키마 가드레일](rules/db-schema-guardrails.md), [마이그레이션](rules/migration.md), [배포](rules/deployment.md), [도구 사용 기준](rules/tooling.md).
 - 남은 것: `AGENTS.md` 를 지도 수준으로 줄이는 일(지금 305줄), 코드 쪽 검사가 없는 반복 실수(화면의 테이블 직접 접근·1,000행 잘림·UTC 날짜·`alert()`)의 ESLint 규칙화, Gitleaks/Squawk 를 CI 에 붙여 실측, 하네스 경로 CODEOWNERS(Free 플랜 private 저장소에서는 강제되지 않는다).
 
-## 2026-11-26 · 넣기 · 스캐폴드를 Cloudflare Worker 로 — 실행·환경변수·배포 파이프라인 (2.32 → 2.33-draft)
+## 2026-11-26 · 넣기 · 스캐폴드를 Cloudflare Worker 로 — 실행·환경변수·배포 파이프라인 (2.32 → 3.0-draft)
 
 - 계기: 2.32-draft 의 5계층 중 배포 쪽(`.dev.vars.example`·`.assetsignore`·health·프리뷰)이 문서로만 남았다. 같은 스택 저장소 16곳 중 13곳이 Worker 인데 템플릿에는 Worker 가 없어서다. 문서만 있는 규칙은 지켜지지 않았다는 것이 2.32 조사의 결론이었다. 설계: `docs/ai/designs/2026-11-26-cloudflare-worker-scaffold.md`.
 - 한 것: `apps/web` 을 Cloudflare Worker 하나로 실행·빌드한다(`@cloudflare/vite-plugin`, `wrangler`, `workers/app.ts`). 환경변수를 `.env`/`NODE_ENV` 에서 `.dev.vars`/`APP_ENV` 로 옮기고 `env.server.ts` 가 `cloudflare:workers` 의 `env` 를 읽게 했다. `GET /api/health`, `_headers`, `.assetsignore`, `scripts/assets-check.mjs`, `deploy.yml`, `pr-checks` 에 배포 설정·자산·타입 파일 검사. 문서(`DEPLOYMENT.md` 4.1~4.5·6~8.3, `AGENTS.md`, 각 README, 온보딩)와 CHANGELOG.
@@ -308,7 +308,7 @@ tags: [wiki/log]
   - **프리뷰는 운영 Worker 의 버전이 아니라 별도 Worker(`woomi-web-preview`).** 운영 버전으로 올리면 PR 코드가 운영 `SESSION_SECRET` 을 쓴다 — 4장의 secret 재사용 금지를 어긴다.
   - **`APP_ENV` 는 닫힌 쪽(운영 규칙)이 기본.** 환경 선택을 빠뜨린 배포가 알려진 기본값으로 뜨면 안 되고(반목표 2), 로컬은 `pnpm dev` 가 `development` 를 골라 `.dev.vars` 없이 뜬다(온보딩 유지, 반목표 3).
   - **Cloudflare 계정 정보가 없으면 배포 잡은 "건너뜀" 으로 통과.** 계정 없는 파생 저장소의 PR 이 막히면 안 된다(반목표 1). 대신 건너뜀은 미검증이라고 요약 문구로 구분한다. `pull_request_target` 은 쓰지 않는다.
-  - **React Router 7→8.5, Vite 6→8 로 올렸다.** 공식 C3 템플릿의 버전 하한을 따랐다(조합 보증). 대가로 Node 22.22+ 필요. 리드가 MAJOR 가 아니라 MINOR(2.33-draft)로 판정 — 규칙은 깨지지 않았고 스캐폴드 실행 방식만 바뀌며 분기 프로젝트가 선택해 가져간다. **머지 전 사용자 확인 필요.**
+  - **React Router 7→8.5, Vite 6→8 로 올렸다.** 공식 C3 템플릿의 버전 하한을 따랐다(조합 보증). 대가로 Node 22.22+ 필요. 리드가 처음 MINOR(2.33-draft)로 판정했으나 사용자가 MAJOR(3.0-draft)로 결정했다 — 실행 방식·로컬 값 파일·메이저 의존성이 함께 바뀌어 2.x 분기 프로젝트가 그대로 당겨오면 깨진다.
   - 로드 컨텍스트(`context.cloudflare`)는 만들지 않았다 — RR8 의 C3 템플릿이 넘기지 않고 소비자가 없다.
 - 실제로 부딪힌 것(계획 단계 위험이 맞았던 것 / 구현에서 새로 나온 것):
   - 맞았던 것: `cloudflare:workers` 가 Vitest(Node)에서 안 돌아 `env.schema.ts` 로 순수 로직을 분리해야 했다. 버전 조합이 맞지 않아 C3 하한을 따라 메이저가 올랐다.

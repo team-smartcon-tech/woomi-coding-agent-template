@@ -1,6 +1,6 @@
 # 설계: 스캐폴드를 Cloudflare Worker 하나로 배포한다
 
-상태: 확정 (2026-11-26 사용자 승인) · 구현 2.33-draft(미배포 — 아래 "검증 결과")
+상태: 확정 (2026-11-26 사용자 승인) · 구현 3.0-draft(미배포 — 아래 "검증 결과")
 작성일: 2026-11-26
 관련 작업: 하네스 업그레이드 2차 — [`2026-11-26-harness-gates.md`](2026-11-26-harness-gates.md)(2.32-draft)의 후속. 원본 연구문서 「회사 표준 AI 하네스 레퍼런스」 5계층·도입 2단계
 
@@ -105,7 +105,7 @@
 - `DEPLOYMENT.md` 4.2 를 "갖출 파일" 에서 "스캐폴드의 실제 파일" 로, 7장 배포 명령, 8장 CI 를 `deploy.yml` 기준으로 갱신. 프리뷰 URL 에 Cloudflare Access 를 거는 절차를 대시보드 단계로 적는다.
 - `README.md`, `apps/web/README.md`, `.claude/commands/onboard.md`, `docs/브라우저-검증-절차.md` 의 실행 안내(`.env` → `.dev.vars`).
 - `AGENTS.md` 2장 라우팅 표(환경변수 행), 7장 명령.
-- `CHANGELOG.md` 2.33-draft, `wiki/log.md`·관련 정리본.
+- `CHANGELOG.md` 3.0-draft, `wiki/log.md`·관련 정리본.
 - 선행 설계 `2026-11-26-harness-gates.md` 정리: 상태를 확정으로, 원본 연구문서 위치, 검증 절의 CI 실측(11-26 11:12 KST main `db-checks` 성공), 원본 3단계 도입 절차와의 대응표.
 
 ## 불변조건과 계약
@@ -144,7 +144,7 @@
 
 검증하지 못할 것으로 미리 적어 두는 것: 실제 프리뷰·운영 배포, Cloudflare Access 동작.
 
-### 검증 결과 (2.33-draft 구현 뒤)
+### 검증 결과 (3.0-draft 구현 뒤)
 
 출처: `.superpowers/sdd/2026-11-26-cloudflare-worker-scaffold/task-1~4-report.md`(구현자 보고). 아래 "확인함"은 그 보고가 실행한 명령과 결과를 근거로 한 것이다.
 
@@ -155,7 +155,7 @@
 - `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`deploy:dry`(번들 업로드, `env.APP_ENV "production"`)·`env:check`·`assets:check`(41개 파일)·`assets-check`/`env-check`/`secret-scan`/`agent-guard` 각 `--selftest`.
 - 그 동작이 없었으면 결과가 달라지는 입력으로 확인한 것: `wrangler.jsonc` `vars` 에 `SESSION_SECRET` → `env-check` 실패(되돌림). `public/package.json` 을 넣은 빌드 → `assets:check` 가 `[forbidden-file]` 로 실패. `assets-check` 의 `check` 를 비워 `--selftest` 가 실패하는 것(RED). `.dev.vars` 를 둔 채 `pnpm typecheck` 해도 `worker-configuration.d.ts` 가 바뀌지 않는다(`--env-file types.env`) — 수정 전에는 `SESSION_SECRET` 이 `Env` 에 들어갔다.
 - 두 워크플로 YAML 문법(`yaml-lint`). `actionlint` 는 없어서 건너뜀.
-- **2.33-draft HEAD 에서 재실행(2026-11-26, 로컬 Windows)**: `format:check`·`typecheck`·`lint`·`test`(26)·`build`·`assets:check`(41개 파일)·`deploy:dry`·`env:check` 모두 종료 0, `git diff --exit-code -- apps/web/worker-configuration.d.ts` 0.
+- **3.0-draft HEAD 에서 재실행(2026-11-26, 로컬 Windows)**: `format:check`·`typecheck`·`lint`·`test`(26)·`build`·`assets:check`(41개 파일)·`deploy:dry`·`env:check` 모두 종료 0, `git diff --exit-code -- apps/web/worker-configuration.d.ts` 0.
 
 확인하지 못함(미검증):
 

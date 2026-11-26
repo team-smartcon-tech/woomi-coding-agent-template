@@ -8,11 +8,11 @@
 
 ---
 
-## [2.33-draft] - 2026-11-26
+## [3.0-draft] - 2026-11-26
 
 **스캐폴드(`apps/web`)를 Cloudflare Worker 하나로 실행·빌드·배포한다.** 2.32-draft 조사에서 같은 스택 저장소 16곳 중 13곳이 Worker 를 쓰는데 템플릿에는 Worker 가 없어서, 5계층의 배포 쪽 규칙이 문서(`DEPLOYMENT.md` 4.2)로만 남았다. 파일이 실제로 있어야 `env-check`·`secret-scan` 이 볼 대상이 생기고 파생 프로젝트가 복사만으로 같은 형태를 얻는다. 설계·선택지·기각 사유는 [`docs/ai/designs/2026-11-26-cloudflare-worker-scaffold.md`](docs/ai/designs/2026-11-26-cloudflare-worker-scaffold.md).
 
-표준의 규칙이 깨지지는 않았고 스캐폴드의 **실행 방식**이 바뀌었다. 그래서 MAJOR 가 아니라 MINOR 를 올렸다 — 분기한 프로젝트는 이 변경을 선택해서 가져간다(아래 "가져갈 때").
+**MAJOR 를 올린다(2.32 → 3.0).** 스캐폴드의 실행 방식(Node → Worker), 로컬 값 파일(`.dev.vars`), 운영 판정 변수(`APP_ENV`), React Router·Vite 메이저 버전이 함께 바뀌어, 2.x 기준으로 만든 분기 프로젝트가 그대로 당겨오면 깨진다. 처음에는 "규칙은 그대로" 라는 이유로 MINOR(2.33) 로 올렸다가 호환이 깨지는 변경이라 사용자 결정으로 MAJOR 로 바꿨다(2026-11-26). 가져가는 방법은 아래 "가져갈 때".
 
 ### 추가
 
@@ -49,7 +49,7 @@
 - `.dev.vars` 없이 `pnpm dev` → 로그인(302)·대시보드 200·사이드바 버전 `2.32-draft`(당시)·변경 이력 응답. `.dev.vars` 의 `SESSION_SECRET` 을 바꿔 다시 띄우면 기존 세션이 풀린다.
 - 운영 빌드(`pnpm build && pnpm start`): `SESSION_SECRET` 없이 `/login` 500·`/api/health` 503(응답에 `SESSION_SECRET` 문자열 없음), 있으면 로그인 302·`/` 200. 개발 서버 `/api/health` 200.
 - `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`deploy:dry`·`env:check`·`assets:check`·각 `--selftest`. `wrangler.jsonc` 의 `vars` 에 `SESSION_SECRET` 을 넣으면 `env-check` 가 실패한다. `apps/web/public/package.json` 을 넣으면 `assets:check` 가 실패한다. `.dev.vars` 를 둔 채 `pnpm typecheck` 해도 `worker-configuration.d.ts` 가 바뀌지 않는다.
-- **2.33-draft HEAD 에서 재실행(2026-11-26)**: `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`assets:check`(41개 파일)·`deploy:dry`·`env:check` 가 모두 종료 0, `git diff --exit-code -- apps/web/worker-configuration.d.ts` 도 0. 로컬(Windows)에서 돌린 결과이며 GitHub 러너 결과가 아니다.
+- **3.0-draft HEAD 에서 재실행(2026-11-26)**: `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`assets:check`(41개 파일)·`deploy:dry`·`env:check` 가 모두 종료 0, `git diff --exit-code -- apps/web/worker-configuration.d.ts` 도 0. 로컬(Windows)에서 돌린 결과이며 GitHub 러너 결과가 아니다.
 
 ### 확인하지 못한 것
 
