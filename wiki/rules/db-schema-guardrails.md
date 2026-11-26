@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-11-09
+updated: 2026-11-26
 tags: [area/데이터]
 ---
 
@@ -30,6 +30,13 @@ DB constraint는 잘못된 데이터를 막는 마지막 방어선이다(`not nu
 - `UPDATE`에는 SELECT policy도 필요하다(없으면 대상 row를 못 찾는다).
 - 권한 판단에 `user_metadata`를 쓰지 않는다 — app metadata 또는 별도 권한 테이블.
 - `security definer` function은 exposed schema에 두지 않고, view는 `security_invoker = true`를 검토한다.
+- 정책 안의 `auth.uid()` 는 `(select auth.uid())` 로 감싸고, 쓰기 정책 조건을 `true` 로 두지 않는다. 함수에는 `set search_path = ''`, `public` 의 definer 함수는 실행 권한을 `public, anon` 에서 회수한다(2.32-draft).
+
+### 문서로만 있던 규칙을 검사로 옮겼다 (2.32-draft)
+
+위 RLS 규칙 대부분은 처음부터 원본에 있었다. 그런데 2026-11 에 분기 프로젝트의 DB 12개를 읽기 전용으로 조회하니 규칙과 반대인 상태가 쌓여 있었다 — anon 이 실행할 수 있는 definer 함수 66개, 감싸지 않은 `auth.uid()` 정책 87개(전체 728개 중), FK 500개 중 183개가 index 없음. **규칙이 문서에만 있으면 지켜지지 않는다**는 것을 숫자로 확인한 사례다. 그래서 파일 하나 안에서 판정할 수 있는 형태 13가지를 `scripts/db-lint.mjs` 로 옮겼고(`db-checks` 가 PR 의 새 마이그레이션에 돌린다), 이미 쌓인 상태는 `scripts/db-audit.sql` 로 본다. 규칙 표와 예외 적는 법은 원본 3.7 에 있다.
+
+FK index 는 경고로만 뒀다. 아래 Index 원칙(자동 생성하지 않는다)과 충돌하지 않게 하려는 것이다.
 
 ## Index
 

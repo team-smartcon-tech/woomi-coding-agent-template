@@ -87,5 +87,24 @@ export default [
   //
   // 주의: 무딘 도구다. 358개를 무조건 끄고 배열 마지막에 있으므로, 그 목록의 규칙을 나중에
   // 의도적으로 켜려 하면 **말없이 무시된다.** 그때는 이것 뒤에 다시 켠다.
+  {
+    // 환경변수는 env.server.ts 한 곳에서만 읽는다. 흩어진 `process.env.X ?? "기본값"` 이 운영에서
+    // 알려진 기본값으로 조용히 뜨는 것을 막는다(scripts/env-check.mjs 의 unsafe-default 와 짝).
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        {
+          object: "process",
+          property: "env",
+          message:
+            "process.env 를 직접 읽지 않는다. ~/shared/config/env.server 의 env 를 쓴다(.agents/DEPLOYMENT.md 4장).",
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/env.server.ts"],
+    rules: { "no-restricted-properties": "off" },
+  },
   eslintConfigPrettier,
 ]

@@ -19,7 +19,7 @@ pnpm dev
 
 ```bash
 pnpm build       # 프로덕션 빌드
-pnpm start       # 빌드 결과 실행
+pnpm start       # 빌드 결과 실행 (운영 모드 — SESSION_SECRET 필요, .env.example 참고)
 pnpm typecheck   # 타입 검사
 ```
 

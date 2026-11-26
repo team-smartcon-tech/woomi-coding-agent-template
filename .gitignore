@@ -16,6 +16,15 @@ coverage/
 !.env.example
 !.env.*.example
 
+# Cloudflare Worker 의 로컬 secret 파일. .env 와 같은 기준으로 예시만 추적한다.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+!.dev.vars.*.example
+
+# scripts/agent-guard.cjs 가 차단·승인요청을 남기는 기계별 기록.
+.agent-guard.log
+
 # 교육 원본 자료 (자체 git 저장소, 로컬 참고용)
 llm-wiki/
 

@@ -1,6 +1,6 @@
 ---
 type: log
-updated: 2026-10-23
+updated: 2026-11-26
 tags: [wiki/log]
 ---
 
@@ -279,3 +279,22 @@ tags: [wiki/log]
   - RPC 템플릿의 `security definer` 는 DB_SCHEMA 3.5 에 맞춰 private schema 로 제한했다.
 - 리뷰 장치: `review-pr` 3벌에 "TX-EXCEPTION 없는 연속 쓰기는 Must fix" 단계를 넣었다.
 - 갱신한 정리본: [트랜잭션과 RPC](rules/transactions.md)(새로), [API 계층 규칙](rules/api-layers.md), [DB 스키마 가드레일](rules/db-schema-guardrails.md), [작업 흐름](rules/workflow.md). 새 출처: [.agents/data/TRANSACTION.md](sources/transaction.md).
+
+## 2026-11-26 · 넣기 · 문서 규칙을 검사로 옮긴다 — 훅·시크릿·환경변수·DB (2.31 → 2.32-draft)
+
+- 계기: 외부 조사 자료 「회사 표준 AI 코딩 하네스 구성 항목 및 레퍼런스 총람」(Gemini 생성, 본문 미보관 — 대조 불가)을 이 템플릿과 대조해 달라는 요청. 그 자료의 핵심 주장은 "프롬프트 지침(안내문)과 기계적 강제 장치(잠금장치)를 분리하라" 다. 자료가 권하는 도구를 그대로 들이지 않고, **우리 저장소와 DB 에서 실제로 반복된 것**을 먼저 조사했다.
+- 조사: 분기했거나 같은 스택인 저장소 16곳(커밋 약 8,000건)을 받아 읽고, Supabase DB 12개를 읽기 전용 카탈로그 쿼리로 셌다. 방법·숫자·한계는 `docs/ai/designs/2026-11-26-harness-gates.md`.
+- 본 것:
+  - **규칙이 문서에 있어도 지켜지지 않았다.** `DB_SCHEMA.md` 3.5 는 처음부터 "security definer 를 exposed schema 에 두지 않는다" 였는데 anon 이 실행 가능한 definer 함수가 66개였다. `AGENTS.md` 10장이 금지한 "템플릿 버전 번호 이어 쓰기"도 두 곳에서 계속되고 있었다.
+  - **안전장치는 꺼진 채 남는다.** 5곳에 `.githooks/` 가 없고 2곳은 CI 워크플로가 `.disabled` 였다.
+  - 이 템플릿의 스캐폴드 자신이 `SESSION_SECRET ?? "dev-insecure-…"` 로 알려진 기본값에 떨어지고 있었다.
+- 정한 것과 이유:
+  - **외부 도구를 먼저 들이지 않고 의존성 없는 스크립트 넷으로 시작한다**(`agent-guard` 확장, `secret-scan`, `env-check`, `db-lint`). 이 작업 환경에서 실제로 돌려 통과·실패를 둘 다 확인할 수 있는 것만 넣었다. Gitleaks·Squawk·TruffleHog 는 CI 에서 돌려 보지 못한 채 넣으면 "설정만 있고 게이트가 없는" 상태가 된다 — 다음 PR 후보로 남겼다.
+  - **훅과 CI 가 같은 파일을 부른다.** 시크릿 규칙이 pre-commit 의 grep 한 줄과 CI 에 따로 있으면 한쪽만 고쳐진다.
+  - **승인이 필요한 명령은 차단하지 않고 권한 프롬프트로 올린다.** 배포를 아예 막으면 승인받은 배포도 못 하고, 결국 훅을 끄게 된다. Codex 에는 걸지 않았다 — 그 응답 형식을 받는지 확인하지 못했다.
+  - **DB 검사는 새로 추가된 마이그레이션만 본다.** 이미 적용된 파일은 고칠 수 없어서, 전체를 보면 분기 프로젝트의 PR 이 전부 실패한다(한 곳은 오류 199건). 쌓인 상태는 `db-audit.sql` 로 따로 본다.
+  - FK index 는 오류가 아니라 경고다. 3.6 의 "자동 생성하지 않는다" 를 뒤집지 않는다.
+  - `.claude/rules/` 는 포인터만 둔다. 규칙 본문을 도구별 파일에 두지 않는다는 원칙(CLAUDE.md)은 그대로다.
+- 확인하지 못한 것: 실제 Claude Code 세션에서 `permissionDecision: "ask"` 프롬프트가 뜨는지, `.claude/rules/` 의 `paths` 로딩, `mcp__.*` 매처의 발화. 판정 로직은 selftest 와 stdin payload 로 확인했고, 하네스 안에서의 동작은 보지 못했다. 바뀐 워크플로 두 개도 GitHub 러너에서 돌려 보지 못했다.
+- 갱신한 정리본: [좋은 예시와 금지 예시](rules/examples.md), [DB 스키마 가드레일](rules/db-schema-guardrails.md), [마이그레이션](rules/migration.md), [배포](rules/deployment.md), [도구 사용 기준](rules/tooling.md).
+- 남은 것: `AGENTS.md` 를 지도 수준으로 줄이는 일(지금 305줄), 코드 쪽 검사가 없는 반복 실수(화면의 테이블 직접 접근·1,000행 잘림·UTC 날짜·`alert()`)의 ESLint 규칙화, Gitleaks/Squawk 를 CI 에 붙여 실측, 하네스 경로 CODEOWNERS(Free 플랜 private 저장소에서는 강제되지 않는다).

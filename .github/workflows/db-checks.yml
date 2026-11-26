@@ -17,6 +17,7 @@ name: db-checks
 #
 # ## 검사하는 것과 하지 않는 것
 # 검사: 마이그레이션이 **처음부터 깨끗이 적용되는가**, ERD 실선 관계가 실제 FK 와 같은가.
+#       PR 이 새로 추가한 마이그레이션의 형태(scripts/db-lint.mjs — RLS·정책·함수·데이터 손실).
 # 검사 안 함: 원격 DB 의 적용 상태(CI 에 원격 접속 정보를 두지 않는다), 스키마가 업무상 옳은가.
 # 계약 대조 SQL 같은 프로젝트별 검사는 이 잡에 단계를 더해 붙인다.
 
@@ -44,13 +45,29 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # setup-node v5 는 package.json 의 packageManager 를 보고 pnpm 캐시를 자동으로 켠다. 이 잡은
+      # 의존성을 설치하지 않아 pnpm 이 없으므로 "Unable to locate executable file: pnpm" 으로 실패했다
+      # (2.29-draft 에서 v5 로 올린 뒤 main 에서도 매번 실패). 캐시를 끈다.
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
 
       # 파서·대조 규칙 자체 검사. DB 없이 돌므로 마이그레이션이 없어도 항상 돌린다.
       - name: ERD 대조 자체 점검
         run: node scripts/erd-check.mjs --selftest
+
+      # 마이그레이션 SQL 의 형태 검사(RLS 누락, 감싸지 않은 auth.uid(), security definer, 데이터 손실 등).
+      # 이미 적용된 파일은 고칠 수 없으므로 PR 이 **새로 추가한** 파일만 본다. checkout 은 병합 커밋
+      # 하나만 받아 오므로 base 끝을 따로 받아 그것과 비교한다.
+      - name: 마이그레이션 형태 검사 자체 점검
+        run: node scripts/db-lint.mjs --selftest
+
+      - name: 새 마이그레이션 형태 검사
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          node scripts/db-lint.mjs --changed FETCH_HEAD
 
       - name: 마이그레이션 유무 확인
         id: detect

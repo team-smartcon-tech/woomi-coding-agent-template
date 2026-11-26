@@ -143,7 +143,8 @@ build
 | public build env | `VITE_PUBLIC_*` | `.env.development`, `.env.production`, CI vars |
 | Worker vars | 모델명, feature flag, public URL | `wrangler.jsonc` `vars` |
 | Worker secrets | service role key, JWT secret, API key | Cloudflare Worker Secrets |
-| local sample | 필요한 key 목록 | `.env.example` |
+| local sample | 필요한 key 목록 | `.env.example`, Worker 는 `.dev.vars.example` |
+| Worker local secrets | 로컬 실행용 값 | `.dev.vars` (커밋 금지) |
 
 금지:
 
@@ -152,6 +153,43 @@ build
 - 프론트엔드에 service role key 노출
 - production secret을 dev/staging에 재사용
 - Supabase URL/anon key를 여러 파일에 흩뿌리기
+- secret 계열 이름(`*_SECRET`, `*_SERVICE_ROLE_KEY`, `*_TOKEN`, `*_API_KEY`)을 `wrangler.jsonc` 의 `vars` 에 넣기 — `vars` 는 평문으로 커밋된다
+- secret 을 읽다가 값이 없으면 문자열 기본값으로 대체하기 (`?? "dev-secret"`)
+- 브라우저로 나가는 접두사(`VITE_`, `NEXT_PUBLIC_`)에 secret 붙이기
+- 에이전트가 `.env`·`.dev.vars` 를 열어 보게 하기 — 필요한 이름은 예시 파일에서 본다
+
+### 4.1 환경변수는 한 곳에서 읽는다
+
+서버 코드는 환경변수를 한 모듈에서 Zod 로 읽고, 없거나 형식이 틀리면 **기동할 때** 멈춘다. 스캐폴드의 기준 구현은 `apps/web/app/shared/config/env.server.ts` 다. Worker 는 요청마다 `c.env` 가 들어오므로 같은 스키마를 첫 미들웨어에서 한 번 검증한다.
+
+변수를 추가할 때 고치는 곳은 셋이다.
+
+1. 스키마(`env.server.ts` 또는 Worker 의 env 스키마)
+2. 예시 파일(`.env.example` / `.dev.vars.example`) — 이름과 한 줄 설명만, 값은 비운다
+3. 배포 환경의 secret (`wrangler secret put …`) — 사용자 승인 후
+
+1·2 가 어긋나면 `pnpm env:check`(`scripts/env-check.mjs`)가 PR 에서 실패한다. **3 은 기계가 확인하지 못한다.** 그래서 6장 배포 전 확인에 "새 변수의 secret 등록"을 적는다.
+
+### 4.2 Worker 저장소가 갖출 파일
+
+Worker 를 붙이는 프로젝트는 아래를 함께 둔다. 이 템플릿의 스캐폴드에는 아직 Worker 가 없어 파일을 넣어 두지 않았다.
+
+| 파일 | 내용 |
+|---|---|
+| `wrangler.jsonc` | 바인딩과 공개 값만. token·secret 을 적지 않는다 |
+| `.dev.vars.example` | 로컬 secret 의 이름 목록. `.dev.vars` 는 `.gitignore` 가 막는다 |
+| `.assetsignore` | 정적 자산과 같이 올라가면 안 되는 것 — `wrangler.jsonc`, `package.json`, `scripts/`, `*.md`, `.dev.vars*` |
+| `GET /api/health` | 배포 직후 확인용. DB·secret 값을 응답에 넣지 않는다 |
+
+### 4.3 secret 이 저장소에 올라갔을 때
+
+지우는 커밋으로 끝내지 않는다. 원격에 한 번 올라간 값은 이력과 포크에 남는다.
+
+1. **폐기·재발급이 먼저다.** 해당 서비스 콘솔에서 키를 폐기하고 새 값으로 교체한다(사용자 승인).
+2. 노출 시점부터 폐기까지 그 키의 사용 기록을 확인한다.
+3. 이력에서 지우는 일(`git filter-repo` 후 강제 푸시)은 사용자가 직접 한다. 에이전트는 강제 푸시를 하지 않는다(`AGENTS.md` 6장).
+
+검사 자리: 로컬 `.githooks/pre-commit` 과 CI `pr-checks` 가 같은 `scripts/secret-scan.mjs` 를 돈다. 이 검사는 알려진 형태만 보고, 키가 살아 있는지는 확인하지 않는다. public 저장소는 GitHub Secret Scanning·Push Protection 을 저장소 설정에서 켠다. private 저장소는 플랜에 따라 쓸 수 없으므로 CI 검사가 유일한 서버 쪽 장치다.
 
 secret 등록 예:
 

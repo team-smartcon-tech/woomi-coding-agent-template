@@ -7,12 +7,14 @@
 // 인라인 정규식을 두 벌 넣으면 JSON + 셸 이스케이프가 겹쳐 조용히 어긋난다. 실제로 그래서
 // `git push`(refspec 없이 main 에서) 가 통과하고 있었다.
 //
-//   node scripts/agent-guard.cjs file|bash        PreToolUse. 훅 payload 를 stdin JSON 으로 받는다
+//   node scripts/agent-guard.cjs file|bash|mcp    PreToolUse. 훅 payload 를 stdin JSON 으로 받는다
+//       뒤에 --ask 를 붙이면 승인이 필요한 명령을 권한 프롬프트로 올린다(아래 「승인 프롬프트」)
 //   node scripts/agent-guard.cjs stop-changelog   Stop. CHANGELOG 갱신 리마인더
 //   node scripts/agent-guard.cjs commit-wiki      PostToolUse(Bash). 커밋 직후 위키 기록 리마인더
 //   node scripts/agent-guard.cjs --selftest       판정 로직 자체 점검
 //
-// 차단은 exit code 2 + stderr 다(Claude Code 훅 규약). 그 외 실패는 통과시킨다 —
+// 차단은 exit code 2 + stderr 다(Claude Code 훅 규약). 승인 프롬프트는 exit 0 + stdout JSON 이다.
+// exit 2 면 stdout JSON 은 읽히지 않으므로 한 판정에서 둘을 섞지 않는다. 그 외 실패는 통과시킨다 —
 // 가드가 깨졌을 때 에이전트를 멈추게 하는 것보다 훅이 실제로 도는지 --selftest 로
 // 확인하는 편이 낫다.
 
@@ -24,7 +26,9 @@ function blockedFile(input) {
   const base = path.split("/").pop()
 
   // .env.example / .env.*.example 은 .gitignore 의 `!.env.example` 과 같은 기준으로 허용한다.
-  if (/^\.env($|\.)/.test(base) && !/\.example$/.test(base)) return ".env 계열 파일"
+  // .dev.vars 는 Cloudflare Worker 의 로컬 secret 파일이다 — .env 와 같은 값 파일로 본다.
+  if (/^\.(?:env|dev\.vars)($|\.)/.test(base) && !/\.example$/.test(base))
+    return ".env/.dev.vars 계열 파일"
   if (/\.(pem|key|p12|pfx|jks)$/i.test(base)) return "키·인증서 파일"
   if (/^secrets?\.(json|ya?ml|toml|txt|enc)$/i.test(base)) return "secret 값 파일"
   if (/(^|\/)secrets?\//i.test(path)) return "secret 디렉터리 안의 파일"
@@ -55,6 +59,156 @@ function currentBranch() {
   } catch {
     return ""
   }
+}
+
+// ── 값 파일을 읽어 컨텍스트로 끌어오는 명령 ────────────────────────────────
+// Read/Edit/Write 를 막아도 `cat .env` 는 Bash 로 지나간다. 값이 모델 컨텍스트에 들어오면
+// 대화·로그·커밋 메시지 어디로든 새어 나갈 수 있어, 읽는 쪽을 막는다. `cp .env.example .env`
+// 같은 생성과 `source .env` 같은 로드는 값을 출력하지 않으므로 통과시킨다.
+const READERS =
+  /^(?:sudo\s+)?(?:cat|bat|head|tail|less|more|nl|tac|strings|xxd|od|base64|grep|egrep|rg|ag|sed|awk|cut|sort|uniq|diff|type|gc|Get-Content|Select-String|findstr)\b/i
+const ENV_FILE = /(?:^|[\s=<(/\\])(\.(?:env|dev\.vars)(?:\.[\w.-]+)?)(?=$|[\s)>])/g
+const statements = (command) => String(command || "").split(/\n|&&|\|\||;|\|/)
+
+function readsSecretFile(command) {
+  for (const raw of statements(command)) {
+    const stmt = raw.replace(/['"`]/g, "").trim()
+    if (!READERS.test(stmt)) continue
+    for (const m of stmt.matchAll(ENV_FILE)) {
+      if (!/\.example$/.test(m[1])) return true
+    }
+  }
+  return false
+}
+
+// ── 넓은 범위를 지우는 명령 ────────────────────────────────────────────────
+// `rm -rf node_modules` 는 일상 작업이라 통과시킨다. 막는 것은 대상이 저장소 전체·홈·루트·
+// 절대경로·안전장치 폴더일 때뿐이다. 재귀가 아닌 단일 파일 rm 은 보지 않는다.
+const BROAD_TARGET =
+  /^(?:\/|~|\$HOME|\$\{HOME\}|\.|\.\.|\*|\.\/\*|\/\*|[A-Za-z]:[\\/]?)$|^(?:~|\$HOME|\$\{HOME\})[\\/]|^(?:\.\/)?(?:\.git|\.githooks|\.claude|\.codex|\.agents|supabase|supabase\/migrations|scripts|wiki|docs)\/?$|(?:^|\/)\.\.(?:\/|$)/
+const isBroad = (t) =>
+  BROAD_TARGET.test(t) ||
+  (/^\//.test(t) && !/^\/tmp\//.test(t)) ||
+  (/^[A-Za-z]:[\\/]/.test(t) && !/[\\/](?:Temp|tmp)[\\/]/i.test(t))
+
+function broadDelete(command) {
+  for (const raw of statements(command)) {
+    const stmt = raw.replace(/['"`]/g, "").trim()
+    let m = stmt.match(/^(?:sudo\s+)?rm\s+(.*)$/)
+    if (m) {
+      const tokens = m[1].split(/\s+/).filter(Boolean)
+      const flags = tokens.filter((t) => t.startsWith("-"))
+      const recursive = flags.some((f) => f === "--recursive" || /^-[a-zA-Z]*[rR]/.test(f))
+      if (recursive && tokens.filter((t) => !t.startsWith("-")).some(isBroad)) return true
+      continue
+    }
+    // PowerShell·cmd. Windows 가 기본 개발 환경이다.
+    m = stmt.match(/^(?:Remove-Item|ri|del|erase|rd|rmdir)\s+(.*)$/i)
+    if (m) {
+      const tokens = m[1].split(/\s+/).filter(Boolean)
+      const isFlag = (t) => /^-[A-Za-z]+$/.test(t) || /^\/[A-Za-z]$/.test(t)
+      const recursive = tokens.some((t) => /^(?:-r|-recurse|\/s)$/i.test(t))
+      if (recursive && tokens.filter((t) => !isFlag(t)).some(isBroad)) return true
+    }
+  }
+  return false
+}
+
+// ── 승인 프롬프트 ───────────────────────────────────────────────────────────
+// AGENTS.md 6장이 "사용자 승인 없이는 금지"로 둔 작업이다. 막아 버리면 승인받은 배포도 못 하므로
+// 차단하지 않고 권한 프롬프트를 강제한다(Claude Code PreToolUse 의 permissionDecision: "ask").
+// `.claude/settings.local.json` 에 allowlist 를 넣어 조용히 사전 승인해 둔 경우에도 프롬프트가 뜬다 —
+// 그 파일은 gitignore 대상이라 리뷰에 보이지 않는다(CLAUDE.md 「Claude 전용 안전 규칙」).
+const RUNNER = "(?:(?:pnpm|npm|npx|yarn|bunx?)\\s+(?:exec\\s+|dlx\\s+|run\\s+)?)?"
+const TAIL = "[^\\n&|;]*"
+const ASK_RULES = [
+  ["supabase\\s+db\\s+push\\b", "원격 DB 에 마이그레이션 적용 (supabase db push)"],
+  [
+    "supabase\\s+migration\\s+(?:repair|up|squash)\\b",
+    "마이그레이션 이력 변경 (supabase migration)",
+  ],
+  ["supabase\\s+functions\\s+deploy\\b", "Edge Function 배포"],
+  ["supabase\\s+secrets\\s+(?:set|unset)\\b", "Supabase secret 변경"],
+  [
+    "wrangler\\s+(?:(?:versions|pages)\\s+)?(?:deploy|publish)\\b(?!" + TAIL + "--dry-run)",
+    "Cloudflare 배포 (wrangler deploy)",
+  ],
+  ["wrangler\\s+(?:versions\\s+)?secret\\s+(?:put|delete|bulk)\\b", "Worker secret 변경"],
+  ["wrangler\\s+d1\\s+" + TAIL + "--remote\\b", "원격 D1 변경 (--remote)"],
+  ["wrangler\\s+(?:delete|rollback)\\b", "Worker 삭제·롤백"],
+  ["wrangler\\s+(?:r2|kv)\\s+" + TAIL + "\\b(?:delete|put|bulk)\\b", "R2/KV 원격 데이터 변경"],
+].map(([re, why]) => [new RegExp(STMT + RUNNER + re), why])
+ASK_RULES.push(
+  [
+    new RegExp(
+      STMT +
+        "(?:pnpm|npm|yarn|bun)\\s+(?:--filter\\s+\\S+\\s+)?(?:run\\s+)?deploy(?![\\w:-]*dry)(?::[\\w:-]+)?(?:\\s|$)",
+    ),
+    "배포 스크립트 실행",
+  ],
+  [new RegExp(STMT + "gh\\s+pr\\s+merge\\b"), "PR 머지 (gh pr merge)"],
+)
+
+function askBash(input) {
+  const command = String(input || "")
+  for (const [re, why] of ASK_RULES) if (re.test(command)) return why
+  return null
+}
+
+// ── MCP 도구 ────────────────────────────────────────────────────────────────
+// 서버 이름은 등록하는 사람마다 다르다(mcp__supabase__…, mcp__Supabase-Dev__…). 그래서 서버 이름은
+// 포함 여부로, 동작은 마지막 토막으로 본다. 반환: { deny } | { ask } | null
+const SQL_WRITE_HEAD =
+  /^(?:insert|update|delete|drop|alter|create|truncate|grant|revoke|comment|refresh|call|do|copy|vacuum|reindex|merge|set|reset|lock|cluster)\b/i
+const SQL_WRITE_BODY =
+  /\b(?:insert\s+into|update\s+[\w."]+\s+set|delete\s+from|truncate\s+|drop\s+|alter\s+)/i
+
+function sqlWrites(query) {
+  const sql = String(query || "")
+    .replace(/--[^\n]*/g, " ")
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/'(?:[^']|'')*'/g, "''")
+  return sql
+    .split(";")
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .some((x) => SQL_WRITE_HEAD.test(x) || (/^with\b/i.test(x) && SQL_WRITE_BODY.test(x)))
+}
+
+function mcpDecision(toolName, toolInput) {
+  const name = String(toolName || "")
+  if (!/^mcp__/i.test(name)) return null
+  const parts = name.split("__")
+  const server = parts.slice(1, -1).join("__").toLowerCase()
+  const op = parts[parts.length - 1].toLowerCase()
+  const input = toolInput || {}
+
+  if (server.includes("supabase")) {
+    // MIGRATION.md 1장·TOOLING.md 6.5: MCP 는 조회 전용이고 스키마 변경은 마이그레이션 파일로만 한다.
+    // 원격에 직접 적용하면 저장소의 migrations/ 와 원격 이력이 갈라진다(BAD_EXAMPLES.md B-06).
+    if (op === "apply_migration")
+      return { deny: "MCP 로 마이그레이션 직접 적용 — 파일을 만들고 Supabase CLI 로 적용합니다" }
+    if (op === "execute_sql" && sqlWrites(input.query))
+      return { deny: "MCP execute_sql 로 쓰기·DDL 실행 — MCP 는 조회 전용입니다" }
+    if (/^(?:reset_branch|pause_project|restore_project|delete_.*)$/.test(op))
+      return { deny: "Supabase 프로젝트·브랜치를 지우거나 멈추는 MCP 도구 (" + op + ")" }
+    if (/^(?:deploy_edge_function|merge_branch|rebase_branch|create_.*)$/.test(op))
+      return { ask: "Supabase 원격 상태를 바꾸는 MCP 도구 (" + op + ")" }
+    return null
+  }
+  if (server.includes("cloudflare")) {
+    if (/(?:^|_)delete(?:$|_)/.test(op))
+      return { deny: "Cloudflare 리소스를 지우는 MCP 도구 (" + op + ")" }
+    if (op === "d1_database_query" && sqlWrites(input.sql || input.query))
+      return { ask: "원격 D1 에 쓰기·DDL 실행" }
+    if (/(?:^|_)(?:create|update|edit|execute|deploy|put)(?:$|_)/.test(op))
+      return { ask: "Cloudflare 원격 상태를 바꾸는 MCP 도구 (" + op + ")" }
+    return null
+  }
+  // 그 밖의 외부 서비스: 삭제 계열만 승인 프롬프트로 올린다(6장 "외부 서비스 데이터 삭제").
+  if (/(?:^|[_-])(?:delete|remove|trash|destroy|drop|purge)(?:$|[_-])/.test(op))
+    return { ask: "외부 서비스 데이터를 지우는 MCP 도구 (" + op + ")" }
+  return null
 }
 
 function blockedBash(input, branch) {
@@ -99,6 +253,28 @@ function blockedBash(input, branch) {
   if (new RegExp(STMT + "supabase\\s+db\\s+reset").test(command))
     return "supabase db reset (DB 초기화)"
 
+  // 추적되지 않은 파일·작업트리 전체를 되돌리는 명령. 6장 "사용자 변경사항 되돌리기".
+  const clean = gitArgs(command, "clean")
+  if (
+    clean !== null &&
+    /(?:^|\s)-[a-zA-Z]*f/.test(clean) &&
+    !/(?:^|\s)(?:-[a-zA-Z]*n|--dry-run)/.test(clean)
+  )
+    return "git clean -f (추적되지 않은 사용자 파일 삭제)"
+  const wholeTree = (args) =>
+    args !== null &&
+    args
+      .trim()
+      .split(/\s+/)
+      .some((t) => t === "." || t === ":/" || t === "*")
+  const restore = gitArgs(command, "restore")
+  if (wholeTree(restore) && !(/--staged\b/.test(restore) && !/--worktree\b/.test(restore)))
+    return "git restore . (작업트리 전체 되돌리기)"
+  if (wholeTree(gitArgs(command, "checkout"))) return "git checkout . (작업트리 전체 되돌리기)"
+
+  if (readsSecretFile(command)) return ".env/.dev.vars 값을 읽어 출력하는 명령"
+  if (broadDelete(command)) return "넓은 범위를 재귀 삭제하는 명령"
+
   return null
 }
 
@@ -135,6 +311,51 @@ function porcelainPath(line) {
   const p = line.slice(3)
   const renamed = p.includes(" -> ") ? p.split(" -> ").pop() : p
   return renamed.replace(/^"|"$/g, "")
+}
+
+// ── 판정 기록 ───────────────────────────────────────────────────────────────
+// 차단·승인요청만 한 줄씩 남긴다. 정규식 가드는 새 우회 형태를 사후에야 알게 되므로, 무엇이
+// 걸렸고 무엇이 오탐이었는지 볼 기록이 있어야 규칙을 고칠 수 있다. 명령 전문은 값이 섞일 수 있어
+// 앞 80자만 남긴다. 파일은 gitignore 대상이다.
+function logDecision(decision, mode, why, subject) {
+  try {
+    const head = String(subject).replace(/\s+/g, " ").slice(0, 80)
+    const line = [new Date().toISOString(), decision, mode, why, head].join("\t") + "\n"
+    require("fs").appendFileSync(".agent-guard.log", line)
+  } catch {
+    // 기록 실패가 판정을 바꾸면 안 된다.
+  }
+}
+
+// ── 하네스 배선 점검 ────────────────────────────────────────────────────────
+// 훅 정의 파일에서 가드 호출이 빠지면 이 스크립트가 멀쩡해도 아무것도 막지 않는다. 이 템플릿에서
+// 분기한 저장소들에서 .githooks/ 가 통째로 없거나 CI 워크플로가 꺼진 사례가 여럿 나왔다(2026-11
+// 조사, docs/ai/designs/). 파일이 있는데 배선이 빠진 경우만 실패시킨다 — 그 도구를 안 쓰기로 해
+// 파일을 지운 것은 정상이다.
+function harnessProblems() {
+  const fs = require("fs")
+  const problems = []
+  const need = {
+    ".claude/settings.json": [
+      "agent-guard.cjs file",
+      "agent-guard.cjs bash",
+      "agent-guard.cjs mcp",
+    ],
+    ".codex/hooks.json": ["agent-guard.cjs file", "agent-guard.cjs bash"],
+  }
+  for (const [file, calls] of Object.entries(need)) {
+    if (!fs.existsSync(file)) continue
+    let pre = ""
+    try {
+      pre = JSON.stringify((JSON.parse(fs.readFileSync(file, "utf8")).hooks || {}).PreToolUse || [])
+    } catch {
+      problems.push(file + ": JSON 으로 읽을 수 없음")
+      continue
+    }
+    for (const c of calls)
+      if (!pre.includes(c)) problems.push(file + ": PreToolUse 에 `" + c + "` 가 없음")
+  }
+  return problems
 }
 
 // ── 자체 점검 ───────────────────────────────────────────────────────────────
@@ -186,8 +407,109 @@ function selftest() {
   block("git reset --hard HEAD~1", "feature/x")
   block("supabase db reset", "feature/x")
 
+  // 작업트리 전체 되돌리기 — 일부 경로만 되돌리는 것과 unstage 는 통과
+  block("git clean -fd", "feature/x")
+  block("git clean -xdf", "feature/x")
+  pass("git clean -n", "feature/x")
+  block("git restore .", "feature/x")
+  block("git checkout -- .", "feature/x")
+  block("git checkout .", "feature/x")
+  pass("git restore --staged .", "feature/x")
+  pass("git restore apps/web/app/root.tsx", "feature/x")
+  pass("git checkout -b feature/y", "feature/x")
+  pass("git checkout main", "feature/x")
+
+  // 값 파일 읽기 — 읽어서 출력하는 명령만 막는다
+  block("cat .env", "feature/x")
+  block('cat "apps/web/.env.local"', "feature/x")
+  block("cat .dev.vars", "feature/x")
+  block("grep SUPABASE .env.production", "feature/x")
+  block("pnpm build && head -3 .dev.vars", "feature/x")
+  block("Get-Content .env", "feature/x")
+  block("type .env | findstr KEY", "feature/x")
+  pass("cat .env.example", "feature/x")
+  pass("cat .dev.vars.example", "feature/x")
+  pass("cp .env.example .env", "feature/x")
+  pass("ls -la .env", "feature/x")
+  pass("cat apps/web/app/shared/config/env.server.ts", "feature/x")
+  pass("grep -rn process.env apps/web/app", "feature/x")
+
+  // 넓은 범위 재귀 삭제 — 산출물 폴더는 통과
+  block("rm -rf .", "feature/x")
+  block("rm -rf *", "feature/x")
+  block("rm -rf ~/", "feature/x")
+  block("rm -fr /", "feature/x")
+  block("rm -rf .git", "feature/x")
+  block("rm -rf supabase/migrations", "feature/x")
+  block("rm -rf ../other-repo", "feature/x")
+  block("rm -rf /home/user/project", "feature/x")
+  block("Remove-Item -Recurse -Force .", "feature/x")
+  block("Remove-Item -Recurse -Force C:\\Users\\user\\Documents", "feature/x")
+  block("rd /s /q .git", "feature/x")
+  pass("rm -rf node_modules", "feature/x")
+  pass("rm -rf apps/web/build .react-router", "feature/x")
+  pass("rm -rf ./dist", "feature/x")
+  pass("rm -rf /tmp/scratch", "feature/x")
+  pass("rm apps/web/app/old.tsx", "feature/x")
+  pass("Remove-Item -Recurse -Force node_modules", "feature/x")
+
+  // 승인 프롬프트 대상 — 차단은 아니다
+  const ask = (c) => {
+    pass(c, "feature/x")
+    assert.ok(askBash(c), "ASK 여야 함: " + c)
+  }
+  const noAsk = (c) => assert.strictEqual(askBash(c), null, "ASK 가 아니어야 함: " + c)
+  ask("supabase db push")
+  ask("pnpm exec supabase db push --linked")
+  ask("supabase migration repair --status applied 20260101000000")
+  ask("wrangler deploy")
+  ask("npx wrangler deploy --env production")
+  ask("pnpm --filter worker run deploy")
+  ask("pnpm run deploy:prod")
+  ask("wrangler secret put JWT_SECRET")
+  ask("wrangler d1 execute db --remote --file=x.sql")
+  ask("wrangler d1 migrations apply db --remote")
+  ask("gh pr merge 12 --squash")
+  noAsk("wrangler deploy --dry-run")
+  noAsk("pnpm --filter worker run deploy:dry")
+  noAsk("pnpm deploy:dev:dry")
+  ask("pnpm deploy")
+  ask("pnpm deploy:dev")
+  noAsk("wrangler d1 execute db --local --file=x.sql")
+  noAsk("wrangler dev")
+  noAsk("supabase migration new add_site_documents")
+  noAsk("supabase migration list")
+  noAsk("supabase db diff")
+  noAsk("grep -n 'wrangler deploy' README.md")
+  noAsk("gh pr view 12")
+
+  // MCP 도구
+  const md = (n, i) => mcpDecision(n, i) || {}
+  assert.ok(md("mcp__supabase__apply_migration", { query: "create table t()" }).deny)
+  assert.ok(md("mcp__Supabase-Dev__execute_sql", { query: "update t set a = 1" }).deny)
+  assert.ok(md("mcp__supabase__execute_sql", { query: "with x as (select 1) delete from t" }).deny)
+  assert.ok(md("mcp__supabase__execute_sql", { query: "-- note\ndrop table t;" }).deny)
+  assert.ok(md("mcp__supabase__delete_branch", {}).deny)
+  assert.ok(md("mcp__supabase__deploy_edge_function", {}).ask)
+  assert.ok(md("mcp__cloudflare__d1_database_delete", {}).deny)
+  assert.ok(md("mcp__Cloudflare_Developer_Platform__kv_namespace_create", {}).ask)
+  assert.ok(md("mcp__notion__notion-delete-pages", {}).ask)
+  const mcpPass = (n, i) => assert.deepStrictEqual(md(n, i), {}, n)
+  mcpPass("mcp__supabase__execute_sql", {
+    query: "select * from t where note = 'please update it'",
+  })
+  mcpPass("mcp__supabase__execute_sql", { query: "select updated_at, deleted_at from t" })
+  mcpPass("mcp__supabase__list_tables", {})
+  mcpPass("mcp__supabase__get_advisors", {})
+  mcpPass("mcp__cloudflare__workers_list", {})
+  mcpPass("mcp__notion__notion-search", {})
+  mcpPass("Bash", {})
+
   // 파일 경로
   const bf = (p, want) => assert.strictEqual(!!blockedFile(p), want, p)
+  bf(".dev.vars", true)
+  bf("apps/worker/.dev.vars.production", true)
+  bf(".dev.vars.example", false)
   bf(".env", true)
   bf(".env.production", true)
   bf("apps/web/.env.local", true)
@@ -226,6 +548,10 @@ function selftest() {
 
   assert.strictEqual(porcelainPath('?? "\\355\\225\\234.md"'), "\\355\\225\\234.md")
   assert.strictEqual(porcelainPath("R  old.md -> new.md"), "new.md")
+
+  // 훅 정의 파일에 가드 호출이 실제로 걸려 있는지
+  const problems = harnessProblems()
+  assert.deepStrictEqual(problems, [], "하네스 배선이 빠졌습니다:\n  " + problems.join("\n  "))
 
   console.log("agent-guard selftest OK")
 }
@@ -283,19 +609,48 @@ if (mode === "--selftest") {
     // 저장소가 아니거나 git 이 없으면 조용히 넘어간다.
   }
 } else {
-  let why = null
+  // deny: 차단(exit 2 + stderr). ask: 권한 프롬프트(exit 0 + stdout JSON). 한 판정에서 섞지 않는다.
+  const askMode = process.argv.includes("--ask")
+  let deny = null
+  let ask = null
+  let subject = ""
   try {
     const payload = JSON.parse(require("fs").readFileSync(0, "utf8"))
     const toolInput = payload.tool_input || {}
-    why =
-      mode === "file"
-        ? blockedFile(toolInput.file_path)
-        : blockedBash(toolInput.command, currentBranch())
+    if (mode === "file") {
+      subject = String(toolInput.file_path || toolInput.path || "")
+      deny = blockedFile(subject)
+    } else if (mode === "mcp") {
+      subject = String(payload.tool_name || "")
+      const d = mcpDecision(subject, toolInput) || {}
+      deny = d.deny || null
+      ask = d.ask || null
+    } else {
+      subject = String(toolInput.command || "")
+      deny = blockedBash(subject, currentBranch())
+      if (!deny) ask = askBash(subject)
+    }
   } catch {
     process.exit(0)
   }
-  if (why) {
-    console.error("BLOCK: " + why + " — 사용자 승인이 필요합니다. (AGENTS.md 6장)")
+  if (deny) {
+    logDecision("deny", mode, deny, subject)
+    console.error("BLOCK: " + deny + " — 사용자 승인이 필요합니다. (AGENTS.md 6장)")
     process.exit(2)
+  }
+  // --ask 를 넘기지 않은 하네스(권한 프롬프트 규약을 확인하지 못한 도구)에서는 예전처럼 통과시킨다.
+  if (ask && askMode) {
+    logDecision("ask", mode, ask, subject)
+    process.stdout.write(
+      JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: "PreToolUse",
+          permissionDecision: "ask",
+          permissionDecisionReason:
+            ask +
+            " — AGENTS.md 6장이 사용자 승인을 요구합니다. 대상 환경과 되돌리는 방법을 확인하세요.",
+        },
+      }),
+    )
   }
 }

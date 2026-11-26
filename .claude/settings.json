@@ -25,7 +25,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Read|Write|Edit",
         "hooks": [
           {
             "type": "command",
@@ -38,7 +38,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node scripts/agent-guard.cjs bash"
+            "command": "node scripts/agent-guard.cjs bash --ask"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/agent-guard.cjs mcp --ask"
           }
         ]
       }
