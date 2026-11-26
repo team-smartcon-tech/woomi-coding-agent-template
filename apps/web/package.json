@@ -7,8 +7,8 @@
     "build": "react-router build",
     "start": "vite preview",
     "deploy:dry": "wrangler deploy --dry-run",
-    "cf-typegen": "wrangler types",
-    "typecheck": "wrangler types && react-router typegen && tsc",
+    "cf-typegen": "wrangler types --env-file types.env",
+    "typecheck": "wrangler types --env-file types.env && react-router typegen && tsc",
     "test": "vitest run"
   },
   "dependencies": {
