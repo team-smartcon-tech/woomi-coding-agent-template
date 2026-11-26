@@ -61,6 +61,15 @@ jobs:
       - name: 타입 검사
         run: pnpm typecheck
 
+      # typecheck 가 wrangler types 를 돌려 worker-configuration.d.ts 를 덮어쓴다. 그대로 두면 wrangler.jsonc 를
+      # 고치고 타입 파일을 커밋하지 않은 PR 도 통과하므로, 덮어쓴 결과가 커밋본과 다르면 실패시킨다.
+      - name: Worker 타입 파일 동기화
+        run: |
+          if ! git diff --exit-code -- apps/web/worker-configuration.d.ts; then
+            echo "::error::wrangler.jsonc 와 apps/web/worker-configuration.d.ts 가 어긋납니다. pnpm cf-typegen 을 실행하고 결과를 커밋하세요."
+            exit 1
+          fi
+
       - name: 린트
         run: pnpm lint
 
@@ -70,7 +79,15 @@ jobs:
       - name: 빌드
         run: pnpm build
 
-      # 코드가 읽는 환경변수 ↔ .env.example ↔ wrangler 설정. secret 을 기본값으로 대체하는 코드도 잡는다.
+      # 정적 자산으로 CHANGELOG 같은 내부 문서가 나가지 않는지 본다. 위의 빌드 산출물(build/client)을 검사한다.
+      - name: 정적 자산 검사
+        run: pnpm assets:check
+
+      # 실제 배포 없이 wrangler 가 설정·번들을 받아들이는지만 확인한다(--dry-run). 계정 정보가 필요 없다.
+      - name: 배포 설정 검사
+        run: pnpm deploy:dry
+
+      # 코드가 읽는 환경변수 ↔ .env.example·.dev.vars.example ↔ wrangler 설정. secret 을 기본값으로 대체하는 코드도 잡는다.
       - name: 환경변수 경계
         run: |
           node scripts/env-check.mjs --selftest
@@ -80,3 +97,7 @@ jobs:
       # selftest 는 훅 정의 파일(.claude/settings.json·.codex/hooks.json)에 가드 호출이 남아 있는지도 본다.
       - name: 훅 자체 점검
         run: node scripts/agent-guard.cjs --selftest
+
+      # 자산 검사 규칙 자체가 깨지면 위의 검사가 조용히 통과한다.
+      - name: 정적 자산 검사 자체 점검
+        run: node scripts/assets-check.mjs --selftest

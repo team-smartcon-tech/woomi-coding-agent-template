@@ -10,7 +10,7 @@ else
   # node 가 없으면 최소한 값 파일만 막는다.
   if git diff --cached --name-only --diff-filter=ACM \
       | grep -E '(^|/)\.(env|dev\.vars)($|\.)' | grep -vE '\.example$' >/dev/null; then
-    echo "ERROR: .env / .dev.vars 파일은 커밋할 수 없습니다. 예시는 .env.example 로 둡니다."
+    echo "ERROR: .env / .dev.vars 파일은 커밋할 수 없습니다. 예시는 .env.example / .dev.vars.example 로 둡니다."
     exit 1
   fi
 fi
