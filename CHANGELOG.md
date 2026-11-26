@@ -41,11 +41,13 @@
 
 - 스캐폴드의 `session.server.ts` 가 `SESSION_SECRET` 이 없으면 소스에 적힌 고정 문자열로 세션을 서명했다. 이제 운영에서는 변수가 없으면 **기동하지 않고**, `pnpm dev` 에서는 프로세스마다 새 값을 만든다(dev 서버를 다시 띄우면 로그인이 풀린다). **`pnpm start` 는 운영 모드로 뜨므로 로컬에서도 `SESSION_SECRET` 을 줘야 한다** — 변수 없이 실행해 기동 실패, 변수를 주고 200, `pnpm dev` 는 변수 없이 200 인 것을 확인했다.
 
+- **`db-checks` 가 2.30-draft 부터 `main` 에서도 매번 실패하고 있었다.** `actions/setup-node@v5` 가 `packageManager` 필드를 보고 pnpm 캐시를 자동으로 켜는데, 이 잡은 의존성을 설치하지 않아 pnpm 이 없었다(`Unable to locate executable file: pnpm`). `package-manager-cache: false` 로 끈다. 그동안 ERD 대조 자체 점검도 돌지 않았다.
+
 ### 확인하지 못한 것
 
 - 실제 Claude Code 세션에서 승인 프롬프트가 뜨는지, `.claude/rules/` 의 `paths` 로딩, `mcp__.*` 매처 발화. 판정 로직은 selftest 와 stdin payload 로 확인했다.
 - Codex 에서 `Read`·`mcp__.*` 매처 발화.
-- 바뀐 워크플로 두 개의 GitHub 러너 실행.
+- 바뀐 워크플로의 GitHub 러너 실행 — PR #42 의 CI 에서 확인한다.
 
 ### 분기한 프로젝트가 가져갈 때
 
