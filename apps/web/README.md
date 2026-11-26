@@ -1,6 +1,6 @@
 # Woomi 관리자 스캐폴드 (web)
 
-React Router v7 기반 **관리자 SaaS 스캐폴드**다. 비개발자도 바로 실행해 미리 보면서 "어디에 무엇을 넣을지" 감을 잡도록 만든 범용 뼈대다. 도메인은 중립 placeholder(항목/구성원)이며, 실제 도메인에 맞게 교체해 사용한다.
+React Router 8 기반 **관리자 SaaS 스캐폴드**이며, **Cloudflare Worker 하나**로 실행·배포한다. 비개발자도 바로 실행해 미리 보면서 "어디에 무엇을 넣을지" 감을 잡도록 만든 범용 뼈대다. 도메인은 중립 placeholder(항목/구성원)이며, 실제 도메인에 맞게 교체해 사용한다.
 
 ---
 
@@ -13,21 +13,26 @@ pnpm install
 pnpm dev
 ```
 
-브라우저에서 http://localhost:5173 를 연다.
+브라우저에서 http://localhost:5173 를 연다. 비밀값 파일(`.dev.vars`) 없이도 뜬다(개발 환경은 임시 세션 키를 쓴다).
+
+Node 는 **22.22 이상**이 필요하다(React Router 8 요구, `.nvmrc` 는 24).
 
 기타 스크립트:
 
 ```bash
 pnpm build       # 프로덕션 빌드
-pnpm start       # 빌드 결과 실행 (운영 모드 — SESSION_SECRET 필요, .env.example 참고)
+pnpm start       # 빌드 결과를 로컬 Worker 런타임으로 실행 (운영 규칙 — SESSION_SECRET 필요, apps/web/.dev.vars.example 참고)
 pnpm typecheck   # 타입 검사
+pnpm deploy:dry  # 배포 직전 번들·설정 검증 (계정 불필요, 실제 배포 아님)
+pnpm assets:check # 빌드 뒤 정적 자산에 금지 파일이 새지 않았는지
+pnpm cf-typegen  # wrangler.jsonc 를 고친 뒤 worker-configuration.d.ts 재생성
 ```
 
 ---
 
 ## 스택
 
-- **React Router v7** (Framework Mode, SSR)
+- **React Router 8** (Framework Mode, SSR) — **Cloudflare Worker**(`@cloudflare/vite-plugin`, `wrangler`)로 실행·빌드
 - **TanStack Query** — 서버 상태/캐시 (로딩·에러 상태 시연)
 - **Zustand** — 클라이언트 UI 상태 (사이드바 접힘, 모바일 드로어)
 - **React Hook Form + Zod** — 폼과 검증
@@ -57,7 +62,7 @@ pnpm typecheck   # 타입 검사
 
 ## 로그인 / 인증
 
-쿠키 세션 기반의 데모 인증이 미리 구성되어 있다. React Router v7의 loader/action으로 동작한다.
+쿠키 세션 기반의 데모 인증이 미리 구성되어 있다. React Router 8의 loader/action으로 동작한다.
 
 - 로그인: `/login`의 `action`이 입력을 Zod로 검증하고 데모 자격증명(`features/auth/model/credentials.server.ts`)과 대조한 뒤, 성공하면 서명된 쿠키 세션(`features/auth/model/session.server.ts`)을 만들고 원래 가려던 경로로 이동한다.
 - 가드: 인증이 필요한 route loader에서 `requireUser(request)`를 호출한다. 미인증이면 로그인으로 리다이렉트된다.
@@ -75,7 +80,9 @@ pnpm typecheck   # 타입 검사
 
 - `credentials.server.ts`의 평문 데모 비밀번호 → 백엔드 인증(해시 저장/검증).
 - `entities/member`의 시드 → 실제 DB/API.
-- 세션 시크릿 → `SESSION_SECRET` 환경변수. 미설정 시 개발용 기본값이 쓰이며, 운영 배포 전 반드시 설정한다.
+- 세션 시크릿 → `SESSION_SECRET`(32자 이상). 로컬은 `apps/web/.dev.vars`(예시: `.dev.vars.example`, 커밋 금지), 배포는 `wrangler secret put`. 개발 환경에서 없으면 임시 무작위 값이라 서버를 다시 띄우면 세션이 풀린다. **운영·프리뷰에서 없으면 세션 요청이 500, `GET /api/health` 가 503** 이다 — 배포 순서는 [`.agents/DEPLOYMENT.md`](../../.agents/DEPLOYMENT.md) 4.4.
+- **`.dev.vars` 가 있는 채로 만든 `build/` 는 배포·공유하지 않는다.** 빌드가 그 파일을 `build/server/` 로 복사한다.
+- Worker 진입점(`workers/app.ts`)은 로드 컨텍스트를 넘기지 않는다. loader 에서 `ctx.waitUntil` 이나 바인딩이 필요해지면 그 파일을 고친다.
 
 ---
 

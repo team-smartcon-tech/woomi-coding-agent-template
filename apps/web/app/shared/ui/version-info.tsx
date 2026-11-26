@@ -19,7 +19,7 @@ export function VersionInfo({ version, collapsed }: { version?: string; collapse
     if (!open || changelog !== null) return
     let alive = true
     fetch("/changelog")
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => (res.ok ? (res.json() as Promise<{ changelog?: string }>) : null))
       .then((data) => {
         if (alive) setChangelog(data?.changelog ?? "변경 이력을 불러오지 못했습니다.")
       })

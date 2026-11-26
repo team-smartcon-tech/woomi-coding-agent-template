@@ -17,3 +17,6 @@ docs/
 # 옵시디언 볼트 설정(기계가 쓰고 사람이 안 읽는다)
 .obsidian/
 wiki/.obsidian/
+
+# wrangler types 가 만드는 파일 — 기계가 쓰므로 포맷하지 않는다
+worker-configuration.d.ts

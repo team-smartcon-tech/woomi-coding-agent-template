@@ -298,3 +298,40 @@ tags: [wiki/log]
 - 확인하지 못한 것: 실제 Claude Code 세션에서 `permissionDecision: "ask"` 프롬프트가 뜨는지, `.claude/rules/` 의 `paths` 로딩, `mcp__.*` 매처의 발화. 판정 로직은 selftest 와 stdin payload 로 확인했고, 하네스 안에서의 동작은 보지 못했다. 바뀐 워크플로 두 개도 GitHub 러너에서 돌려 보지 못했다.
 - 갱신한 정리본: [좋은 예시와 금지 예시](rules/examples.md), [DB 스키마 가드레일](rules/db-schema-guardrails.md), [마이그레이션](rules/migration.md), [배포](rules/deployment.md), [도구 사용 기준](rules/tooling.md).
 - 남은 것: `AGENTS.md` 를 지도 수준으로 줄이는 일(지금 305줄), 코드 쪽 검사가 없는 반복 실수(화면의 테이블 직접 접근·1,000행 잘림·UTC 날짜·`alert()`)의 ESLint 규칙화, Gitleaks/Squawk 를 CI 에 붙여 실측, 하네스 경로 CODEOWNERS(Free 플랜 private 저장소에서는 강제되지 않는다).
+
+## 2026-11-26 · 넣기 · 스캐폴드를 Cloudflare Worker 로 — 실행·환경변수·배포 파이프라인 (2.32 → 3.0-draft)
+
+- 계기: 2.32-draft 의 5계층 중 배포 쪽(`.dev.vars.example`·`.assetsignore`·health·프리뷰)이 문서로만 남았다. 같은 스택 저장소 16곳 중 13곳이 Worker 인데 템플릿에는 Worker 가 없어서다. 문서만 있는 규칙은 지켜지지 않았다는 것이 2.32 조사의 결론이었다. 설계: `docs/ai/designs/2026-11-26-cloudflare-worker-scaffold.md`.
+- 한 것: `apps/web` 을 Cloudflare Worker 하나로 실행·빌드한다(`@cloudflare/vite-plugin`, `wrangler`, `workers/app.ts`). 환경변수를 `.env`/`NODE_ENV` 에서 `.dev.vars`/`APP_ENV` 로 옮기고 `env.server.ts` 가 `cloudflare:workers` 의 `env` 를 읽게 했다. `GET /api/health`, `_headers`, `.assetsignore`, `scripts/assets-check.mjs`, `deploy.yml`, `pr-checks` 에 배포 설정·자산·타입 파일 검사. 문서(`DEPLOYMENT.md` 4.1~4.5·6~8.3, `AGENTS.md`, 각 README, 온보딩)와 CHANGELOG.
+- 정한 것과 이유:
+  - **Hono API Worker 를 따로 두지 않고 `apps/web` 자체를 Worker 로.** 작은 앱의 기본형이 통합 Worker 이고(`DEPLOYMENT.md` 2장), 5계층 파일이 전부 실물로 생긴다. Node 유지 + 예시 파일만 두는 안은 CI 에서 돌지 않아 "문서만 있는 규칙" 을 반복해 기각.
+  - **프리뷰는 운영 Worker 의 버전이 아니라 별도 Worker(`woomi-web-preview`).** 운영 버전으로 올리면 PR 코드가 운영 `SESSION_SECRET` 을 쓴다 — 4장의 secret 재사용 금지를 어긴다.
+  - **`APP_ENV` 는 닫힌 쪽(운영 규칙)이 기본.** 환경 선택을 빠뜨린 배포가 알려진 기본값으로 뜨면 안 되고(반목표 2), 로컬은 `pnpm dev` 가 `development` 를 골라 `.dev.vars` 없이 뜬다(온보딩 유지, 반목표 3).
+  - **Cloudflare 계정 정보가 없으면 배포 잡은 "건너뜀" 으로 통과.** 계정 없는 파생 저장소의 PR 이 막히면 안 된다(반목표 1). 대신 건너뜀은 미검증이라고 요약 문구로 구분한다. `pull_request_target` 은 쓰지 않는다.
+  - **React Router 7→8.5, Vite 6→8 로 올렸다.** 공식 C3 템플릿의 버전 하한을 따랐다(조합 보증). 대가로 Node 22.22+ 필요. 리드가 처음 MINOR(2.33-draft)로 판정했으나 사용자가 MAJOR(3.0-draft)로 결정했다 — 실행 방식·로컬 값 파일·메이저 의존성이 함께 바뀌어 2.x 분기 프로젝트가 그대로 당겨오면 깨진다.
+  - 로드 컨텍스트(`context.cloudflare`)는 만들지 않았다 — RR8 의 C3 템플릿이 넘기지 않고 소비자가 없다.
+- 실제로 부딪힌 것(계획 단계 위험이 맞았던 것 / 구현에서 새로 나온 것):
+  - 맞았던 것: `cloudflare:workers` 가 Vitest(Node)에서 안 돌아 `env.schema.ts` 로 순수 로직을 분리해야 했다. 버전 조합이 맞지 않아 C3 하한을 따라 메이저가 올랐다.
+  - 새로 나온 것: `vite preview` 가 빌드 때 `.dev.vars` 를 `build/server/.dev.vars` 로 복사해 secret 이 빌드에 굳는다(빌드 *뒤* 에 `.dev.vars` 를 두면 계속 500). `wrangler types` 가 `.dev.vars` 의 secret 이름을 `Env` 에 넣어 CI 의 타입 파일 어긋남 검사가 흔들렸다 → `--env-file types.env`. 배포 토큰이 잡 전체 `env` 에 있어 의존성 스크립트에 노출되던 것 → 단계 범위로 축소. 자산 검사가 CHANGELOG 헤딩을 못 찾으면 조용히 꺼졌다 → 실패로. Vitest 가 `cloudflare()` 플러그인 때문에 시작 실패 → `VITEST` 일 때 플러그인 제외.
+  - 리뷰가 잡은 것(수정 라운드): Task 3 — 헤딩 누락 시 leak 검사 무음, `wrangler.json*` 범위. Task 4 — `.dev.vars` 때문에 타입 드리프트 검사 상시 실패 가능, 토큰 노출 범위.
+- 단순→고난도 재분류: 보고서에 재분류 기록 없음.
+- 확인하지 못한 것: 실제 프리뷰·운영 배포와 Cloudflare Access(계정 정보 없음), `deploy.yml` 의 GitHub 러너 실행과 프리뷰 URL 추출, 새 `pr-checks` 단계의 Linux 러너 통과(특히 타입 파일 어긋남 검사), `_headers`·`.assetsignore` 의 Cloudflare 쪽 동작. Access 를 걸면 `deploy.yml` 의 health 단계도 막힌다(설계에 없던 충돌). 로컬 Node 22.13 에서는 RR8 경고만 나오고 통과.
+- 같이 정리: 선행 설계 `2026-11-26-harness-gates.md` 를 확정으로 — 원본 연구문서 링크, 워크플로 러너 실행 확인(PR #42 CI·main 11-26 11:12 KST `db-checks` 성공), 원본 3단계 대응표(1단계 대부분·2단계 DB 일부+이번 Worker·3단계 미착수).
+- 갱신한 정리본: [배포](rules/deployment.md).
+- 남은 것: 계정 있는 저장소에서 첫 배포, `STACK.md` 의 "React Router v7" 표기, 업그레이드 3·4번(Gitleaks·Squawk·정책 코드화·공급망·CODEOWNERS).
+- 역할·모델(이 작업의 에이전트. 지정과 실제가 어긋난 것은 어긋난 채로 적는다):
+
+  | 역할 | 담당 | 실제 모델 |
+  |---|---|---|
+  | 리드(설계·계획·조율) | 메인 세션 | Opus 5.5 |
+  | 설계 빌더 검토 | 서브에이전트 | 지정 없음(세션 상속, 미확인) |
+  | Task 1~5 구현 | 서브에이전트 | sonnet 지정 (커밋 trailer 는 Opus 5.5 로 달렸음 — 실제와 다름) |
+  | Task 1·3 리뷰 | 서브에이전트 | sonnet |
+  | Task 2·4 리뷰 | 서브에이전트 | opus |
+  | Task 3 재검토 | 서브에이전트 | haiku |
+  | Task 4 재검토 | 서브에이전트 | sonnet |
+
+## 2026-11-27 · 고치기 · 배포 정리본의 secret 지정 문장, 표준 버전 3.0-draft
+
+- 고친 것: [배포](rules/deployment.md) Secret 절이 "`wrangler secret put …`, `--env dev` 분리" 를 안내하고 있었다. Vite 플러그인 스캐폴드에서는 로컬 빌드 뒤 `--env` 가 무시되어 운영 Worker 의 secret 을 덮어쓴다 — 같은 페이지 아래 절의 예외를 위 문장만 읽은 사람이 놓치므로, 위 문장에서 바로 `--name woomi-web` / `--name woomi-web-preview` 를 쓰라고 적었다. 같은 페이지의 "확인하지 못한 것" 에 PR #43 러너에서 확인된 범위(배포 건너뜀 경로만)를 반영했다.
+- 정한 것: 표준 버전을 MINOR(2.33) 가 아니라 MAJOR(3.0-draft)로 — 사용자 결정. 실행 방식·로컬 값 파일·메이저 의존성이 함께 바뀌어 2.x 분기 프로젝트가 그대로 당겨오면 깨진다.

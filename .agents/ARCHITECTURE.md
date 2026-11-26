@@ -69,11 +69,11 @@ middleware는 적용 범위에 따라 위치를 나눈다.
 
 ## 3. Frontend Architecture
 
-신규 프로젝트의 프론트엔드는 **React Router v7 Framework Mode + Feature-Sliced Design 계열 구조**를 기본으로 한다.
+신규 프로젝트의 프론트엔드는 **React Router Framework Mode(스캐폴드는 8.x) + Feature-Sliced Design 계열 구조**를 기본으로 한다.
 
 React Router Framework Mode에서는 `apps/web/app`이 프론트엔드 앱 루트다. URL에 직접 연결되는 파일은 `routes/`에 두고, 실제 기능과 도메인 모델은 `features/`와 `entities/` 아래에서 slice로 나눈다.
 
-기존 FSD 개념은 유지한다. React Router v7 Framework Mode를 적용하면서 필수로 바뀌는 것은 URL 진입점 계층이 `pages/`가 아니라 `routes/`가 된다는 점이다.
+기존 FSD 개념은 유지한다. React Router Framework Mode를 적용하면서 필수로 바뀌는 것은 URL 진입점 계층이 `pages/`가 아니라 `routes/`가 된다는 점이다.
 
 ```txt
 apps/web/

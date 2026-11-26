@@ -75,7 +75,7 @@ description: 처음 온 사람을 첫 커밋까지 데려간다. 환경을 대�
 
 ## 6. 눈으로 확인시킨다
 
-`pnpm install` 후 `pnpm dev` 를 실행하고 `http://localhost:5173` 을 열라고 안내한다. 왼쪽 위 이름이 바뀐 것을 직접 보게 한다. 로그인이 필요하면 데모 계정 `admin@woomi.dev` / `admin1234` 를 알려준다.
+`pnpm install` 후 `pnpm dev` 를 실행하고 `http://localhost:5173` 을 열라고 안내한다. 비밀값 파일(`.dev.vars`)은 만들 필요가 없다. Node 가 22.22 보다 낮으면 경고가 뜨니 올리라고 안내한다(이 화면은 Cloudflare Worker 로 실행된다). 왼쪽 위 이름이 바뀐 것을 직접 보게 한다. 로그인이 필요하면 데모 계정 `admin@woomi.dev` / `admin1234` 를 알려준다.
 
 확인이 끝나면 개발 서버를 멈추게 한다(`Ctrl+C`).
 

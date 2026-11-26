@@ -47,6 +47,7 @@ const BUILTIN = new Set([
   "CI",
   "VITEST",
   "TZ",
+  "CLOUDFLARE_ENV", // vite.config.ts 가 개발 서버의 wrangler 환경을 고르는 빌드 도구 변수 — 앱이 읽는 값이 아니다
 ])
 const SECRETISH = /SECRET|SERVICE_ROLE|PRIVATE|PASSWORD|PASSWD|TOKEN|API_KEY|CREDENTIAL/
 const PUBLIC_PREFIX = /^(?:VITE_|NEXT_PUBLIC_|PUBLIC_)/

@@ -8,6 +8,82 @@
 
 ---
 
+## [3.0-draft] - 2026-11-26
+
+**스캐폴드(`apps/web`)를 Cloudflare Worker 하나로 실행·빌드·배포한다.** 2.32-draft 조사에서 같은 스택 저장소 16곳 중 13곳이 Worker 를 쓰는데 템플릿에는 Worker 가 없어서, 5계층의 배포 쪽 규칙이 문서(`DEPLOYMENT.md` 4.2)로만 남았다. 파일이 실제로 있어야 `env-check`·`secret-scan` 이 볼 대상이 생기고 파생 프로젝트가 복사만으로 같은 형태를 얻는다. 설계·선택지·기각 사유는 [`docs/ai/designs/2026-11-26-cloudflare-worker-scaffold.md`](docs/ai/designs/2026-11-26-cloudflare-worker-scaffold.md).
+
+**MAJOR 를 올린다(2.32 → 3.0).** 스캐폴드의 실행 방식(Node → Worker), 로컬 값 파일(`.dev.vars`), 운영 판정 변수(`APP_ENV`), React Router·Vite 메이저 버전이 함께 바뀌어, 2.x 기준으로 만든 분기 프로젝트가 그대로 당겨오면 깨진다. 처음에는 "규칙은 그대로" 라는 이유로 MINOR(2.33) 로 올렸다가 호환이 깨지는 변경이라 사용자 결정으로 MAJOR 로 바꿨다(2026-11-26). 가져가는 방법은 아래 "가져갈 때".
+
+### 추가
+
+- **`apps/web/wrangler.jsonc`** — Worker `woomi-web`. 최상위 `vars.APP_ENV="production"`, `env.preview`(**별도 Worker `woomi-web-preview`** — 운영 `SESSION_SECRET` 을 PR 코드가 쓰지 않게 한다), `env.development`(로컬). secret 은 적지 않는다.
+- **`apps/web/workers/app.ts`**(Worker 진입점), `app/entry.server.tsx`, `worker-configuration.d.ts`(`pnpm cf-typegen` 산출물 커밋), `types.env`(타입 생성이 `.dev.vars` 의 secret 이름을 읽지 않게 하는 빈 파일).
+- **`GET /api/health`**(`routes/api.health.ts`) — `200 {"status":"ok","env"}` 또는 `503 {"status":"not_ready"}`, `Cache-Control: no-store`. 변수 이름·값·버전을 응답에 넣지 않는다.
+- **`apps/web/public/_headers`**(정적 자산 응답의 캐시·기본 보안 헤더; SSR 화면 응답은 `app/entry.server.tsx` 가 같은 헤더를 건다), **`public/.assetsignore`**.
+- **`scripts/assets-check.mjs`**(`pnpm assets:check`) — 빌드 결과 `apps/web/build/client` 에 `wrangler.json*`·`package.json`·`.dev.vars*`·`*.md` 가 있거나 CHANGELOG 최상단 헤딩 줄이 새면 실패한다. CHANGELOG 에서 헤딩을 못 찾아도 실패한다(검사가 조용히 꺼지지 않게). 서버 번들은 보지 않는다.
+- **`.github/workflows/deploy.yml`** — PR 은 `CLOUDFLARE_ENV=preview` 로 빌드해 프리뷰 Worker 에 `versions upload --preview-alias pr-<번호>`, `main` push 는 운영 `wrangler deploy`. 이어서 `/api/health` 를 호출해 503 이면 "secret 미등록" 으로 실패한다. **`CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID` 가 없으면 요약에 "배포 건너뜀 — Cloudflare 계정 정보 없음" 을 남기고 통과**한다. `pull_request_target` 은 쓰지 않고, 토큰은 계정 확인 단계와 `wrangler-action` 의 `with:` 에만 둔다.
+- **`pr-checks`** — 정적 자산 검사(자체 점검 포함), 배포 설정 검사(`pnpm deploy:dry`), `worker-configuration.d.ts` 어긋남 검사.
+- 루트 명령 `deploy:dry`·`cf-typegen`·`assets:check`.
+- `env.schema.ts` — 환경변수 판정의 순수 로직(`parseEnv`·`resolveSessionSecret`·`isReady`)과 단위 테스트.
+
+### 변경
+
+- **런타임: Node(`react-router-serve`) → Cloudflare Worker(`@cloudflare/vite-plugin`, `wrangler`).** `@react-router/node`·`@react-router/serve` 를 뺐다.
+- **의존성 메이저 상승: `react-router`·`@react-router/dev` 7.x → 8.5, `vite` 6 → 8, `react`·`react-dom` 19.0 → 19.3, `isbot` 5.1 → 5.1.36.** 이유: Cloudflare 공식 React Router 템플릿(C3)이 정하는 버전 하한을 따랐다. 하한 밑으로 두면 Cloudflare 플러그인과의 조합을 보증받지 못한다. 이 상승으로 **Node 22.22 이상이 필요하다**(React Router 8 요구. `.nvmrc` 는 24. 22.13 에서는 경고만 나오고 동작·빌드·테스트는 통과했다).
+- **환경변수** — 로컬 값 파일 `.env`/`apps/web/.env.example` → `apps/web/.dev.vars`/`.dev.vars.example`. 운영 판정을 `NODE_ENV` 에서 `wrangler.jsonc` 의 공개 값 `APP_ENV`(`development`·`preview`·`production`)로 바꿨다. 서버 환경변수는 `env.server.ts` 한 곳에서만 읽는다(`getEnv()`·`getSessionSecret()`, `cloudflare:workers` 의 `env`). ESLint 가 `process.env` 와 `cloudflare:workers` 의 `env` import 를 그 밖에서 막는다.
+- **`SESSION_SECRET`(32자 이상) 없음의 결과** — `production`·`preview` 에서는 세션 요청 500, `/api/health` 503(Worker 에는 "기동 실패" 가 없다). `development` 는 격리 단위마다 임시 무작위 값. `APP_ENV` 는 닫힌 쪽이 기본이라 환경 선택을 빠뜨린 배포는 운영 규칙을 받는다.
+- **`pnpm start`** 는 `vite preview`(빌드 결과를 로컬 workerd 로 실행)다. 운영 규칙이라 `SESSION_SECRET` 이 필요하다. `pnpm dev`(5173)는 `.dev.vars` 없이 뜬다 — `vite.config.ts` 가 개발 서버에서 `CLOUDFLARE_ENV=development` 를 고른다.
+- `version.server.ts` 가 `node:fs` 대신 `.server.ts` 안의 `?raw` import 로 CHANGELOG 를 읽는다(서버 번들에만 들어간다).
+- 규칙 문서: `DEPLOYMENT.md` 3장(환경은 빌드 때 고른다)·4.1~4.5(Worker 환경변수, 스캐폴드의 실제 파일, 첫 배포 순서, 프리뷰 Access)·6~8장(`deploy:dry`, 8.3 `deploy.yml`), `AGENTS.md` 2·7장, `README.md`·`apps/web/README.md`·`.claude/commands/onboard.md`·`docs/브라우저-검증-절차.md`·`.claude/rules/env.md` 의 실행 안내. 선행 설계 `2026-11-26-harness-gates.md` 를 확정으로 정리(원본 연구문서 링크, 3단계 도입 절차 대응표, CI 실측).
+- 위키: `log.md`, 정리본 [배포](wiki/rules/deployment.md), `index.md`.
+
+### 수정
+
+- `.githooks/pre-commit`·`pr-checks.yml` 주석·`scripts/secret-scan.mjs` 문구가 사라진 `.env.example` 을 가리키던 것을 고쳤다(탐지 동작은 그대로).
+- `eslint.config.mjs` 의 `process.env` 제한 메시지가 사라진 `env` export 대신 `getEnv()` 를 가리키게 했다.
+
+### 확인한 것
+
+아래 앞의 항목은 구현 중 각 단계 시점의 확인이다. 마지막 항목만 최종 HEAD 에서 다시 돌렸다.
+
+- `.dev.vars` 없이 `pnpm dev` → 로그인(302)·대시보드 200·사이드바 버전 `2.32-draft`(당시)·변경 이력 응답. `.dev.vars` 의 `SESSION_SECRET` 을 바꿔 다시 띄우면 기존 세션이 풀린다.
+- 운영 빌드(`pnpm build && pnpm start`): `SESSION_SECRET` 없이 `/login` 500·`/api/health` 503(응답에 `SESSION_SECRET` 문자열 없음), 있으면 로그인 302·`/` 200. 개발 서버 `/api/health` 200.
+- `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`deploy:dry`·`env:check`·`assets:check`·각 `--selftest`. `wrangler.jsonc` 의 `vars` 에 `SESSION_SECRET` 을 넣으면 `env-check` 가 실패한다. `apps/web/public/package.json` 을 넣으면 `assets:check` 가 실패한다. `.dev.vars` 를 둔 채 `pnpm typecheck` 해도 `worker-configuration.d.ts` 가 바뀌지 않는다.
+- **3.0-draft HEAD 에서 재실행(2026-11-26)**: `pnpm format:check`·`typecheck`·`lint`·`test`(26)·`build`·`assets:check`(41개 파일)·`deploy:dry`·`env:check` 가 모두 종료 0, `git diff --exit-code -- apps/web/worker-configuration.d.ts` 도 0. 로컬(Windows)에서 돌린 결과이며 GitHub 러너 결과가 아니다.
+
+### 확인하지 못한 것
+
+- **실제 프리뷰·운영 배포, Cloudflare Access.** 이 저장소에는 Cloudflare 계정 정보가 없다. 첫 배포 순서와 Access 절차(`DEPLOYMENT.md` 4.4·4.5)는 따라 해 보지 못했다. Access 가 걸린 프리뷰는 `deploy.yml` 의 health 단계도 막는다 — 걸 때 Service Token 이나 health 조정이 필요하다.
+- **`deploy.yml` 의 GitHub 러너 실행**, `wrangler-action` 출력에서 프리뷰 URL 을 뽑는 부분, `pr-checks` 의 새 단계(특히 Linux 러너에서의 `worker-configuration.d.ts` 어긋남 검사)가 실제로 통과하는지.
+- `_headers` 가 실제 응답에 적용되는지(`vite preview` 가 규칙을 읽는 것까지만 봤다), `.assetsignore` 가 업로드에서 파일을 빼는지. `assets:check` 가 그 안전망이다.
+- `-e <환경>` 으로 고르는 `.dev.vars.<환경>` 이 타입 생성에 섞이는지(현재 쓰지 않는다).
+
+### 분기한 프로젝트가 가져갈 때
+
+이 변경은 **실행 명령과 값 파일을 바꾼다.** Node 서버로 계속 쓰는 프로젝트는 가져가지 않아도 된다. 가져가면 아래가 바뀐다.
+
+| 이전 | 이후 |
+|---|---|
+| `.env`, `apps/web/.env.example` | `apps/web/.dev.vars`(커밋 금지), `apps/web/.dev.vars.example` |
+| `NODE_ENV=production` 으로 운영 판정 | `wrangler.jsonc` 의 `APP_ENV`(`production`·`preview`·`development`) |
+| `process.env` 를 `env.server.ts` 에서 읽음 | `cloudflare:workers` 의 `env` 를 `env.server.ts` 에서 읽음 |
+| `pnpm start` = `react-router-serve`(Node) | `pnpm start` = `vite preview`(workerd, `SESSION_SECRET` 필요) |
+| 값이 없으면 모듈을 읽을 때 throw | 운영·프리뷰에서 처음 쓰는 요청이 실패(세션 500, health 503) |
+| — | `pnpm deploy:dry`·`cf-typegen`·`assets:check` 신규 |
+| 하한 명시 없음(`.nvmrc` 24) | Node 22.22 이상(React Router 8 요구) |
+| — | GitHub secret `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID`(없으면 배포 잡은 건너뜀). 운영 배포 뒤 **프리뷰 Worker 를 따로 만들고**(PR 경로는 `versions upload` 뿐이라 없는 Worker 에는 실패한다) **두 Worker 각각** `wrangler secret put SESSION_SECRET --name <Worker 이름>` (`--env` 금지: 로컬 빌드 뒤에는 운영 secret 을 덮어쓴다) |
+
+- `.dev.vars` 가 있는 채로 만든 `build/` 는 `build/server/.dev.vars` 를 품는다. 배포·공유하지 않는다(CI 빌드에는 `.dev.vars` 가 없다).
+- 진입점 `workers/app.ts` 는 로드 컨텍스트를 넘기지 않는다(React Router 8 공식 템플릿). loader 에서 `ctx.waitUntil` 이나 바인딩이 필요해지면 그 파일을 고친다.
+- 이미 Worker 를 쓰는 프로젝트는 `wrangler.jsonc` 를 덮어쓰지 말고 `APP_ENV`·`env.preview` 구조와 `deploy.yml` 의 빌드 때 환경 선택만 참고한다.
+
+### 남은 것
+
+- 계정이 있는 저장소에서 첫 배포를 돌려 위 "확인하지 못한 것" 을 채운다.
+- 업그레이드 3·4번: Gitleaks·기준선, Squawk·`supabase db lint`, 정책 코드화·공급망·CODEOWNERS(원본 3단계).
+
+---
+
 ## [2.32-draft] - 2026-11-26
 
 **문서에만 있던 규칙을 실패하는 검사로 옮긴다.** 이 템플릿에서 분기했거나 같은 스택인 저장소 16곳과 Supabase DB 12개를 조사하니, 템플릿에 이미 적혀 있던 규칙이 반대로 쌓여 있었다 — anon 이 실행 가능한 `security definer` 함수 66개, 감싸지 않은 `auth.uid()` 정책 87개, `.githooks/` 가 없는 저장소 5곳. 조사 방법·숫자·한계와 외부 자료(5계층 하네스)와의 대조는 [`docs/ai/designs/2026-11-26-harness-gates.md`](docs/ai/designs/2026-11-26-harness-gates.md).

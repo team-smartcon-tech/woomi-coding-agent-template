@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "woomi-web",
+  "main": "./workers/app.ts",
+  "compatibility_date": "2026-11-26",
+  "observability": { "enabled": true },
+  // 최상위 vars 가 운영이다. preview·development 는 아래 env 로 덮는다.
+  "vars": { "APP_ENV": "production" },
+  "env": {
+    "preview": { "vars": { "APP_ENV": "preview" } },
+    "development": { "vars": { "APP_ENV": "development" } },
+  },
+  // secret 은 여기에 쓰지 않는다 — `wrangler secret put SESSION_SECRET` 으로 등록한다.
+  // 바인딩이 필요해지면 주석을 풀어 쓴다:
+  // "d1_databases": [{ "binding": "DB", "database_name": "woomi", "database_id": "<id>" }],
+  // "kv_namespaces": [{ "binding": "KV", "id": "<id>" }],
+  // "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "woomi" }]
+}

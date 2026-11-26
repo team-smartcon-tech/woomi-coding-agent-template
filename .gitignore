@@ -48,3 +48,6 @@ Thumbs.db
 
 # Claude Code가 만드는 로컬 워크트리. `.git/info/exclude`에만 있어 클론에는 전달되지 않았다.
 .claude/worktrees/
+
+# 원본 조사 문서의 바이너리. Markdown 으로 옮긴 사본만 추적한다.
+docs/**/*.docx

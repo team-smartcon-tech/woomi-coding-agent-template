@@ -15,7 +15,7 @@ import { ErrorState } from "~/shared/ui/error-state"
 export function meta() {
   return [
     { title: "Woomi 관리자 스캐폴드" },
-    { name: "description", content: "React Router v7 기반 관리자 SaaS 스캐폴드" },
+    { name: "description", content: "React Router 8 기반 관리자 SaaS 스캐폴드" },
   ]
 }
 

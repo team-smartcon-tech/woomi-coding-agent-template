@@ -7,7 +7,7 @@
 ## 1. Frontend
 
 - React
-- React Router v7 Framework Mode
+- React Router Framework Mode(스캐폴드는 8.x)
 - TypeScript
 - TanStack Query
 - Zustand
@@ -15,11 +15,11 @@
 - Zod
 - 프로젝트별 디자인 시스템
 
-신규 프로젝트에서 `React + Vite`만으로 프론트엔드 표준을 끝내지 않는다. React는 UI 라이브러리이고, Vite는 빌드 도구다. Woomi 신규 프로젝트의 기본 프론트엔드 프레임워크는 **React Router v7 Framework Mode**다.
+신규 프로젝트에서 `React + Vite`만으로 프론트엔드 표준을 끝내지 않는다. React는 UI 라이브러리이고, Vite는 빌드 도구다. Woomi 신규 프로젝트의 기본 프론트엔드 프레임워크는 **React Router Framework Mode(스캐폴드는 8.x)**다. 7 에서 8 로 달라진 점: 로드 컨텍스트가 `AppLoadContext` 가 아니라 `RouterContextProvider` 이고(스캐폴드의 Worker 진입점은 컨텍스트를 넘기지 않는다), Node 22.22 이상이 필요하다.
 
 기본 조합:
 
-- Framework: React Router v7 Framework Mode
+- Framework: React Router Framework Mode(스캐폴드는 8.x)
 - Rendering/routing/data boundary: React Router route modules, loader/action, error boundary
 - Server state: TanStack Query
 - Local/client state: Zustand
@@ -36,7 +36,7 @@
 
 | 도구 | 담당 | 사용 기준 |
 |---|---|---|
-| React Router v7 | 라우팅, route loader/action, navigation, error boundary | URL 진입, route 단위 초기 데이터, 간단한 form action |
+| React Router | 라우팅, route loader/action, navigation, error boundary | URL 진입, route 단위 초기 데이터, 간단한 form action |
 | TanStack Query | 서버 데이터 캐시/동기화 | 여러 컴포넌트가 공유하거나 갱신/무효화/mutation 동기화가 필요한 API 데이터 |
 | Zustand | 클라이언트 UI 상태 | URL로 표현하기 어렵고 여러 화면이 공유하는 UI 상태 |
 | React Hook Form | 복잡한 폼 상태 | 동적 필드, 중첩 필드, dirty/touched/errors, 임시 저장이 필요한 폼 |

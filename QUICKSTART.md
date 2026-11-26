@@ -83,9 +83,9 @@ GitHub 저장소 → **Settings → Branches → Add branch ruleset** → 대상
 
 1단계 - 규칙 먼저 읽기: AGENTS.md(특히 0장 Project Overview, 2장 Task Routing, 6장 절대 금지, 8장 충돌 우선순위, 11장 Project Override)와 .agents/STACK.md, .agents/ARCHITECTURE.md 를 먼저 읽고, "이 템플릿이 가정하는 기본 규칙"을 비개발자가 알아들을 수 있게 한 문단으로 요약해 주세요. (이 단계는 당신이 읽는 단계이고, 제가 직접 읽을 필요는 없습니다.)
 
-2단계 - 기존 코드 스캔(수정 금지): 제 프로젝트의 실제 모습을 스스로 파악해 주세요. package.json, pnpm-workspace.yaml, tsconfig, 프론트엔드 프레임워크(React Router v7인지 / Next.js인지 / 그냥 Vite인지 등), 백엔드(Hono/Cloudflare Worker인지 / NestJS인지 / Express인지 등), 데이터베이스(Supabase인지 다른 것인지), 폴더 구조(apps·packages로 나뉜 모노레포인지 단일 폴더인지), 배포 설정(wrangler.jsonc, .github/workflows), 기존 디자인 도구(MUI / Tailwind+shadcn/ui / Radix 등)를 확인해서 "실제 스택 목록"을 표로 정리해 주세요. 추측이 들어간 부분은 "확인 필요"라고 표시하세요.
+2단계 - 기존 코드 스캔(수정 금지): 제 프로젝트의 실제 모습을 스스로 파악해 주세요. package.json, pnpm-workspace.yaml, tsconfig, 프론트엔드 프레임워크(React Router인지 / Next.js인지 / 그냥 Vite인지 등), 백엔드(Hono/Cloudflare Worker인지 / NestJS인지 / Express인지 등), 데이터베이스(Supabase인지 다른 것인지), 폴더 구조(apps·packages로 나뉜 모노레포인지 단일 폴더인지), 배포 설정(wrangler.jsonc, .github/workflows), 기존 디자인 도구(MUI / Tailwind+shadcn/ui / Radix 등)를 확인해서 "실제 스택 목록"을 표로 정리해 주세요. 추측이 들어간 부분은 "확인 필요"라고 표시하세요.
 
-3단계 - 차이 대조: 2단계의 실제 스택을 템플릿 표준(.agents/STACK.md = React Router v7 + Hono/Cloudflare Worker + Supabase, .agents/ARCHITECTURE.md = apps/web·apps/worker·packages/shared 구조)과 한 줄씩 비교해서 "같음 / 다름 / 잘 모르겠음" 표를 만들어 주세요. 다른 항목은 표준을 강요하지 말고, "이 문서를 실제 값으로 이렇게 고치면 됩니다" 형태로만 제안해 주세요(아직 실제로 고치지는 마세요).
+3단계 - 차이 대조: 2단계의 실제 스택을 템플릿 표준(.agents/STACK.md = React Router(스캐폴드는 8.x) + Hono/Cloudflare Worker + Supabase, .agents/ARCHITECTURE.md = apps/web·apps/worker·packages/shared 구조)과 한 줄씩 비교해서 "같음 / 다름 / 잘 모르겠음" 표를 만들어 주세요. 다른 항목은 표준을 강요하지 말고, "이 문서를 실제 값으로 이렇게 고치면 됩니다" 형태로만 제안해 주세요(아직 실제로 고치지는 마세요).
 
 4단계 - 빈칸 질문: AGENTS.md 0장 Project Overview의 빈칸을 저에게 한 번에 하나씩, 쉬운 우리말 질문으로 물어봐 주세요. 각 항목은 다음과 같습니다 — Project name(프로젝트 이름) / What it does(무슨 일을 하는 서비스인지, 한 문장) / Main users(주 사용자가 누구인지) / Core workflows(사용자가 처음부터 끝까지 하는 핵심 동작 몇 가지) / Important data(꼭 안전하게 보관해야 하는 정보, 예: 회원·주문·결제) / Admin roles(관리자/일반 사용자 같은 권한 구분이 필요한지) / External services(연동할 외부 서비스, 예: 결제·메일·로그인) / Launch target(언제, 어떤 형태로 출시하고 싶은지) / Do not touch(절대 건드리면 안 되는 코드·데이터). 특히 "Do not touch(건드리면 큰일 나는 부분)"는 사고 방지를 위해 꼭 확인해 주세요. 단, 프레임워크·배포 방식 같은 기술 항목은 저에게 캐묻지 말고 2단계 스캔 결과로 당신이 채운 뒤 저에게 확인만 받으세요.
 
@@ -140,7 +140,7 @@ GitHub 저장소 → **Settings → Branches → Add branch ruleset** → 대상
   기술 항목(프레임워크·배포 방식 등)은 저에게 캐묻지 말고, 다음 단계에서 당신이 기본값을 제안한 뒤 제 확인만 받으세요.
 
 3단계 - 스택 결정(선택지 제시): 아래를 비개발자가 고를 수 있게 쉬운 말로 설명하고 선택받으세요. 잘 모르겠다고 하면 "기본값"을 권해 주세요.
-  - 기본 스택을 그대로 쓸까요, 바꿀까요? 기본값 = 화면은 React Router v7(웹 화면 틀) + 서버는 Hono/Cloudflare Worker(가벼운 서버) + 데이터 저장은 Supabase(PostgreSQL DB). (참고: 프론트엔드를 React+Vite "만"으로 끝내지 않습니다. 기본 틀은 React Router v7 Framework Mode입니다.)
+  - 기본 스택을 그대로 쓸까요, 바꿀까요? 기본값 = 화면은 React Router 8(웹 화면 틀) + 서버는 Hono/Cloudflare Worker(가벼운 서버) + 데이터 저장은 Supabase(PostgreSQL DB). (참고: 프론트엔드를 React+Vite "만"으로 끝내지 않습니다. 기본 틀은 React Router Framework Mode입니다.)
   - 서버를 가벼운 Hono Worker로 갈까요, 규모가 커질 것 같아 NestJS로 갈까요? 잘 모르겠으면 기본값인 가벼운 Hono Worker를 권합니다(나중에 NestJS로 바꿀 수 있습니다). NestJS를 고르면 .agents/code/NEST_GUIDE.md 를 추가로 따릅니다.
   - 디자인 도구를 무엇으로 통일할까요? 셋 중 하나만 고르고 한 프로젝트에서 섞지 않습니다 — MUI(완성형 컴포넌트 모음) / Tailwind+shadcn/ui(직접 조립형) / Radix(접근성 위주 골격). 잘 모르겠으면 지금 비워두고 나중에 .agents/ui/DESIGN.md 에서 정하는 것을 권합니다.
   결정한 내용은 (아직 코드는 만들지 말고) .agents/STACK.md 와 AGENTS.md의 Project Override에 어떻게 반영할지 변경 전후 비교(diff처럼)로 먼저 보여주세요. 제가 "진행"이라고 해야 실제로 문서를 고칩니다.

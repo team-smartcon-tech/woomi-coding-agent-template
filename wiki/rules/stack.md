@@ -10,7 +10,7 @@ Woomi 신규 프로젝트의 표준 기술 선택. 스택을 바꾸려면 사유
 
 ## 표준 스택
 
-- **프론트엔드** — React, React Router v7 Framework Mode, TypeScript, TanStack Query, Zustand, React Hook Form, Zod. 기본 프레임워크는 `React + Vite`가 아니라 React Router v7 Framework Mode다.
+- **프론트엔드** — React, React Router Framework Mode(스캐폴드는 8.x), TypeScript, TanStack Query, Zustand, React Hook Form, Zod. 기본 프레임워크는 `React + Vite`가 아니라 React Router Framework Mode다.
 - **백엔드** — Cloudflare Workers(또는 Pages Functions), Hono, TypeScript strict, Zod, Supabase JS.
 - **데이터베이스** — Supabase PostgreSQL, PostgreSQL function/RPC.
 - **스토리지/인프라** — Cloudflare R2 또는 Supabase Storage, Cron Triggers 또는 Queue, Wrangler.

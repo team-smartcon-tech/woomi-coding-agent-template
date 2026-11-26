@@ -167,7 +167,8 @@ function run(mode, ref) {
   const problems = []
   for (const f of files.filter(Boolean)) {
     const why = valueFile(f)
-    if (why) problems.push(`${f}: ${why} — 커밋하지 않습니다(.env.example 계열만 추적).`)
+    if (why)
+      problems.push(`${f}: ${why} — 커밋하지 않습니다(.env.example·.dev.vars.example 계열만 추적).`)
   }
   for (const { file, line, text } of lines) {
     if (SKIP_PATH.test(file) || valueFile(file)) continue

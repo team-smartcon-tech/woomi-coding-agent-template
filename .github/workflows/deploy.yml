@@ -1,0 +1,127 @@
+name: deploy
+
+# Cloudflare Worker 배포. PR 은 미리보기(preview) 버전을 올리고, main push 는 운영(production)에 배포한다.
+#
+# ## 계정 정보가 없으면 건너뛰고 통과한다
+# 이 템플릿 저장소와 계정을 아직 연결하지 않은 파생 저장소에서도 PR 이 배포 때문에 막히면 안 된다.
+# CLOUDFLARE_API_TOKEN·CLOUDFLARE_ACCOUNT_ID 가 비어 있으면 요약에 "건너뜀"을 남기고 나머지 단계를 건너뛴다.
+# 건너뛴 것은 통과가 아니라 미검증이다 — 요약 문구로 구분한다.
+#
+# ## pull_request_target 을 쓰지 않는 이유
+# 외부 포크의 코드를 저장소 secret 이 있는 권한으로 돌리게 되기 때문이다. pull_request 는 포크 PR 에
+# secret 을 주지 않으므로 그 PR 도 위의 "건너뜀" 경로로 안전하게 끝난다.
+#
+# ## 환경은 빌드 때 정해진다
+# Vite 플러그인을 쓰면 Cloudflare 환경을 CLOUDFLARE_ENV 로 빌드할 때 고르고, deploy·versions upload 는
+# 생성된 출력 설정을 읽는다. 그래서 두 명령에 --env 를 넘기지 않는다.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Cloudflare 계정 정보 확인
+        id: account
+        # 토큰은 이 단계와 wrangler-action 의 with 에만 둔다. 잡 전체 env 에 두면 pnpm install·build 의
+        # 의존성 스크립트와 Vite 플러그인에도 노출된다(main push 에서는 운영 토큰이다).
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "has_account=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_account=false" >> "$GITHUB_OUTPUT"
+            echo "배포 건너뜀 — Cloudflare 계정 정보 없음" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.account.outputs.has_account == 'true'
+
+      - uses: pnpm/action-setup@v5
+        if: steps.account.outputs.has_account == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.account.outputs.has_account == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        if: steps.account.outputs.has_account == 'true'
+
+      - name: 빌드(PR 은 preview 환경)
+        if: steps.account.outputs.has_account == 'true' && github.event_name == 'pull_request'
+        run: pnpm build
+        env:
+          CLOUDFLARE_ENV: preview
+
+      - name: 빌드(main 은 production)
+        if: steps.account.outputs.has_account == 'true' && github.event_name != 'pull_request'
+        run: pnpm build
+
+      # versions upload 는 운영 트래픽을 옮기지 않고 미리보기 주소만 만든다.
+      - name: 미리보기 버전 올리기
+        id: wrangler_preview
+        if: steps.account.outputs.has_account == 'true' && github.event_name == 'pull_request'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: versions upload --preview-alias pr-${{ github.event.pull_request.number }}
+
+      - name: 운영 배포
+        id: wrangler_prod
+        if: steps.account.outputs.has_account == 'true' && github.event_name != 'pull_request'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: deploy
+
+      # secret(SESSION_SECRET)을 올리기 전 첫 배포는 health 가 503 이다. 조용히 통과시키지 않고 원인을 알려 실패시킨다.
+      # PR 은 versions upload 가 URL 을 deployment-url 로 내지 않을 수 있어 command-output 에서 workers.dev 주소를 뽑는다.
+      - name: health 확인
+        if: steps.account.outputs.has_account == 'true'
+        env:
+          DEPLOY_URL: ${{ steps.wrangler_prod.outputs.deployment-url }}
+          PREVIEW_URL: ${{ steps.wrangler_preview.outputs.deployment-url }}
+          PREVIEW_OUTPUT: ${{ steps.wrangler_preview.outputs.command-output }}
+        run: |
+          url="${DEPLOY_URL:-$PREVIEW_URL}"
+          if [ -z "$url" ]; then
+            url=$(printf '%s' "$PREVIEW_OUTPUT" | grep -oE 'https://[A-Za-z0-9.-]+\.workers\.dev' | head -n 1 || true)
+          fi
+          if [ -z "$url" ]; then
+            echo "::error::배포 URL 을 wrangler-action 출력에서 찾지 못했습니다."
+            exit 1
+          fi
+          echo "health 확인: $url/api/health"
+          code=$(curl -sS -o "$RUNNER_TEMP/health.json" -w '%{http_code}' "$url/api/health" || true)
+          cat "$RUNNER_TEMP/health.json" 2>/dev/null || true; echo
+          if [ "$code" = "503" ]; then
+            echo "::error::health 503 — secret 미등록 — DEPLOYMENT.md 첫 배포 순서 참고"
+            exit 1
+          fi
+          if [ "$code" != "200" ]; then
+            echo "::error::health 응답이 200 이 아닙니다: $code"
+            exit 1
+          fi
+          echo "배포 완료: $url (health 200)" >> "$GITHUB_STEP_SUMMARY"

@@ -7,6 +7,8 @@
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "start": "pnpm --filter web start",
+    "deploy:dry": "pnpm --filter web deploy:dry",
+    "cf-typegen": "pnpm --filter web cf-typegen",
     "typecheck": "pnpm --filter web typecheck",
     "lint": "eslint apps/web/app",
     "lint:fix": "eslint apps/web/app --fix",
@@ -15,7 +17,8 @@
     "format:check": "prettier --check .",
     "secret:scan": "node scripts/secret-scan.mjs",
     "env:check": "node scripts/env-check.mjs",
-    "db:lint": "node scripts/db-lint.mjs"
+    "db:lint": "node scripts/db-lint.mjs",
+    "assets:check": "node scripts/assets-check.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

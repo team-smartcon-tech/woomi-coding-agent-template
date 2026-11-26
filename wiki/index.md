@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-11-09
+updated: 2026-11-26
 tags: [wiki/index]
 ---
 
@@ -54,7 +54,7 @@ tags: [wiki/index]
 
 ### 배포
 
-- [배포](rules/deployment.md) — 환경 분리·secret·CI/CD·rollback
+- [배포](rules/deployment.md) — 환경 분리·secret·CI/CD·rollback. 3.0-draft 부터 스캐폴드가 Cloudflare Worker(프리뷰 별도 Worker, health, `deploy.yml`)
 
 ## 원본
 

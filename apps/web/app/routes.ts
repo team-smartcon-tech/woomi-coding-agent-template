@@ -1,6 +1,8 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes"
 
 export default [
+  // 배포 상태 확인 — 로그인 가드 밖.
+  route("api/health", "routes/api.health.ts"),
   route("login", "routes/login.tsx"),
   route("logout", "routes/logout.tsx"),
   layout("routes/_app.tsx", [
