@@ -37,6 +37,20 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      # 로컬 훅(.githooks/pre-commit)과 같은 규칙이다. 훅은 core.hooksPath 가 설정된 PC 에서만 돌고
+      # --no-verify 로 건너뛸 수 있어, 서버에서 한 번 더 본다. 의존성 설치 전에 돌려 빨리 실패시킨다.
+      - name: 시크릿 스캔
+        run: |
+          node scripts/secret-scan.mjs --selftest
+          node scripts/secret-scan.mjs
+
+      - name: lockfile 은 pnpm 하나
+        run: |
+          if git ls-files | grep -E '(^|/)(package-lock\.json|yarn\.lock|bun\.lockb?)$'; then
+            echo "::error::pnpm 저장소에 다른 패키지 매니저의 lockfile 이 있습니다."
+            exit 1
+          fi
+
       # --frozen-lockfile: lockfile 과 package.json 이 어긋나면 여기서 실패한다.
       # 로컬에서 install 을 빠뜨린 PR 이 CI 에서 조용히 다른 버전으로 통과하는 것을 막는다.
       - run: pnpm install --frozen-lockfile
@@ -56,6 +70,13 @@ jobs:
       - name: 빌드
         run: pnpm build
 
+      # 코드가 읽는 환경변수 ↔ .env.example ↔ wrangler 설정. secret 을 기본값으로 대체하는 코드도 잡는다.
+      - name: 환경변수 경계
+        run: |
+          node scripts/env-check.mjs --selftest
+          node scripts/env-check.mjs
+
       # 훅 판정 로직이 깨지면 안전장치가 조용히 통과한다. 이건 로컬 훅이라 CI 가 유일한 검사다.
+      # selftest 는 훅 정의 파일(.claude/settings.json·.codex/hooks.json)에 가드 호출이 남아 있는지도 본다.
       - name: 훅 자체 점검
         run: node scripts/agent-guard.cjs --selftest

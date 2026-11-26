@@ -18,6 +18,9 @@ DB 변경이 생기기 전까지 프로젝트별 migration log는 비워둘 수 
 - migration은 가능한 작고 되돌릴 수 있게 나눈다.
 - schema 변경과 data backfill은 가능하면 분리한다.
 - production migration은 사용자 승인 없이 실행하지 않는다.
+- **원격 DB 를 대시보드 SQL Editor 나 MCP 로 직접 고치지 않는다.** 저장소의 마이그레이션 파일이 스키마를 바꾸는 유일한 경로다. 직접 고치면 저장소와 원격 이력이 갈라져 새 환경을 만들 수 없게 된다(`.agents/examples/BAD_EXAMPLES.md` B-04). 급해서 직접 고쳤으면 같은 날 같은 SQL 을 마이그레이션 파일로 남기고 PR 에 그 사실을 적는다.
+- 새 테이블과 그 RLS·정책·index 는 같은 마이그레이션 파일에 둔다. `scripts/db-lint.mjs` 가 파일 단위로 검사한다(`.agents/data/DB_SCHEMA.md` 3.7).
+- 데이터를 지우는 문장(`drop table`·`drop column`·`truncate`·조건 없는 `delete`)에는 승인 기록을 주석으로 남긴다: `-- destructive-approved: <날짜> <승인자> <백업 위치>`. 없으면 `db-lint` 가 실패한다.
 - Supabase MCP가 연결되어 있으면 변경 전에 실제 스키마를 조회해 `.agents/data/DB_SCHEMA.md`와 대조한다. 문서와 실제가 다르면 **문서를 실제 DB에 맞춘 뒤** migration을 설계한다. 연결·권한 기준은 `.agents/TOOLING.md` 6장을 따른다.
 
 ---
@@ -156,6 +159,8 @@ Test users:
 - `UPDATE`는 SELECT policy가 없으면 대상 row를 찾지 못할 수 있다.
 - 권한 판단에 user-editable metadata를 사용하지 않는다.
 - policy를 완화하는 변경은 production 적용 전 별도 승인을 받는다.
+- 정책 안의 `auth.uid()` 는 `(select auth.uid())` 로 감싸고, 쓰기 정책의 조건을 `true` 로 두지 않는다(`DB_SCHEMA.md` 3.5).
+- RLS 조건에 쓰는 컬럼(`created_by`, `site_id` 등)의 index 여부를 함께 적는다.
 
 ### 4.6 Backfill
 

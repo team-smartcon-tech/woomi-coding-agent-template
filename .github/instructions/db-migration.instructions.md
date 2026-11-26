@@ -9,7 +9,7 @@ applyTo: "**/migrations/**,**/.agents/data/**,**/docs/DB-ERD/**"
 
 1. `docs/DB-ERD/README.md` — 작업 전 ERD 대조(필수). 체크리스트는 「DB 를 바꾸기 전에 ERD 로 검토한다」
 2. `.agents/data/MIGRATION.md`
-3. `.agents/data/DB_SCHEMA.md`
+3. `.agents/data/DB_SCHEMA.md` — 3.5·3.7 의 형태는 `scripts/db-lint.mjs` 가 PR 에서 검사한다. 고친 뒤 `node scripts/db-lint.mjs <파일>`
 4. `.agents/data/API_CONTRACT.md`
 5. RPC/function 추가·변경 시 `.agents/data/TRANSACTION.md` 7장 템플릿
 6. 관련 repository/service/API 구현

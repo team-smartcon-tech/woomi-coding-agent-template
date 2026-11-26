@@ -1,8 +1,6 @@
 import { createCookieSessionStorage, redirect } from "react-router"
 import { findMemberById, type Member } from "~/entities/member/model/member"
-
-// TODO[security]: 데모용 기본 시크릿. 운영에서는 반드시 SESSION_SECRET 환경변수를 설정한다.
-const sessionSecret = process.env.SESSION_SECRET ?? "dev-insecure-session-secret-change-me"
+import { env } from "~/shared/config/env.server"
 
 const storage = createCookieSessionStorage({
   cookie: {
@@ -10,8 +8,8 @@ const storage = createCookieSessionStorage({
     httpOnly: true,
     path: "/",
     sameSite: "lax",
-    secrets: [sessionSecret],
-    secure: process.env.NODE_ENV === "production",
+    secrets: [env.SESSION_SECRET],
+    secure: env.isProduction,
     maxAge: 60 * 60 * 24 * 7,
   },
 })

@@ -4,8 +4,8 @@ Woomi 표준 웹 서비스 프로젝트에서 모든 AI 에이전트가 먼저 �
 
 이 문서는 길게 구현 방법을 설명하지 않는다. 작업 유형을 분류하고, 필요한 `.agents/*` 문서로 라우팅하며, 보안/배포/데이터 손실 같은 절대 금지 규칙만 직접 가진다.
 
-- 표준 버전: `2.31-draft`
-- 최종 수정일: 2026-11-09
+- 표준 버전: `2.32-draft`
+- 최종 수정일: 2026-11-26
 - 기준 레퍼런스: CTPA Hono Worker layered architecture
 - 1차 원칙: 실제 코드와 가장 가까운 프로젝트 문서가 우선한다. 단, 보안/배포/데이터 손실 금지 규칙은 완화할 수 없다.
 
@@ -71,12 +71,15 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 | DB schema/RLS/index | `docs/DB-ERD/README.md`(작업 전 ERD 대조, 필수), `.agents/data/DB_SCHEMA.md`, `.agents/data/MIGRATION.md` | `.agents/data/DOMAIN_MODEL.md`, `.agents/data/TRANSACTION.md`, `.agents/code/API.md` |
 | migration/backfill | `docs/DB-ERD/README.md`(작업 전 ERD 대조, 필수), `.agents/data/MIGRATION.md`, `.agents/data/DB_SCHEMA.md` | `.agents/DEPLOYMENT.md`, `.agents/WORKFLOW.md` |
 | 배포/secret/binding | `.agents/DEPLOYMENT.md` | `wrangler.jsonc`·`.github/workflows/*`(있는 경우), `.agents/WORKFLOW.md` |
+| 환경변수 추가/변경 | `.agents/DEPLOYMENT.md` 4장 | `env.server.ts`, `.env.example`·`.dev.vars.example`, `pnpm env:check` |
 | MCP/외부 도구 연동 | `.agents/TOOLING.md` | `CLAUDE.md`, `CODEX.md`, `.github/*`, 도구별 설정 파일 |
 | PR/push/commit | `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, tool command/prompt |
 | 테스트 작성/실행 | `.agents/code/TESTING.md` | 대상 코드, `AGENTS.md` 7장 Quality Gates |
 | 리뷰 | `.agents/WORKFLOW.md`, 작업 영역별 문서 | diff, tests, 관련 code/data/ui 문서 |
 | 스택 변경 | `.agents/STACK.md` | `.agents/ARCHITECTURE.md`, README |
 | 에이전트 규칙 변경 | `AGENTS.md`, `.agents/WORKFLOW.md` | `CLAUDE.md`, `CODEX.md`, `.github/*` |
+
+화면·API·DB 작업은 시작 전에 [`.agents/examples/BAD_EXAMPLES.md`](./.agents/examples/BAD_EXAMPLES.md) 를 한 번 본다. 여러 저장소에서 실제로 반복된 실수와, 각각을 잡는 검사가 있는지가 적혀 있다.
 
 ---
 
@@ -105,7 +108,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 | `.agents/ui/UX_RULES.md` | loading/empty/error/permission, form, navigation, shortcut, feedback UX |
 | `.agents/ui/COMPONENTS.md` | 진행 중 작성하는 공통 컴포넌트 목록 |
 | `.agents/examples/GOOD_EXAMPLES.md` | 진행 중 축적하는 좋은 패턴 |
-| `.agents/examples/BAD_EXAMPLES.md` | 진행 중 축적하는 금지 패턴 |
+| `.agents/examples/BAD_EXAMPLES.md` | 실제로 반복된 실수와 그것을 잡는 검사 |
 
 표준 제공 문서는 고정된 절대 규칙이 아니다. 새 프로젝트 또는 기존 프로젝트에 적용할 때는 실제 코드, 프레임워크, 배포 방식, API 계약, 디자인 시스템을 확인한 뒤 프로젝트 현실에 맞게 수정한다.
 
@@ -126,7 +129,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 ├── .githooks/            # 로컬 git hook
 ├── docs/                 # 사람용 문서          — exec-brief/ · ai/(설계·결정·실행 계획) · DB-ERD/(테이블 관계도)
 ├── wiki/                 # 팀 지식 위키 (rules·sources / systems·patterns 는 생기면 / Obsidian 볼트 겸용)
-├── scripts/              # 반복 자동화
+├── scripts/              # 반복 자동화 · 검사(agent-guard · secret-scan · env-check · db-lint · erd-check)
 ├── supabase/             # migration, seed 설정 — 필요할 때 생성, 아직 없음
 ├── AGENTS.md
 ├── CLAUDE.md
@@ -142,7 +145,7 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 
 | 도구 | 보충 문서 | 반복 작업 | 복잡 작업 |
 |---|---|---|---|
-| Claude Code | `CLAUDE.md` | `.claude/commands/` | `.claude/skills/` |
+| Claude Code | `CLAUDE.md` | `.claude/commands/` | `.claude/skills/`, 경로별 포인터 `.claude/rules/` |
 | Codex | `CODEX.md` | `.codex/prompts/` | `.codex/skills/` |
 | GitHub Copilot | `.github/copilot-instructions.md` | `.github/prompts/` | `.github/instructions/` |
 
@@ -166,6 +169,8 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 - 사용자 승인 없는 외부 서비스 데이터 생성/수정/삭제 — 결제, 알림 발송, 고객 데이터 변경 포함
 - destructive filesystem command
 - secret 값을 대화, 보고, 문서에 출력
+- `.env`·`.dev.vars` 같은 값 파일을 열거나 내용을 출력 — 필요한 이름은 예시 파일에서 본다
+- MCP 나 대시보드로 원격 DB 의 스키마·데이터를 직접 변경 — 마이그레이션 파일로만 바꾼다
 - `git reset --hard` 또는 사용자 변경사항 되돌리기
 - 템플릿 규칙을 실제 프로젝트 코드보다 우선해 기계적으로 강제
 
@@ -179,6 +184,8 @@ Get-Content -Raw -Encoding UTF8 .agents\WORKFLOW.md
 - 반복되는 UX 패턴이나 공통 화면 정책이 생기면 `.agents/ui/UX_RULES.md` 또는 프로젝트별 UX 문서에 기록한다.
 - 검증하지 못한 항목은 최종 보고에 명시한다.
 
+**이 목록 중 기계가 강제하는 것은 일부다.** `scripts/agent-guard.cjs` 가 훅에서 차단하거나 승인 프롬프트로 올리는 것(값 파일 읽기, 훅 우회, 강제 푸시, main 직접 푸시, 작업트리 전체 되돌리기, 넓은 재귀 삭제, 배포·원격 DB 적용·secret 변경, MCP 쓰기)과 CI 가 실패시키는 것(7장)만 잠금장치다. 나머지는 이 문서를 읽고 지키는 안내문이다 — 훅이 조용하다고 허용된 것이 아니다.
+
 ---
 
 ## 7. Quality Gates
@@ -191,13 +198,16 @@ pnpm typecheck
 pnpm lint
 pnpm test
 pnpm build
+pnpm secret:scan   # 시크릿·값 파일
+pnpm env:check     # 코드가 읽는 환경변수 ↔ 예시 파일 ↔ wrangler 설정
+pnpm db:lint       # supabase/migrations/ 가 있을 때 — RLS·정책·함수·데이터 손실
 ```
 
-이 스캐폴드는 위 다섯을 **모두 제공한다**(2.18-draft 부터). CI([`.github/workflows/pr-checks.yml`](./.github/workflows/pr-checks.yml))가 PR 과 `main` push 에서 같은 순서로 돌린다 — 설정만 있고 게이트가 없으면 규칙이 아니라 권고다.
+이 스캐폴드는 위 여덟을 **모두 제공한다**(앞의 다섯은 2.18-draft, 뒤의 셋은 2.32-draft 부터). CI([`.github/workflows/pr-checks.yml`](./.github/workflows/pr-checks.yml))가 PR 과 `main` push 에서 같은 순서로 돌린다 — 설정만 있고 게이트가 없으면 규칙이 아니라 권고다.
 
 포맷·린트의 범위와 그 범위로 정한 근거는 [`.agents/STACK.md`](./.agents/STACK.md) 7장. 아래 `deploy:dry`는 없으므로 프로젝트에서 도입한 경우에만 실행한다. 없는 명령을 실행해 실패를 확인하지 않는다.
 
-**메뉴·탭·화면의 기능을 추가·변경했으면 위 다섯으로 끝내지 않는다.** 그 다섯은 "화면에서 실제로 눌러 보면 되는가"를 증명하지 않는다 — PR 전에 [`docs/브라우저-검증-절차.md`](./docs/브라우저-검증-절차.md) 로 브라우저에서 확인하고, **무엇을 확인하지 못했는지까지** PR 에 적는다. 문구·색·여백만 바꾼 수정과 문서·리팩터는 대상이 아니다.
+**메뉴·탭·화면의 기능을 추가·변경했으면 위 명령으로 끝내지 않는다.** 이 명령들은 "화면에서 실제로 눌러 보면 되는가"를 증명하지 않는다 — PR 전에 [`docs/브라우저-검증-절차.md`](./docs/브라우저-검증-절차.md) 로 브라우저에서 확인하고, **무엇을 확인하지 못했는지까지** PR 에 적는다. 문구·색·여백만 바꾼 수정과 문서·리팩터는 대상이 아니다.
 
 Cloudflare Worker 배포 전에는 프로젝트별 dry-run 명령을 우선한다.
 

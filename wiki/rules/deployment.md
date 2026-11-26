@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-08-19
+updated: 2026-11-26
 tags: [area/배포]
 ---
 
@@ -31,6 +31,10 @@ R2는 production/dev bucket을 분리하고, private 파일은 인증 없이 sig
 ## Secret
 
 secret 하드코딩, `.env` 실제 값 커밋, 프론트엔드에 service role key 노출, production secret의 dev/staging 재사용 금지. Worker secret은 Cloudflare Worker Secrets(`wrangler secret put ...`, `--env dev` 분리)에 저장한다 — [절대 금지·필수 규칙](non-negotiable-rules.md).
+
+환경변수는 한 모듈에서 Zod 로 읽고 없으면 기동을 멈춘다(스캐폴드 기준: `apps/web/app/shared/config/env.server.ts`). 변수를 추가하면 스키마·예시 파일·배포 secret 세 곳을 고치는데, 앞의 둘은 `pnpm env:check` 가 PR 에서 대조하고 **셋째는 기계가 확인하지 못한다**. secret 계열 이름을 `wrangler` 의 `vars` 에 넣는 것, secret 을 문자열 기본값으로 대체하는 것도 같은 검사가 잡는다(2.32-draft).
+
+secret 이 저장소에 올라갔으면 지우는 커밋으로 끝내지 않는다 — 폐기·재발급이 먼저다. 시크릿 스캔은 로컬 훅과 CI 가 같은 `scripts/secret-scan.mjs` 를 돈다. 훅은 꺼져 있을 수 있어서다(분기 저장소 16곳 중 5곳에 `.githooks/` 가 없었다).
 
 ## CI/CD
 

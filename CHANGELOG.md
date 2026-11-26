@@ -8,6 +8,58 @@
 
 ---
 
+## [2.32-draft] - 2026-11-26
+
+**문서에만 있던 규칙을 실패하는 검사로 옮긴다.** 이 템플릿에서 분기했거나 같은 스택인 저장소 16곳과 Supabase DB 12개를 조사하니, 템플릿에 이미 적혀 있던 규칙이 반대로 쌓여 있었다 — anon 이 실행 가능한 `security definer` 함수 66개, 감싸지 않은 `auth.uid()` 정책 87개, `.githooks/` 가 없는 저장소 5곳. 조사 방법·숫자·한계와 외부 자료(5계층 하네스)와의 대조는 [`docs/ai/designs/2026-11-26-harness-gates.md`](docs/ai/designs/2026-11-26-harness-gates.md).
+
+### 추가
+
+- **`scripts/secret-scan.mjs`** — 시크릿 형태(AWS·GitHub·Supabase·OpenAI·Anthropic·OpenRouter·Slack·Google 토큰, JWT, PEM, 비밀번호가 든 DB 접속 문자열, secret 계열 이름의 긴 리터럴)와 값 파일 커밋을 본다. `.githooks/pre-commit` 과 `pr-checks` 가 **같은 파일**을 부른다. 분기 저장소 10곳에 돌려 실제 발견 1건·오탐 0건. 키가 살아 있는지는 보지 않는다.
+- **`scripts/db-lint.mjs`** — 마이그레이션 SQL 형태 검사 13규칙(RLS 누락, primary key 없음, `timestamp`, 감싸지 않은 `auth.*()`, 쓰기 정책 `true`, `user_metadata`, `public` 의 definer 함수·`search_path`·실행 권한 미회수, `security_invoker` 없는 뷰, 승인 기록 없는 데이터 삭제 / 경고: FK index, 함수 `search_path`). `db-checks` 가 PR 이 **새로 추가한** 파일에만 돌린다. 예외는 `-- db-lint-allow: <규칙> <이유>`.
+- **`scripts/db-audit.sql`** — 운영 중인 DB 의 같은 항목을 개수로 돌려주는 읽기 전용 쿼리. 이번 조사에 쓴 쿼리다.
+- **`scripts/env-check.mjs`** — 코드가 읽는 환경변수 ↔ `.env.example`·`.dev.vars.example` ↔ `wrangler` 설정 대조(`env-drift`), 브라우저 접두사의 secret(`public-secret`), `vars` 의 secret(`wrangler-var-secret`), secret 을 문자열 기본값으로 대체(`unsafe-default`).
+- **`apps/web/app/shared/config/env.server.ts`** + `apps/web/.env.example` — 서버 환경변수의 유일한 입구. ESLint `no-restricted-properties` 가 다른 파일의 `process.env` 를 막는다.
+- **`.claude/rules/`** (`db.md`·`ui.md`·`env.md`) — `paths` 에 맞는 파일을 다룰 때만 읽히는 포인터. 본문은 `.agents/*` 에 있다. Copilot 용 `.github/instructions/ui-pitfalls.instructions.md`.
+- **`.agents/examples/BAD_EXAMPLES.md` 에 첫 사례 14건(B-01~B-14).** 두 곳 이상에서 반복된 것만 올렸고, 항목마다 잡는 검사가 있는지 적었다.
+- `package.json` 스크립트 `secret:scan`·`env:check`·`db:lint`.
+
+### 변경
+
+- **`scripts/agent-guard.cjs`**
+  - 값 파일: `.dev.vars` 를 `.env` 와 같이 본다. 훅 매처를 `Read|Write|Edit` 로 넓혔다(예전에는 쓰기만 막아 에이전트가 값을 읽을 수 있었다). Bash 의 `cat`·`grep`·`Get-Content` 등으로 값 파일을 읽는 것도 막는다. `cp .env.example .env` 와 예시 파일 읽기는 통과.
+  - 넓은 재귀 삭제(`rm -rf .`·`*`·`~`·절대경로·`.git`·`supabase/migrations`, PowerShell `Remove-Item -Recurse`, `rd /s`), `git clean -f`, `git restore .`·`git checkout .` 차단. `rm -rf node_modules` 같은 산출물 삭제는 통과.
+  - **승인 프롬프트**: `wrangler deploy`·`secret put`, `supabase db push`·`migration repair`, 원격 D1, `pnpm deploy`, `gh pr merge` 는 차단하지 않고 `permissionDecision: "ask"` 로 올린다. `.claude/settings.local.json` 의 allowlist 로 조용히 사전 승인된 경우에도 뜬다. Claude Code 에만 건다(`--ask`).
+  - **MCP**: `mcp__.*` 매처 추가. Supabase 의 `apply_migration`·쓰기 `execute_sql`·삭제, Cloudflare 의 `*_delete` 차단. 원격 상태를 바꾸는 나머지는 승인 프롬프트.
+  - 차단·승인요청을 `.agent-guard.log`(gitignore)에 남긴다. `--selftest` 가 훅 정의 파일에 가드 호출이 남아 있는지도 본다.
+- **`.githooks/pre-commit`** — grep 한 줄을 `secret-scan.mjs --staged` 호출로 바꿨다. pnpm 저장소에 `package-lock.json`·`yarn.lock` 이 올라오는 것을 막는다.
+- **`pr-checks`** — 시크릿 스캔, lockfile 검사, 환경변수 경계 단계. **`db-checks`** — `db-lint` 자체 점검과 새 마이그레이션 검사.
+- `.gitignore` — `.dev.vars`·`.dev.vars.*`(예시 제외), `.agent-guard.log`.
+- 규칙 문서: `AGENTS.md` 2장(환경변수 행, BAD_EXAMPLES 안내)·6장(값 파일 읽기와 원격 DB 직접 변경 금지, "기계가 강제하는 것은 일부" 문단)·7장(명령 셋 추가), `DB_SCHEMA.md` 3.5·3.7, `MIGRATION.md` 1장·4.5, `DEPLOYMENT.md` 4.1~4.3(env 한 곳, Worker 파일 목록, 유출 대응), `TOOLING.md` 6.5, `CLAUDE.md`(훅 표, `.claude/rules/`), `CODEX.md` 4장, `.githooks/README.md`.
+- 위키: 정리본 5면 갱신, `log.md`.
+
+### 수정
+
+- 스캐폴드의 `session.server.ts` 가 `SESSION_SECRET` 이 없으면 소스에 적힌 고정 문자열로 세션을 서명했다. 이제 운영에서는 변수가 없으면 **기동하지 않고**, `pnpm dev` 에서는 프로세스마다 새 값을 만든다(dev 서버를 다시 띄우면 로그인이 풀린다). **`pnpm start` 는 운영 모드로 뜨므로 로컬에서도 `SESSION_SECRET` 을 줘야 한다** — 변수 없이 실행해 기동 실패, 변수를 주고 200, `pnpm dev` 는 변수 없이 200 인 것을 확인했다.
+
+### 확인하지 못한 것
+
+- 실제 Claude Code 세션에서 승인 프롬프트가 뜨는지, `.claude/rules/` 의 `paths` 로딩, `mcp__.*` 매처 발화. 판정 로직은 selftest 와 stdin payload 로 확인했다.
+- Codex 에서 `Read`·`mcp__.*` 매처 발화.
+- 바뀐 워크플로 두 개의 GitHub 러너 실행.
+
+### 분기한 프로젝트가 가져갈 때
+
+- `pr-checks` 의 시크릿 스캔은 저장소 전체를, `env-check` 는 `apps/`·`packages/` 를 본다. 기존 코드에서 실패하면 그것이 정리할 목록이다. 소스 폴더가 다르면 `node scripts/env-check.mjs --roots src,worker`.
+- `db-lint` 는 새 마이그레이션만 보므로 기존 파일 때문에 막히지 않는다. 쌓인 상태는 `scripts/db-audit.sql` 로 본다.
+
+### 남은 것
+
+- `AGENTS.md` 를 지도 수준으로 줄이기(305줄).
+- 검사가 없는 반복 실수(화면의 테이블 직접 접근, 1,000행 잘림, UTC 날짜, `alert()`)의 ESLint 규칙.
+- Gitleaks·Squawk 를 CI 에 붙여 실측. 정기 전체 이력 스캔.
+
+---
+
 ## [2.31-draft] - 2026-11-09
 
 ### 추가

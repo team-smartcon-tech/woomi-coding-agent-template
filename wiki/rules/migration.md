@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-10-23
+updated: 2026-11-26
 tags: [area/데이터]
 ---
 
@@ -25,6 +25,12 @@ ERD 갱신은 PR 이 검사한다 — `supabase/migrations/` 에 SQL 이 생기�
 
 - **적용 전 테이블은 계획 문서에 그린다** — 격리 DB 는 미적용 마이그레이션까지 적용하므로, 현재 ERD 에도 계획 문서에도 없으면 "FK 가 있는데 실선이 없다" 로 실패한다.
 - **적용 뒤 현재 ERD 로 옮겼으면 계획 문서 머리말 `상태:` 를 `적용됨` 으로 고친다** — 안 고치면 같은 관계가 두 번 세어져 실패한다.
+
+## 원격을 직접 고치지 않는다 (2.32-draft)
+
+대시보드 SQL Editor 나 MCP 로 원격 DB 를 직접 고치면 저장소의 `supabase/migrations/` 와 원격 이력이 갈라진다. 조사한 DB 12개 중 2개는 마이그레이션 이력 테이블이 없었고 3개는 파일 수와 원격 적용 수가 크게 달랐다. 그 상태에서는 새 환경을 재현할 수 없고 `db-checks` 의 재현 검사도 의미를 잃는다. 급해서 직접 고쳤으면 같은 날 같은 SQL 을 파일로 남긴다. `agent-guard` 가 MCP `apply_migration`·쓰기 `execute_sql` 을 차단하고 `supabase db push` 는 승인 프롬프트로 올린다 — [도구 사용 기준](tooling.md).
+
+새 테이블과 그 RLS·정책·index 는 **같은 파일**에 둔다. `db-lint` 가 파일 단위로 판정하기 때문이다. 데이터를 지우는 문장에는 `-- destructive-approved:` 주석이 있어야 통과한다 — [DB 스키마 가드레일](db-schema-guardrails.md).
 
 ## 표준 흐름 8단계
 

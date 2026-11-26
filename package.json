@@ -12,7 +12,10 @@
     "lint:fix": "eslint apps/web/app --fix",
     "test": "pnpm --filter web test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "secret:scan": "node scripts/secret-scan.mjs",
+    "env:check": "node scripts/env-check.mjs",
+    "db:lint": "node scripts/db-lint.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

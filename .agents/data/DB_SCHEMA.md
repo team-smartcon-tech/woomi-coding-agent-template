@@ -137,6 +137,12 @@ Supabase에서 exposed schema, 특히 `public` table은 RLS를 기본으로 검�
 - 권한 판단에 `user_metadata`를 사용하지 않는다. 권한 데이터는 app metadata 또는 별도 권한 테이블을 사용한다.
 - view는 RLS 우회 가능성을 검토한다. 필요한 경우 `security_invoker = true` 또는 private schema를 사용한다.
 - `security definer` function은 exposed schema에 두지 않는다.
+- 정책 안의 `auth.uid()`·`auth.jwt()`·`auth.role()` 은 `(select auth.uid())` 로 감싼다. 감싸지 않으면 행마다 다시 계산한다.
+- 쓰기(`insert`·`update`·`delete`·`all`) 정책의 조건을 `true` 로 두지 않는다. 서버만 쓰는 테이블은 RLS 를 켜고 정책을 두지 않는다.
+- 함수에는 `set search_path = ''` 를 붙이고 본문에서 스키마를 적는다(`public.sites`).
+- `public` 에 둘 수밖에 없는 `security definer` 함수는 같은 마이그레이션에서 `revoke execute on function … from public, anon` 을 한다. PostgreSQL 은 새 함수의 실행 권한을 모든 역할에 기본으로 준다.
+
+위 항목은 3.7 의 검사가 본다.
 
 ### 3.6 Index 기준
 
@@ -189,6 +195,39 @@ Monitoring candidate:
 - RLS 성능 개선을 위한 index
 - lock 또는 쓰기 성능에 영향이 클 수 있는 index
 
+### 3.7 기계가 검사하는 형태
+
+3.1~3.6 의 일부는 `scripts/db-lint.mjs` 가 마이그레이션 파일에서 검사한다. PR 이 **새로 추가한** `supabase/migrations/*.sql` 만 보고(`db-checks` 워크플로), 이미 적용된 파일은 보지 않는다.
+
+| 규칙 | 실패 조건 | 근거 |
+|---|---|---|
+| `rls-missing` | `public` 테이블을 만들고 같은 파일에서 RLS 를 켜지 않음 | 3.5 |
+| `no-primary-key` | primary key 없는 테이블 | 3.1 |
+| `timestamp-without-tz` | `timestamp` 컬럼(시간대 없음) | 3.1 |
+| `policy-bare-auth` | 정책에서 `auth.*()` 를 `(select …)` 로 감싸지 않음 | 3.5 |
+| `policy-always-true` | 쓰기 정책 조건이 `true` (service_role 전용 제외) | 3.5 |
+| `policy-user-metadata` | 정책이 `user_metadata` 로 권한 판정 | 3.5 |
+| `definer-in-public` | `security definer` 함수를 `public` 에 생성 | 3.5 |
+| `definer-search-path` | `security definer` 함수에 `set search_path` 없음 | 3.5 |
+| `definer-anon-execute` | `public` 의 definer 함수 실행 권한을 회수하지 않음 | 3.5 |
+| `view-security-invoker` | `public` 뷰에 `security_invoker` 없음 | 3.5 |
+| `destructive` | `drop table`·`drop column`·`truncate`·조건 없는 `delete` 인데 승인 기록 없음 | `AGENTS.md` 6장 |
+| `fk-index-decision` (경고) | FK 컬럼에 index 가 없음 | 3.6 |
+| `function-search-path` (경고) | 함수에 `set search_path` 없음 | 3.5 |
+
+`fk-index-decision` 은 경고다. 3.6 의 원칙대로 index 를 자동으로 만들지 않는다 — 만들지 않기로 했으면 그 이유를 마이그레이션에 적는다.
+
+의도한 예외는 그 파일에 이유와 함께 적는다. 이유가 없으면 무시된다.
+
+```sql
+-- db-lint-allow: definer-in-public 로그인 전에 호출해야 해서 public 에 둔다. 입력은 함수 안에서 검증
+-- destructive-approved: 2026-11-26 DB 담당 승인. 백업: <위치>
+```
+
+이 검사는 **파일 하나 안에서** 판정한다. 테이블은 앞 파일에서 만들고 RLS 는 뒤 파일에서 켜면 앞 파일이 실패한다. 그래서 새 테이블과 그 RLS·정책·index 는 같은 마이그레이션에 둔다. `do $$ … $$` 안에서 동적으로 만드는 정책, 테이블 크기에 따른 잠금 시간, 정책이 업무상 옳은지는 보지 않는다.
+
+이미 운영 중인 DB 의 상태는 `scripts/db-audit.sql` 로 본다(읽기 전용, 개수만 돌려준다). 새 프로젝트를 이어받았을 때와 분기마다 한 번 돌려 결과를 `DB_SCHEMA.md` 5장에 남긴다.
+
 ---
 
 ## 4. Review Checklist
@@ -212,6 +251,7 @@ Rollback impact:
 ERD reviewed and updated (docs/DB-ERD):
 Multi-write paths use RPC or TX-EXCEPTION (TRANSACTION.md):
 Concurrency rule (conditional update / unique / lock):
+db-lint passes or each allow has a reason (3.7):
 ```
 
 관계 쪽 검토(참조 타입·삭제 동작·붙일 부모·nullable FK·식별과 중복)는 `docs/DB-ERD/README.md`

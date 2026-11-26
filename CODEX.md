@@ -61,6 +61,8 @@ Codex hooks는 [`.codex/hooks.json`](./.codex/hooks.json)에 정의한다.
 
 `Bash` 매처의 `main` 직접 push 차단은 동작이 확인되었다. 반면 **`Write`/`Edit` 매처의 민감 파일 차단은 Codex 버전에 따라 발화가 보장되지 않는다.** 없는 보호를 있다고 가정하지 말고, Codex 를 쓸 때는 아래 git hook 활성화를 필수로 본다.
 
+`2.32-draft` 에서 훅 판정이 늘었다(값 파일 읽기, 넓은 재귀 삭제, 작업트리 전체 되돌리기, MCP 쓰기 차단). 이 중 **승인 프롬프트로 올리는 동작은 Codex 에 걸지 않았다** — Codex 훅이 그 응답 형식을 받는지 확인하지 못했기 때문이다. 그래서 `wrangler deploy`·`supabase db push` 같은 명령은 Codex 에서는 훅을 그대로 지나간다. `AGENTS.md` §6 의 승인 규칙은 그대로 적용되며, Codex 자체의 승인 설정으로 받는다. `Read` 매처와 `mcp__.*` 매처의 발화도 Codex 버전에 따라 보장되지 않는다.
+
 Git hook은 도구와 무관하게 Git 레벨에서 동작한다. 프로젝트 루트에서 실행한다.
 
 ```bash

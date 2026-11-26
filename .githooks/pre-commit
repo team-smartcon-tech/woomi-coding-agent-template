@@ -1,25 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-staged="$(git diff --cached --name-only --diff-filter=ACM)"
-
-# 1) .env 계열 파일 차단. `.env.example` / `.env.*.example` 은 .gitignore 의
-#    `!.env.example` 과 같은 기준으로 허용한다(예시 파일은 추적하는 것이 표준이다).
-if printf '%s\n' "$staged" | grep -E '(^|/)\.env($|\.)' | grep -vE '\.example$' >/dev/null; then
-  echo "ERROR: .env 파일은 커밋할 수 없습니다."
-  echo "       예시가 필요하면 실제 값을 지우고 .env.example 로 두세요."
-  exit 1
+# 1) 시크릿과 값 파일(.env · .dev.vars · 키 파일).
+#    규칙은 scripts/secret-scan.mjs 한 곳에 있고 CI(pr-checks)도 같은 파일을 부른다 — 이 훅은
+#    core.hooksPath 가 설정된 PC 에서만 돌기 때문에, 훅이 꺼진 PC 의 커밋은 CI 가 본다.
+if command -v node >/dev/null 2>&1 && [ -f scripts/secret-scan.mjs ]; then
+  node scripts/secret-scan.mjs --staged
+else
+  # node 가 없으면 최소한 값 파일만 막는다.
+  if git diff --cached --name-only --diff-filter=ACM \
+      | grep -E '(^|/)\.(env|dev\.vars)($|\.)' | grep -vE '\.example$' >/dev/null; then
+    echo "ERROR: .env / .dev.vars 파일은 커밋할 수 없습니다. 예시는 .env.example 로 둡니다."
+    exit 1
+  fi
 fi
 
-# 2) 시크릿 휴리스틱. lockfile 과 빌드 산출물은 오탐만 만들어 제외한다.
-if git diff --cached -U0 -- . \
-    ':(exclude)pnpm-lock.yaml' ':(exclude)package-lock.json' ':(exclude)yarn.lock' \
-    ':(exclude)*build/*' ':(exclude)*dist/*' ':(exclude)*coverage/*' \
-  | grep -E '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|sb_secret_[A-Za-z0-9_-]{16,}|eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' >/dev/null; then
-  echo "ERROR: 시크릿으로 보이는 문자열이 감지되었습니다."
-  echo "       AWS 키, GitHub 토큰, Supabase secret key, JWT, PEM 개인키 형태를 검사합니다."
-  echo "       값을 코드에서 지우고 환경변수 또는 platform secret 으로 옮기세요."
-  exit 1
+# 2) lockfile 은 하나만. package.json 의 packageManager 가 pnpm 인데 npm·yarn lockfile 이 같이
+#    올라오면 PC 마다 다른 버전이 설치된다(파생 저장소 16곳 중 5곳에 package-lock.json 이 있었다).
+if grep -q '"packageManager": *"pnpm' package.json 2>/dev/null; then
+  if git diff --cached --name-only --diff-filter=ACM \
+      | grep -E '(^|/)(package-lock\.json|yarn\.lock|bun\.lockb?)$' >/dev/null; then
+    echo "ERROR: 이 저장소는 pnpm 을 씁니다. package-lock.json / yarn.lock 은 커밋하지 않습니다."
+    echo "       npm install 로 생긴 파일이면 지우고 pnpm install 을 다시 실행하세요."
+    exit 1
+  fi
 fi
 
 exit 0
