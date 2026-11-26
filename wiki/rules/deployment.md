@@ -1,6 +1,6 @@
 ---
 type: rule
-updated: 2026-11-26
+updated: 2026-11-27
 tags: [area/배포]
 ---
 
@@ -30,7 +30,7 @@ R2는 production/dev bucket을 분리하고, private 파일은 인증 없이 sig
 
 ## Secret
 
-secret 하드코딩, `.env` 실제 값 커밋, 프론트엔드에 service role key 노출, production secret의 dev/staging 재사용 금지. Worker secret은 Cloudflare Worker Secrets(`wrangler secret put ...`, `--env dev` 분리)에 저장한다 — [절대 금지·필수 규칙](non-negotiable-rules.md).
+secret 하드코딩, `.env` 실제 값 커밋, 프론트엔드에 service role key 노출, production secret의 dev/staging 재사용 금지. Worker secret은 Cloudflare Worker Secrets(`wrangler secret put ...`)에 저장하고 환경마다 다른 값을 둔다 — [절대 금지·필수 규칙](non-negotiable-rules.md). **이 스캐폴드에서는 `--env` 가 아니라 `--name woomi-web` / `--name woomi-web-preview` 로 Worker 를 직접 지정한다** — 로컬 빌드 뒤에는 `--env` 가 무시되어 운영 secret 을 덮어쓴다(아래 "스캐폴드의 Worker 배포"). `--env` 로 나누는 방식은 Vite 플러그인을 쓰지 않는 Worker 프로젝트에만 맞다.
 
 환경변수는 한 모듈에서 Zod 로 읽는다(스캐폴드 기준: `apps/web/app/shared/config/env.server.ts`, 로직은 `env.schema.ts`). **Worker 에는 기동 실패가 없어서** 운영·프리뷰(`APP_ENV`)에서 `SESSION_SECRET` 이 없으면 처음 쓰는 요청이 실패한다 — 세션 500, `GET /api/health` 503. 변수를 추가하면 스키마·예시 파일(`.dev.vars.example`)·배포 secret 세 곳을 고치는데, 앞의 둘은 `pnpm env:check` 가 PR 에서 대조하고 **셋째는 기계가 확인하지 못한다**. secret 계열 이름을 `wrangler` 의 `vars` 에 넣는 것, secret 을 문자열 기본값으로 대체하는 것도 같은 검사가 잡는다(2.32-draft).
 
@@ -46,7 +46,7 @@ secret 이 저장소에 올라갔으면 지우는 커밋으로 끝내지 않는�
 - **secret 은 `--name woomi-web` / `--name woomi-web-preview` 로 지정한다.** 로컬 빌드 뒤에는 `--env preview` 가 무시되어 운영 secret 을 덮어쓴다. `--name` 과 `--env` 는 같이 쓰지 않는다. 버전만 올린 Worker 는 `wrangler versions secret put` (wrangler 4.168.0 소스 읽기 근거, 실행 확인 아님).
 - `deploy.yml` 은 `CLOUDFLARE_API_TOKEN`·`CLOUDFLARE_ACCOUNT_ID` 가 없으면 "배포 건너뜀" 으로 통과한다 — 통과가 아니라 **미검증**이다.
 - `.dev.vars` 가 있는 채로 만든 `build/` 는 secret 을 품는다. 배포·공유하지 않는다.
-- 확인하지 못한 것: 실제 배포·Access, `deploy.yml` 의 러너 실행, `_headers`(정적 자산 응답용 — SSR 화면은 `entry.server.tsx` 가 같은 헤더를 건다)·`.assetsignore` 의 Cloudflare 쪽 동작. Access 를 걸면 `deploy.yml` 의 health 단계도 막힌다.
+- 확인하지 못한 것: 실제 배포·Access, `deploy.yml` 의 배포 경로(계정 정보 없음 → 건너뜀 경로만 PR #43 러너에서 확인), `_headers`(정적 자산 응답용 — SSR 화면은 `entry.server.tsx` 가 같은 헤더를 건다)·`.assetsignore` 의 Cloudflare 쪽 동작. Access 를 걸면 `deploy.yml` 의 health 단계도 막힌다.
 
 ## CI/CD
 

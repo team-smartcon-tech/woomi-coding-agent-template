@@ -330,3 +330,8 @@ tags: [wiki/log]
   | Task 2·4 리뷰 | 서브에이전트 | opus |
   | Task 3 재검토 | 서브에이전트 | haiku |
   | Task 4 재검토 | 서브에이전트 | sonnet |
+
+## 2026-11-27 · 고치기 · 배포 정리본의 secret 지정 문장, 표준 버전 3.0-draft
+
+- 고친 것: [배포](rules/deployment.md) Secret 절이 "`wrangler secret put …`, `--env dev` 분리" 를 안내하고 있었다. Vite 플러그인 스캐폴드에서는 로컬 빌드 뒤 `--env` 가 무시되어 운영 Worker 의 secret 을 덮어쓴다 — 같은 페이지 아래 절의 예외를 위 문장만 읽은 사람이 놓치므로, 위 문장에서 바로 `--name woomi-web` / `--name woomi-web-preview` 를 쓰라고 적었다. 같은 페이지의 "확인하지 못한 것" 에 PR #43 러너에서 확인된 범위(배포 건너뜀 경로만)를 반영했다.
+- 정한 것: 표준 버전을 MINOR(2.33) 가 아니라 MAJOR(3.0-draft)로 — 사용자 결정. 실행 방식·로컬 값 파일·메이저 의존성이 함께 바뀌어 2.x 분기 프로젝트가 그대로 당겨오면 깨진다.
